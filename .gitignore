@@ -1,0 +1,23 @@
+# visual studio project file
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# build output
+build/
+website/
+
+# intermediate files
+.cache/*
+
+# Dependency directories
+node_modules/
+
+# development tools
+emsdk/
+
+# macOS
+.DS_Store

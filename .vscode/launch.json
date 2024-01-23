@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Web target",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000/build/${command:cmake.activeConfigurePresetName}/assignments/${command:cmake.launchTargetFilename}",
+            "preLaunchTask": "StartServer",
+        }
+    ]
+}
