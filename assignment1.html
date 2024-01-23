@@ -1,0 +1,34 @@
+<h3>Assignment 1 - Postprocessing</h3>
+<h4>Goal</h4>
+<p>Solidify your understanding of framebuffers by implementing a single pass post processing effect.</p>
+<p>View <a href="demo/assignment1.html">demo</a></p>
+<h4>Requirements</h4>
+<ul>
+<li>Implement a method to create a custom framebuffer</li>
+<li>
+<pre><code>Framebuffer must contain at least one color buffer and one depth buffer.
+</code></pre>
+</li>
+<li>Scene must be rendered to framebuffer</li>
+<li>Render the framebuffer to the screen as a fullscreen quad or triangle, and apply a post process effect in the fragment shader.</li>
+<li>All effects must include ImGUI controls for all relevant properties (enabled/disabled, intensity, etc)</li>
+<li>Some possible effects:</li>
+<li>Image Convolution</li>
+<li>Box blur</li>
+<li>Gaussian blur</li>
+<li>Sharpen</li>
+<li>Edge detect</li>
+<li>HDR tone mapping</li>
+<li>Gamma correction</li>
+<li>Chromatic aberration</li>
+<li>Vignette</li>
+<li>Lens distortion</li>
+<li>Film grain</li>
+<li>Screen-space fog (requires reading from depth buffer)</li>
+<li>Bonus:</li>
+<li>Implement ping-pong framebuffers to apply multiple effects, each using their own fragment shader. +10</li>
+<li>Use version control best practices - descriptive commit messages, frequent commits, no extraneous files.</li>
+</ul>
+<h4>Requirements</h4>
+<p>OpenGL SuperBible Chapter 9.4 - Offscreen Rendering
+[LearnOpenGL - Framebuffers]: https://learnopengl.com/Advanced-OpenGL/Framebuffers</p>
