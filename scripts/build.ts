@@ -32,7 +32,7 @@ function _buildWebsite() {
   }
 
   // glob demo
-  const demo_glob = globSync("build/default/assignments/*.{html,js,wasm}");
+  const demo_glob = globSync("build/assignments/*.{html,js,wasm}");
   for (const file of demo_glob) {
     const name = path.basename(file);
     console.log("found a file:", name);

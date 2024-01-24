@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "cmake": "cmake --preset default -B build && cmake --build build --preset Debug",
+    "emsdk": "git clone https://github.com/emscripten-core/emsdk && cd emsdk && ./emsdk install latest && ./emsdk activate --embedded latest && cd ..",
     "build": "ts-node scripts/build.ts",
     "server": "ts-node scripts/server.ts"
   },

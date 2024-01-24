@@ -21,6 +21,8 @@ jobs:
       - name: Install and Build 🔧
         run: |
           npm ci
+          npm run emsdk
+          npm run cmake
           npm run build
 
       - name: Deploy 🚀

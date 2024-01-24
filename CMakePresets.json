@@ -8,10 +8,10 @@
     "configurePresets": [
         {
             "name": "default",
-            "displayName": "Web",
+            "displayName": "Emscripten",
             "description": "",
             "generator": "Ninja",
-            "binaryDir": "build/${presetName}",
+            "binaryDir": "build",
             "toolchainFile": "emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
         }
     ],

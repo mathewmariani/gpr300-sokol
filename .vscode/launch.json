@@ -5,7 +5,7 @@
             "name": "Web target",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:3000/build/${command:cmake.activeConfigurePresetName}/assignments/${command:cmake.launchTargetFilename}",
+            "url": "http://localhost:3000/build/assignments/${command:cmake.launchTargetFilename}",
             "preLaunchTask": "StartServer",
         }
     ]
