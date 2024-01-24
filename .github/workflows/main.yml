@@ -18,11 +18,30 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
-      - name: Install and Build 🔧
+      - name: Setup Ninja 📦
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          version: 1.10.0
+
+      - name: Install Packages 📦
         run: |
           npm ci
-          npm run emsdk
-          npm run cmake
+
+      - name: Install and Activate Emscripten 🔧
+        run: |
+          git clone https://github.com/emscripten-core/emsdk
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate --embedded latest
+          cd ..
+
+      - name: Build with Cmake 🔧
+        run: |
+          cmake --preset default -B build
+          cmake --build build --preset Release
+
+      - name: Building Website 🔧
+        run: |
           npm run build
 
       - name: Deploy 🚀
