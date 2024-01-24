@@ -7,11 +7,11 @@ endmacro()
 
 macro(add_assignment target file)
   add_executable(${target} ${file})
-  target_link_libraries(${target} fast_obj)
-  target_link_libraries(${target} glm)
-  target_link_libraries(${target} imgui)
-  target_link_libraries(${target} sokol)
-  target_link_libraries(${target} stb)  
+  target_link_libraries(${target} PRIVATE fast_obj)
+  target_link_libraries(${target} PRIVATE glm)
+  target_link_libraries(${target} PRIVATE imgui)
+  target_link_libraries(${target} PRIVATE sokol)
+  target_link_libraries(${target} PRIVATE stb)  
   target_include_directories(${target} PUBLIC ../libs)
 
   target_compile_options(${target} PRIVATE

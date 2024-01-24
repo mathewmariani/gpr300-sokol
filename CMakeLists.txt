@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(gpr300)
 
-# platform selection
+#defines
 add_definitions(-DSOKOL_NO_DEPRECATED)
+
+# platform selection
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
   add_definitions(-DSOKOL_GLES3)
 elseif (CMAKE_SYSTEM_NAME STREQUAL Darwin)
