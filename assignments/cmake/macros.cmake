@@ -6,7 +6,7 @@ macro(emscripten target)
 endmacro()
 
 macro(add_assignment target file)
-  add_executable(${target} ${file})
+  add_executable(${target} ${file} batteries.h)
 
   target_compile_options(${target} PRIVATE
     -Waddress-of-temporary

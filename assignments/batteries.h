@@ -1,6 +1,17 @@
 #ifndef BATTERIES_INCLUDED
 #define BATTERIES_INCLUDED
 
+// sokol
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_fetch.h"
+#include "sokol/sokol_time.h"
+#include "sokol/sokol_log.h"
+#include "sokol/sokol_glue.h"
+
+// imgui
+#include "imgui/imgui.h"
+
 // glm
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -19,8 +30,8 @@ namespace batteries
   struct mesh_t
   {
     // sokol resources
-    sg_pipeline pip;
-    sg_bindings bind;
+    sg_pipeline pip;  // not needed
+    sg_bindings bind; // not needed
     sg_buffer vbuf;
     sg_buffer ibuf;
 
@@ -74,13 +85,64 @@ namespace batteries
                  : glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
     }
   };
+
+  void setup(void);
+  void shutdown(void);
+  void frame(void);
+  void event(const sapp_event *event);
 }
 
 #endif // BATTERIES_INCLUDED
 #ifdef BATTERIES_IMPL
 
+// sokol-imgui
+#define SOKOL_IMGUI_IMPL
+#include "sokol/sokol_imgui.h"
+
 namespace batteries
 {
+  void setup(void)
+  {
+    // setup sokol-gfx
+    sg_setup((sg_desc){
+        .context = sapp_sgcontext(),
+        .logger.func = slog_func,
+    });
+
+    // setup sokol-time
+    stm_setup();
+
+    // setup sokol-fetch
+    sfetch_setup((sfetch_desc_t){
+        .max_requests = 3,
+        .num_channels = 1,
+        .num_lanes = 3,
+        .logger.func = slog_func,
+    });
+
+    // setup sokol-imgui
+    simgui_setup((simgui_desc_t){
+        .logger.func = slog_func,
+    });
+  }
+
+  void shutdown(void)
+  {
+    sfetch_shutdown();
+    simgui_shutdown();
+    sg_shutdown();
+  }
+
+  void frame(void)
+  {
+    sfetch_dowork();
+    simgui_new_frame({sapp_width(), sapp_height(), sapp_frame_duration(), sapp_dpi_scale()});
+  }
+
+  void event(const sapp_event *event)
+  {
+    simgui_handle_event(event);
+  }
 }
 
 #endif // BATTERIES_IMPL

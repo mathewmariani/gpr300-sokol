@@ -1,24 +1,9 @@
-// sokol
-#include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_fetch.h"
-#include "sokol/sokol_time.h"
-#include "sokol/sokol_log.h"
-#include "sokol/sokol_glue.h"
-
-// imgui
-#include "imgui/imgui.h"
-
-// sokol-imgui
-#define SOKOL_IMGUI_IMPL
-#include "sokol/sokol_imgui.h"
+#define BATTERIES_IMPL
+#include "batteries.h"
 
 // libs
 #include "glm/glm.hpp"
 #include "fast_obj/fast_obj.h"
-
-#define BATTERIES_IMPL
-#include "batteries.h"
 
 #include <string>
 
@@ -120,27 +105,7 @@ static void suzanne_data_loaded(const sfetch_response_t *response);
 
 void init(void)
 {
-  // setup sokol-gfx
-  sg_setup((sg_desc){
-      .context = sapp_sgcontext(),
-      .logger.func = slog_func,
-  });
-
-  // setup sokol-time
-  stm_setup();
-
-  // setup sokol-fetch
-  sfetch_setup((sfetch_desc_t){
-      .max_requests = 3,
-      .num_channels = 1,
-      .num_lanes = 3,
-      .logger.func = slog_func,
-  });
-
-  // setup sokol-imgui
-  simgui_setup((simgui_desc_t){
-      .logger.func = slog_func,
-  });
+  batteries::setup();
 
   // initialize pass action for default-pass
   state.pass_action = (sg_pass_action){
@@ -259,12 +224,7 @@ static void suzanne_data_loaded(const sfetch_response_t *response)
 
 void frame(void)
 {
-  sfetch_dowork();
-
-  const float width = sapp_widthf();
-  const float height = sapp_heightf();
-
-  simgui_new_frame({(int)width, (int)height, sapp_frame_duration(), sapp_dpi_scale()});
+  batteries::frame();
 
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   if (ImGui::ColorEdit3("Ambient Light", &state.ambient_light[0]))
@@ -273,6 +233,8 @@ void frame(void)
   }
   ImGui::End();
 
+  const auto width = sapp_width();
+  const auto height = sapp_height();
   sg_begin_default_pass(&state.pass_action, width, height);
 
   if (!state.loaded.failed && (state.loaded.suzanne))
@@ -280,7 +242,7 @@ void frame(void)
     state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
 
     const vs_params_t vs_params = {
-        .proj = glm::perspective(glm::radians(60.0f), width / height, 0.01f, 10.0f),
+        .proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f),
         .view = glm::lookAt(glm::vec3(0.0f, 1.5f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
         .model = state.suzanne.transform.matrix(),
         .eye = glm::vec3(0.0f, 1.5f, 6.0f),
@@ -301,14 +263,12 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  simgui_handle_event(event);
+  batteries::event(event);
 }
 
 void cleanup(void)
 {
-  sfetch_shutdown();
-  simgui_shutdown();
-  sg_shutdown();
+  batteries::shutdown();
 }
 
 sapp_desc sokol_main(int argc, char *argv[])
