@@ -18,7 +18,8 @@ jobs:
     
       - name: Checkout 🛎️
         uses: actions/checkout@v3
-      - name: Checkout submodules 🛎️
+
+      - name: Update Submodules 🛎️
         run: git submodule update --init --recursive
 
       - name: Setup Ninja 📦

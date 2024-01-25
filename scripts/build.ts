@@ -10,8 +10,8 @@ function _buildWebsite() {
   if (!fs.existsSync("website")) {
     fs.mkdirSync("website");
   }
-  if (!fs.existsSync("website/public/demo")) {
-    fs.mkdirSync("website/public/demo", { recursive: true });
+  if (!fs.existsSync("website/demo")) {
+    fs.mkdirSync("website/demo", { recursive: true });
   }
 
   // glob all .md files
@@ -36,7 +36,7 @@ function _buildWebsite() {
   for (const file of demo_glob) {
     const name = path.basename(file);
     console.log("found a file:", name);
-    fs.copyFile(file, `website/public/demo/${name}`, (err) => {
+    fs.copyFile(file, `website/demo/${name}`, (err) => {
       if (err) {
         console.error(err);
       }
@@ -44,7 +44,7 @@ function _buildWebsite() {
   }
 
   // copy assets directory
-  fs.cp("assignments/assets", "website/public/demo/assets", { recursive: true }, (err) => {
+  fs.cp("assignments/assets", "website/demo/assets", { recursive: true }, (err) => {
     if (err) {
       console.error(err);
     }
