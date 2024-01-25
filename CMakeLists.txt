@@ -22,4 +22,6 @@ add_subdirectory(assignments)
 set_property(DIRECTORY assignments PROPERTY FOLDER "assignments")
 
 # assets
-file(COPY "assignments/assets" DESTINATION ${CMAKE_BINARY_DIR}/assignments)
+# TODO: use a symlink, and figure out the build type in advance
+file(COPY "assignments/assets" DESTINATION "${CMAKE_BINARY_DIR}/assignments/Debug")
+file(COPY "assignments/assets" DESTINATION "${CMAKE_BINARY_DIR}/assignments/Release")
