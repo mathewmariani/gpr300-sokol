@@ -1,6 +1,6 @@
 # Intermediate Graphics Programming (GPR 300)
 
-It is required that the prerequisite Introduction to Modern Graphics Programming (GPR 200) has already been completed.
+It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR 200) has already been completed.
 
 Students will gain a profound appreciation for the graphics pipeline by implementing 3D rendering tools, post-processing algorithms and industry-standard shaders. The animation side introduces mesh manipulation techniques, such as morphing and skeletal animation, using modern GPU-based algorithms. Linear algebra and 3D math concepts will be refreshed and/or introduced for applicable topics.
 

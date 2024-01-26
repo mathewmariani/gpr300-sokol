@@ -19,6 +19,26 @@ You’ll need the following VSCode extensions:
 *   [ms-vscode.wasm-dwarf-debugging][]
 *   [ms-vscode.live-server][]
 
+
+### Getting Started
+
+First youre going to want to clone the repository, and update out submodules.
+
+```sh
+git clone https://github.com/mathewmariani/gpr300-sokol
+git git submodule update --init --recursive
+```
+
+We're also going to want to install the Emscripten SDK. This will allow us to compile C++ source code to WebAssembly for execution the browser.
+
+```sh
+git clone https://github.com/emscripten-core/emsdk
+cd emsdk
+./emsdk install latest
+./emsdk activate --embedded latest
+cd ..
+```
+
 ### Project Structure
 
 This project was intentionally designed to be **\*small\*** and easily comprehensible. Let's look at some important folders
@@ -51,9 +71,11 @@ add_assignment(assignment0 assignment0.cpp batteries.h)
 
 Behind the scenes a compilation target will be created, and the libraries will automatically be linked and included.
 
-`batteries.h` is a small single-header library of helpful rendering types and functions. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
+`batteries.h` is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
 
-Assets such as textures, models, and shaders **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built. The assets folder must exist. Do not delete it!
+Assets such as textures, models, and shaders **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built. 
+
+The assets folder must exist. Do not delete it!
 
 
 [VSCode]: https://code.visualstudio.com/
