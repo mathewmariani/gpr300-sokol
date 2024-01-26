@@ -3,10 +3,14 @@
 
 #include "fast_obj/fast_obj.h"
 
+#include <array>
 #include <string>
+#include <vector>
 
 // shaders
 #include "blinn_phong.h"
+#include "blur_post_process.h"
+#include "grayscale_post_process.h"
 #include "inverse_post_process.h"
 
 typedef struct
@@ -17,6 +21,12 @@ typedef struct
   glm::vec3 eye;
   glm::vec3 ambient;
 } vs_params_t;
+
+std::vector<std::string> post_processing_effects = {
+    "Grayscale",
+    "Kernel Blur",
+    "Inverse",
+};
 
 // application state
 static struct
@@ -36,6 +46,8 @@ static struct
     sg_bindings bind;
   } display;
 
+  int effect_index;
+
   uint8_t file_buffer[3 * 1024 * 1024];
 
   batteries::model_t suzanne;
@@ -47,6 +59,7 @@ static struct
     bool failed;
   } loaded;
 } state = {
+    .effect_index = 0,
     .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
     .loaded = {
         .suzanne = false,
@@ -142,6 +155,12 @@ void create_offscreen_pass()
 
 void create_display_pass()
 {
+  static std::vector<std::array<std::string, 2>> shader_stage = {
+      {grayscale_post_process_vs, grayscale_post_process_fs},
+      {blur_post_process_vs, blur_post_process_fs},
+      {inverse_post_process_vs, inverse_post_process_fs},
+  };
+
   float quad_vertices[] = {
       -1.0f, 1.0f, 0.0f, 1.0f,
       -1.0f, -1.0f, 0.0f, 0.0f,
@@ -161,10 +180,10 @@ void create_display_pass()
 
   auto display_shader_desc = (sg_shader_desc){
       .vs = {
-          .source = inverse_post_process_vs,
+          .source = shader_stage[state.effect_index][0].c_str(),
       },
       .fs = {
-          .source = inverse_post_process_fs,
+          .source = shader_stage[state.effect_index][1].c_str(),
           .images[0].used = true,
           .samplers[0].used = true,
           .image_sampler_pairs[0] = {
@@ -268,15 +287,32 @@ void frame(void)
   const auto height = sapp_height();
 
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   if (ImGui::ColorEdit3("Ambient Light", &state.ambient_light[0]))
   {
     state.offscreen.pass_action.colors[0].clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f};
+  }
+  if (ImGui::BeginCombo("Effect", post_processing_effects[0].c_str()))
+  {
+    for (auto n = 0; n < post_processing_effects.size(); ++n)
+    {
+      auto is_selected = (post_processing_effects[state.effect_index] == post_processing_effects[n]);
+      if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
+      {
+        state.effect_index = n;
+        create_display_pass();
+      }
+      if (is_selected)
+      {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
   }
   ImGui::End();
 
   if (!state.loaded.failed && (state.loaded.suzanne))
   {
-
     state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
 
     const vs_params_t vs_params = {

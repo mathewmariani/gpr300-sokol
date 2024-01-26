@@ -73,9 +73,9 @@ Behind the scenes a compilation target will be created, and the libraries will a
 
 `batteries.h` is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
 
-Assets such as textures, models, and shaders **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built. 
+Assets such as textures, models **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built.
 
-The assets folder must exist. Do not delete it!
+Shaders **MUST** be placed in `assignments/shaders`. This directory will be automatically scanned for `*.{vs,fs}` files and an appropriately named header file, containing the shader source, will be generated.
 
 
 [VSCode]: https://code.visualstudio.com/

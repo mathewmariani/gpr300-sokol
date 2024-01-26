@@ -45,5 +45,3 @@ macro(process_shaders)
     configure_file(cmake/shader_template.h.in ${CMAKE_CURRENT_LIST_DIR}/${SHADER_NAME}.h)
   endforeach()
 endmacro()
-
-
