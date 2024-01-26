@@ -15,6 +15,18 @@
 <li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.wasm-dwarf-debugging">ms-vscode.wasm-dwarf-debugging</a></li>
 <li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server">ms-vscode.live-server</a></li>
 </ul>
+<h3>Getting Started</h3>
+<p>First youre going to want to clone the repository, and update out submodules.</p>
+<pre><code class="language-sh">git clone https://github.com/mathewmariani/gpr300-sokol
+git git submodule update --init --recursive
+</code></pre>
+<p>We're also going to want to install the Emscripten SDK. This will allow us to compile C++ source code to WebAssembly for execution the browser.</p>
+<pre><code class="language-sh">git clone https://github.com/emscripten-core/emsdk
+cd emsdk
+./emsdk install latest
+./emsdk activate --embedded latest
+cd ..
+</code></pre>
 <h3>Project Structure</h3>
 <p>This project was intentionally designed to be <strong>*small*</strong> and easily comprehensible. Let's look at some important folders</p>
 <ul>
@@ -37,5 +49,6 @@
 <pre><code class="language-cmake">add_assignment(assignment0 assignment0.cpp batteries.h)
 </code></pre>
 <p>Behind the scenes a compilation target will be created, and the libraries will automatically be linked and included.</p>
-<p><code>batteries.h</code> is a small single-header library of helpful rendering types and functions. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.</p>
-<p>Assets such as textures, models, and shaders <strong>MUST</strong> be placed in <code>assignments/assets</code>. This directory will be automatically copied to the appropriate location upon being built. The assets folder must exist. Do not delete it!</p>
+<p><code>batteries.h</code> is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.</p>
+<p>Assets such as textures, models, and shaders <strong>MUST</strong> be placed in <code>assignments/assets</code>. This directory will be automatically copied to the appropriate location upon being built.</p>
+<p>The assets folder must exist. Do not delete it!</p>

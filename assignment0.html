@@ -1,17 +1,47 @@
 <h3>Assignment 0 - Review</h3>
+<p>Checkout the <a href="demo/assignment0.html">demo</a></p>
 <h4>Goal</h4>
+<p>The goal of this assignment is setup and get comfortable with our <a href="environment.html">development environment</a>, and refamiliarize ourselves with the graphics pipeline and ImGUI by implementing the <a href="https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model">blinn-phong</a> reflection model.</p>
+<h4>Instructions</h4>
+<ol>
+<li>
+<p>Setup Development Environment:</p>
 <ul>
-<li>Get set up and comfortable with our development environment.</li>
-<li>Refamiliarize ourselves with the graphics pipeline and ImGUI by making a small 3D application.</li>
+<li>Follow the instructions on setting up the <a href="environment.html">development environment</a>.</li>
 </ul>
-<p>View <a href="demo/assignment0.html">demo</a></p>
-<h4>Requirements</h4>
+</li>
+<li>
+<p>Shader Setup:</p>
 <ul>
-<li>Dev environment is set up as expected.</li>
-<li>Fork of repository is created and shared with instructor</li>
-<li>All steps in the Instructions have been completed.</li>
-<li>Version control best practices have been followed</li>
-<li>Frequent commits - 1 per meaningful change, bug fix or feature Descriptive commit messages - actually describe what you changed!</li>
-<li>Submit the link to your repository in Github.</li>
-<li>(Bonus) Implement normal mapping +10%</li>
+<li>Design a shader program that defines the visual transformation or manipulation you want to apply to the scene. The fragment shader will be responsible for the implemention of the blinn-phong relection model.</li>
+</ul>
+</li>
+<li>
+<p>Diffuse:</p>
+<ul>
+<li>Diffuse reflectance happens on very rough materials, where imperfections in the surface cause all incoming light rays to bounce in random directions. The brightness is determined solely by the dot product between the direction to the light and surface normal.</li>
+</ul>
+</li>
+<li>
+<p>Specular Reflections:</p>
+<ul>
+<li>Specular reflections occurs on smooth, mirror-like surfaces. The light rays reflect perfectly across the surface normal and into the viewer’s eye.</li>
+</ul>
+</li>
+<li>
+<p>Ambient Lighting:</p>
+<ul>
+<li>In the real world there is a lot of indirect or ambient light, where light bounces off the environment and onto surfaces from all angles. There are many ways to represent this, but the simplest is to just add some amount of constant light color to all parts of the surface.</li>
+</ul>
+</li>
+<li>
+<p>Display the Result:</p>
+<ul>
+<li>Display the final result on the screen.</li>
+</ul>
+</li>
+</ol>
+<h3>Supplementary Reading</h3>
+<ul>
+<li><a href="https://learnopengl.com/Advanced-Lighting/Advanced-Lighting">LearnOpenGL - Advanced-Lighting</a></li>
 </ul>
