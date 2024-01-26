@@ -6,7 +6,7 @@
 #include <string>
 
 // shaders
-#include "blinn_phong.h"
+#include "shaders/blinn_phong.h"
 
 typedef struct
 {

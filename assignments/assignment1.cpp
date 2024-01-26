@@ -8,10 +8,10 @@
 #include <vector>
 
 // shaders
-#include "blinn_phong.h"
-#include "blur_post_process.h"
-#include "grayscale_post_process.h"
-#include "inverse_post_process.h"
+#include "shaders/blinn_phong.h"
+#include "shaders/blur_post_process.h"
+#include "shaders/grayscale_post_process.h"
+#include "shaders/inverse_post_process.h"
 
 typedef struct
 {

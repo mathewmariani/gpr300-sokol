@@ -19,5 +19,8 @@ node_modules/
 # development tools
 emsdk/
 
+# generated shader headers
+assignments/shaders/*.h
+
 # macOS
 .DS_Store
