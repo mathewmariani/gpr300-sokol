@@ -1,6 +1,6 @@
-#version 300 es
-
-#ifdef VERTEX_SHADER
+// clang-format off
+#pragma once
+const char blinn_phong_vs[] = R"(#version 300 es
 
 // attributes
 layout(location = 0) in vec3 vPos;
@@ -19,11 +19,8 @@ void main()
   WorldPos = vec3(model * vec4(vPos, 1.0));
   WorldNormal = transpose(inverse(mat3(model))) * vNormal;
   gl_Position = projection * view * model * vec4(vPos, 1.0);
-}
-
-#endif
-
-#ifdef FRAGMENT_SHADER
+})";
+const char blinn_phong_fs[] = R"(#version 300 es
 
 precision mediump float;
 
@@ -62,6 +59,5 @@ void main()
   lightColor += ambient;
 
 	FragColor = vec4(objectColor * lightColor, 1.0);
-}
-
-#endif
+})";
+// clang-format on
