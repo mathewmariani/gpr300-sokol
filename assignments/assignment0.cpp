@@ -1,8 +1,6 @@
 #define BATTERIES_IMPL
 #include "batteries.h"
 
-// libs
-#include "glm/glm.hpp"
 #include "fast_obj/fast_obj.h"
 
 #include <string>
@@ -16,7 +14,6 @@ typedef struct
   glm::vec3 ambient;
 } vs_params_t;
 
-// FIXME: move this to assets
 const std::string vs_source = R"(#version 300 es
 // attributes
 layout(location = 0) in vec3 vPos;
@@ -37,7 +34,6 @@ void main()
   gl_Position = projection * view * model * vec4(vPos, 1.0);
 })";
 
-// FIXME: move this to assets
 const std::string fs_source = R"(#version 300 es
 precision mediump float;
 
@@ -61,30 +57,34 @@ void main()
   vec3 toLight = -_LightDirection;
   float diffuseFactor = max(dot(normal, toLight), 0.0);
 
-	// Direction towards eye
-	vec3 toEye = normalize(eye - WorldPos);
+  // Direction towards eye
+  vec3 toEye = normalize(eye - WorldPos);
 
-	// Blinn-phong uses half angle
-	vec3 h = normalize(toLight + toEye);
-	float specularFactor = pow(max(dot(normal, h), 0.0), 128.0);
+  // Blinn-phong uses half angle
+  vec3 h = normalize(toLight + toEye);
+  float specularFactor = pow(max(dot(normal, h), 0.0), 128.0);
 
-	// Combination of specular and diffuse reflection
-	vec3 lightColor = (diffuseFactor + specularFactor) * _LightColor;
-	vec3 objectColor = vec3(normal * 0.5 + 0.5);
+  // Combination of specular and diffuse reflection
+  vec3 lightColor = (diffuseFactor + specularFactor) * _LightColor;
+  vec3 objectColor = vec3(normal * 0.5 + 0.5);
 
   // Add some ambient light
   lightColor += ambient;
 
-	FragColor = vec4(objectColor * lightColor, 1.0);
+  FragColor = vec4(objectColor * lightColor, 1.0);
 })";
 
+// application state
 static struct
 {
   sg_pass_action pass_action;
+  sg_pass pass;
+  sg_pipeline pip;
+  sg_bindings bind;
+
+  uint8_t file_buffer[3 * 1024 * 1024];
 
   batteries::model_t suzanne;
-
-  // lights
   glm::vec3 ambient_light;
 
   struct
@@ -93,72 +93,12 @@ static struct
     bool failed;
   } loaded;
 } state = {
-    .ambient_light = glm::vec3(0.25f, 0.5f, 0.25f),
+    .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
     .loaded = {
         .suzanne = false,
         .failed = false,
     },
 };
-
-static uint8_t mesh_io_buffer[3 * 1024 * 1024];
-static void suzanne_data_loaded(const sfetch_response_t *response);
-
-void init(void)
-{
-  batteries::setup();
-
-  // initialize pass action for default-pass
-  state.pass_action = (sg_pass_action){
-      .colors[0] = {
-          .load_action = SG_LOADACTION_CLEAR,
-          .clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f},
-      },
-  };
-
-  sg_shader shader = sg_make_shader((sg_shader_desc){
-      .vs = {
-          .source = vs_source.c_str(),
-          .uniform_blocks[0] = {
-              .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(vs_params_t),
-              .uniforms = {
-                  [0] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                  [1] = {.name = "view", .type = SG_UNIFORMTYPE_MAT4},
-                  [2] = {.name = "projection", .type = SG_UNIFORMTYPE_MAT4},
-                  [3] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [4] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-              },
-          },
-      },
-      .fs = {
-          .source = fs_source.c_str(),
-      },
-  });
-
-  state.suzanne.mesh.pip = sg_make_pipeline((sg_pipeline_desc){
-      .layout = {
-          .attrs = {
-              [0].format = SG_VERTEXFORMAT_FLOAT3,
-              [1].format = SG_VERTEXFORMAT_FLOAT3,
-          }},
-      .shader = shader,
-      // .index_type = SG_INDEXTYPE_UINT16,
-      .index_type = SG_INDEXTYPE_NONE,
-      .cull_mode = SG_CULLMODE_FRONT,
-      .depth = {
-          .compare = SG_COMPAREFUNC_LESS_EQUAL,
-          .write_enabled = true,
-      },
-      .label = "display-pipeline",
-  });
-
-  // start loading data
-  sfetch_send((sfetch_request_t){
-      .path = "assets/suzanne.obj",
-      .callback = suzanne_data_loaded,
-      .buffer = SFETCH_RANGE(mesh_io_buffer),
-  });
-}
 
 static void suzanne_data_loaded(const sfetch_response_t *response)
 {
@@ -193,21 +133,7 @@ static void suzanne_data_loaded(const sfetch_response_t *response)
           .label = "suzanne-vertices",
       });
 
-      // TODO: include index buffer
-      // state.suzanne.mesh.ibuf = sg_make_buffer((sg_buffer_desc){
-      //     .type = SG_BUFFERTYPE_INDEXBUFFER,
-      //     .data = {
-      //         .ptr = state.suzanne.mesh.indices.data(),
-      //         .size = state.suzanne.mesh.indices.size() * sizeof(float),
-      //     },
-      //     .label = "suzanne-indices",
-      // });
-
-      /* setup resource bindings */
-      state.suzanne.mesh.bind = (sg_bindings){
-          .vertex_buffers[0] = state.suzanne.mesh.vbuf,
-          // .index_buffer = state.suzanne.mesh.ibuf,
-      };
+      state.bind.vertex_buffers[0] = state.suzanne.mesh.vbuf;
 
       state.loaded.suzanne = true;
     }
@@ -222,9 +148,69 @@ static void suzanne_data_loaded(const sfetch_response_t *response)
   }
 }
 
+void init(void)
+{
+  batteries::setup();
+
+  const auto width = sapp_width();
+  const auto height = sapp_height();
+
+  auto shader_desc = (sg_shader_desc){
+      .vs = {
+          .source = vs_source.c_str(),
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(vs_params_t),
+              .uniforms = {
+                  [0] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                  [1] = {.name = "view", .type = SG_UNIFORMTYPE_MAT4},
+                  [2] = {.name = "projection", .type = SG_UNIFORMTYPE_MAT4},
+                  [3] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [4] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+              },
+          },
+      },
+      .fs = {
+          .source = fs_source.c_str(),
+      },
+  };
+
+  state.pass_action = (sg_pass_action){
+      .colors[0] = {
+          .clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f},
+          .load_action = SG_LOADACTION_CLEAR,
+      }};
+
+  state.pip = sg_make_pipeline((sg_pipeline_desc){
+      .layout = {
+          .attrs = {
+              [0].format = SG_VERTEXFORMAT_FLOAT3,
+              [1].format = SG_VERTEXFORMAT_FLOAT3,
+          }},
+      .shader = sg_make_shader(shader_desc),
+      .index_type = SG_INDEXTYPE_NONE,
+      .cull_mode = SG_CULLMODE_FRONT,
+      .depth = {
+          .compare = SG_COMPAREFUNC_LESS_EQUAL,
+          .write_enabled = true,
+      },
+      .label = "display-pipeline",
+  });
+
+  // start loading data
+  sfetch_send((sfetch_request_t){
+      .path = "assets/suzanne.obj",
+      .callback = suzanne_data_loaded,
+      .buffer = SFETCH_RANGE(state.file_buffer),
+  });
+}
+
 void frame(void)
 {
   batteries::frame();
+
+  const auto width = sapp_width();
+  const auto height = sapp_height();
 
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   if (ImGui::ColorEdit3("Ambient Light", &state.ambient_light[0]))
@@ -232,10 +218,6 @@ void frame(void)
     state.pass_action.colors[0].clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f};
   }
   ImGui::End();
-
-  const auto width = sapp_width();
-  const auto height = sapp_height();
-  sg_begin_default_pass(&state.pass_action, width, height);
 
   if (!state.loaded.failed && (state.loaded.suzanne))
   {
@@ -249,14 +231,17 @@ void frame(void)
         .ambient = state.ambient_light,
     };
 
-    sg_apply_pipeline(state.suzanne.mesh.pip);
-    sg_apply_bindings(&state.suzanne.mesh.bind);
+    sg_begin_default_pass(&state.pass_action, width, height);
+    sg_apply_pipeline(state.pip);
+    sg_apply_bindings(&state.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
 
     sg_draw(0, state.suzanne.mesh.num_faces * 3, 1);
   }
 
+  // draw ui
   simgui_render();
+
   sg_end_pass();
   sg_commit();
 }

@@ -30,8 +30,6 @@ namespace batteries
   struct mesh_t
   {
     // sokol resources
-    sg_pipeline pip;  // not needed
-    sg_bindings bind; // not needed
     sg_buffer vbuf;
     sg_buffer ibuf;
 
