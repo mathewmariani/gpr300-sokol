@@ -1,6 +1,10 @@
 #define BATTERIES_IMPL
 #include "batteries.h"
 
+//
+// Assignment0 -- Blinn Phong
+//
+
 #include "fast_obj/fast_obj.h"
 
 #include <string>

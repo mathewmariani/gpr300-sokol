@@ -1,6 +1,10 @@
 #define BATTERIES_IMPL
 #include "batteries.h"
 
+//
+// Assignment0 -- Post Processing
+//
+
 #include "fast_obj/fast_obj.h"
 
 #include <array>
@@ -327,9 +331,7 @@ void frame(void)
     sg_apply_pipeline(state.offscreen.pip);
     sg_apply_bindings(&state.offscreen.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-
     sg_draw(0, state.suzanne.mesh.num_faces * 3, 1);
-
     sg_end_pass();
   }
 

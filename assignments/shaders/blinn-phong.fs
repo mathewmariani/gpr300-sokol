@@ -22,19 +22,19 @@ void main()
   vec3 toLight = -_LightDirection;
   float diffuseFactor = max(dot(normal, toLight), 0.0);
 
-	// Direction towards eye
-	vec3 toEye = normalize(eye - WorldPos);
+  // Direction towards eye
+  vec3 toEye = normalize(eye - WorldPos);
 
-	// Blinn-phong uses half angle
-	vec3 h = normalize(toLight + toEye);
-	float specularFactor = pow(max(dot(normal, h), 0.0), 128.0);
+  // Blinn-phong uses half angle
+  vec3 h = normalize(toLight + toEye);
+  float specularFactor = pow(max(dot(normal, h), 0.0), 128.0);
 
-	// Combination of specular and diffuse reflection
-	vec3 lightColor = (diffuseFactor + specularFactor) * _LightColor;
-	vec3 objectColor = vec3(normal * 0.5 + 0.5);
+  // Combination of specular and diffuse reflection
+  vec3 lightColor = (diffuseFactor + specularFactor) * _LightColor;
+  vec3 objectColor = vec3(normal * 0.5 + 0.5);
 
   // Add some ambient light
   lightColor += ambient;
 
-	FragColor = vec4(objectColor * lightColor, 1.0);
+  FragColor = vec4(objectColor * lightColor, 1.0);
 }
