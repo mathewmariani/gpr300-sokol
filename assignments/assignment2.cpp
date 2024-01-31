@@ -6,6 +6,7 @@
 //
 
 #include "fast_obj/fast_obj.h"
+#include "glm/gtx/transform.hpp"
 
 #include <string>
 
@@ -66,6 +67,7 @@ static struct
   batteries::model_t suzanne;
   sg_buffer plane_vbuf;
   sg_bindings plane_bind;
+  float ry;
 
   glm::vec3 ambient_light;
 
@@ -76,6 +78,7 @@ static struct
   } loaded;
 } state = {
     .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+    .ry = 0.0f,
     .loaded = {
         .suzanne = false,
         .failed = false,
@@ -144,6 +147,7 @@ void create_shadow_pass(void)
       },
       .shader = sg_make_shader(shadow_shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
+      .face_winding = SG_FACEWINDING_CCW,
       .cull_mode = SG_CULLMODE_FRONT,
       .depth = {
           .pixel_format = SG_PIXELFORMAT_DEPTH,
@@ -206,7 +210,8 @@ void create_display_pass(void)
       },
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
-      .cull_mode = SG_CULLMODE_FRONT,
+      .face_winding = SG_FACEWINDING_CCW,
+      .cull_mode = SG_CULLMODE_BACK,
       .depth = {
           .compare = SG_COMPAREFUNC_LESS_EQUAL,
           .write_enabled = true,
@@ -330,13 +335,12 @@ void init(void)
 
   // clang-format off
   const float plane_vertices[] = {
-   5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
-  -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
-  -5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
-   5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
-  -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
-   5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
-
+    5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
+    -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
+    -5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
+    5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
+    -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,
+    5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,
   };
   // clang-format on
 
@@ -371,8 +375,9 @@ void draw_ui(void)
 void frame(void)
 {
   sfetch_dowork();
-  // batteries::frame();
-  // draw_ui();
+
+  const float t = (float)(sapp_frame_duration() * 60.0);
+  state.ry += 0.2f * sapp_frame_duration();
 
   if (!state.loaded.failed && (state.loaded.suzanne))
   {
@@ -380,10 +385,14 @@ void frame(void)
     const auto height = sapp_height();
 
     // rotate suzanne
-    state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
+    // state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
 
     // shadow pass matrices
-    glm::vec3 light_pos = glm::vec3(0.0f, 6.0f, 0.0f);
+
+    const glm::mat4 rym = glm::rotate(state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    // glm::vec3 light_pos = glm::vec3(0.0, 10.0f, 0.0f);
+    glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+
     glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
     glm::mat4 light_proj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 100.0f);
     glm::mat4 light_view_proj = light_proj * light_view;
@@ -453,12 +462,6 @@ void frame(void)
 
     sg_commit();
   }
-
-  // draw ui
-  // simgui_render();
-
-  // sg_end_pass();
-  // sg_commit();
 }
 
 void event(const sapp_event *event)
