@@ -13,8 +13,10 @@ SOKOL_LOG="$SOKOL_PREFIX/sokol_log.h"
 SOKOL_TIME="$SOKOL_PREFIX/sokol_time.h"
 
 # utils
-# SOKOL_GL="$SOKOL_PREFIX/util/sokol_gl.h"
 SOKOL_IMGUI="$SOKOL_PREFIX/util/sokol_imgui.h"
+
+# license
+SOKOL_LICENSE="$SOKOL_PREFIX/LICENSE"
 
 # output directory
 OUTPUT=./libs/sokol
@@ -29,3 +31,6 @@ curl $SOKOL_TIME > $OUTPUT/sokol_time.h
 
 # utils
 curl $SOKOL_IMGUI > $OUTPUT/sokol_imgui.h
+
+# license
+curl $SOKOL_LICENSE > $OUTPUT/LICENSE
