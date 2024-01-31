@@ -50,5 +50,5 @@ cd ..
 </code></pre>
 <p>Behind the scenes a compilation target will be created, and the libraries will automatically be linked and included.</p>
 <p><code>batteries.h</code> is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.</p>
-<p>Assets such as textures, models <strong>MUST</strong> be placed in <code>assignments/assets</code>. This directory will be automatically copied to the appropriate location upon being built.</p>
+<p>Assets such as textures and models <strong>MUST</strong> be placed in <code>assignments/assets</code>. This directory will be automatically copied to the appropriate location upon being built.</p>
 <p>Shaders <strong>MUST</strong> be placed in <code>assignments/shaders</code>. This directory will be automatically scanned for <code>*.{vs,fs}</code> files and an appropriately named header file, containing the shader source, will be generated.</p>
