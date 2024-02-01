@@ -9,9 +9,16 @@ in vec3 WorldNormal;
 
 uniform vec3 eye;
 uniform vec3 ambient;
-
-vec3 _LightDirection = vec3(0.0, -1.0, 0.0);
+uniform vec3 light_dir;
 vec3 _LightColor = vec3(1.0);
+
+struct Material {
+  float Ka;
+  float Kd;
+  float Ks;
+  float Shininess;
+};
+uniform Material material;
 
 void main()
 {
@@ -19,22 +26,21 @@ void main()
   vec3 normal = normalize(WorldNormal);
 
   // Light pointing straight down
-  vec3 toLight = -_LightDirection;
-  float diffuseFactor = max(dot(normal, toLight), 0.0);
+  float diffuseFactor = max(dot(normal, light_dir), 0.0);
 
   // Direction towards eye
   vec3 toEye = normalize(eye - WorldPos);
 
   // Blinn-phong uses half angle
-  vec3 h = normalize(toLight + toEye);
-  float specularFactor = pow(max(dot(normal, h), 0.0), 128.0);
+  vec3 h = normalize(light_dir + toEye);
+  float specularFactor = pow(max(dot(normal, h), 0.0), material.Shininess);
 
   // Combination of specular and diffuse reflection
-  vec3 lightColor = (diffuseFactor + specularFactor) * _LightColor;
+  vec3 lightColor = (material.Kd * diffuseFactor + material.Ks * specularFactor) * _LightColor;
   vec3 objectColor = vec3(normal * 0.5 + 0.5);
 
   // Add some ambient light
-  lightColor += ambient;
+  lightColor += ambient * material.Ka;
 
   FragColor = vec4(objectColor * lightColor, 1.0);
 }

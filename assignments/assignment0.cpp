@@ -6,33 +6,46 @@
 //
 
 #include "fast_obj/fast_obj.h"
-
-#include <string>
+#include "glm/gtx/transform.hpp"
 
 // shaders
 #include "shaders/blinn_phong.h"
 
 typedef struct
 {
+  glm::mat4 view_proj;
   glm::mat4 model;
-  glm::mat4 view;
-  glm::mat4 proj;
   glm::vec3 eye;
   glm::vec3 ambient;
-} vs_params_t;
+  glm::vec3 light_dir;
+} vs_display_params_t;
+
+typedef struct
+{
+  float Ka, Kd, Ks;
+  float Shininess;
+} fs_display_params_t;
 
 // application state
 static struct
 {
-  sg_pass_action pass_action;
-  sg_pass pass;
-  sg_pipeline pip;
-  sg_bindings bind;
+  struct
+  {
+    sg_pass_action pass_action;
+    sg_pass pass;
+    sg_pipeline pip;
+    sg_bindings bind;
+  } display;
 
-  uint8_t file_buffer[3 * 1024 * 1024];
+  struct
+  {
+    float ry;
+    glm::vec3 ambient_light;
+    batteries::model_t suzanne;
+    batteries::material_t material;
+  } scene;
 
-  batteries::model_t suzanne;
-  glm::vec3 ambient_light;
+  uint8_t file_buffer[batteries::megabytes(4)];
 
   struct
   {
@@ -40,7 +53,16 @@ static struct
     bool failed;
   } loaded;
 } state = {
-    .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+    .scene = {
+        .ry = 0.0f,
+        .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+        .material = {
+            .Ka = 1.0f,
+            .Kd = 0.5f,
+            .Ks = 0.5f,
+            .Shininess = 128.0f,
+        },
+    },
     .loaded = {
         .suzanne = false,
         .failed = false,
@@ -54,33 +76,34 @@ static void suzanne_data_loaded(const sfetch_response_t *response)
     auto *mesh = fast_obj_read((const char *)response->data.ptr, response->data.size);
     if (mesh)
     {
+      auto *suzanne = &state.scene.suzanne;
       // https://stackoverflow.com/a/36454139
       // a face has 3 vertices, so multiply by 3.
-      state.suzanne.mesh.num_faces = mesh->face_count;
+      suzanne->mesh.num_faces = mesh->face_count;
       for (auto i = 0; i < mesh->face_count * 3; ++i)
       {
         auto vertex = mesh->indices[i];
         // vertex
-        state.suzanne.mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 0));
-        state.suzanne.mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 1));
-        state.suzanne.mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 2));
+        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 0));
+        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 1));
+        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 2));
         // normal
-        state.suzanne.mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 0));
-        state.suzanne.mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 1));
-        state.suzanne.mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 2));
+        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 0));
+        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 1));
+        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 2));
       }
 
       fast_obj_destroy(mesh);
 
-      state.suzanne.mesh.vbuf = sg_make_buffer((sg_buffer_desc){
+      suzanne->mesh.vbuf = sg_make_buffer((sg_buffer_desc){
           .data = {
-              .ptr = state.suzanne.mesh.vertices.data(),
-              .size = state.suzanne.mesh.vertices.size() * sizeof(float),
+              .ptr = suzanne->mesh.vertices.data(),
+              .size = suzanne->mesh.vertices.size() * sizeof(float),
           },
           .label = "suzanne-vertices",
       });
 
-      state.bind.vertex_buffers[0] = state.suzanne.mesh.vbuf;
+      state.display.bind.vertex_buffers[0] = suzanne->mesh.vbuf;
 
       state.loaded.suzanne = true;
     }
@@ -95,40 +118,45 @@ static void suzanne_data_loaded(const sfetch_response_t *response)
   }
 }
 
-void init(void)
+void create_display_pass(void)
 {
-  batteries::setup();
-
-  const auto width = sapp_width();
-  const auto height = sapp_height();
-
   auto shader_desc = (sg_shader_desc){
       .vs = {
           .source = blinn_phong_vs,
           .uniform_blocks[0] = {
               .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(vs_params_t),
+              .size = sizeof(vs_display_params_t),
               .uniforms = {
-                  [0] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                  [1] = {.name = "view", .type = SG_UNIFORMTYPE_MAT4},
-                  [2] = {.name = "projection", .type = SG_UNIFORMTYPE_MAT4},
-                  [3] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [4] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                  [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                  [2] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [3] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [4] = {.name = "light_dir", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
       .fs = {
           .source = blinn_phong_fs,
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(fs_display_params_t),
+              .uniforms = {
+                  [0] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
+                  [1] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
+                  [2] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
+                  [3] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+              },
+          },
       },
   };
 
-  state.pass_action = (sg_pass_action){
+  state.display.pass_action = (sg_pass_action){
       .colors[0] = {
-          .clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f},
+          .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
       }};
 
-  state.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.display.pip = sg_make_pipeline((sg_pipeline_desc){
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -136,13 +164,21 @@ void init(void)
           }},
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
-      .cull_mode = SG_CULLMODE_FRONT,
+      .face_winding = SG_FACEWINDING_CCW,
+      .cull_mode = SG_CULLMODE_BACK,
       .depth = {
           .compare = SG_COMPAREFUNC_LESS_EQUAL,
           .write_enabled = true,
       },
       .label = "display-pipeline",
   });
+}
+
+void init(void)
+{
+  batteries::setup();
+
+  create_display_pass();
 
   // start loading data
   sfetch_send((sfetch_request_t){
@@ -156,35 +192,65 @@ void frame(void)
 {
   batteries::frame();
 
-  const auto width = sapp_width();
-  const auto height = sapp_height();
+  const auto t = (float)sapp_frame_duration();
+  state.scene.ry += 0.2f * t;
 
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  if (ImGui::ColorEdit3("Ambient Light", &state.ambient_light[0]))
+  if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient_light[0]))
   {
-    state.pass_action.colors[0].clear_value = {state.ambient_light.r, state.ambient_light.g, state.ambient_light.b, 1.0f};
+    state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
   }
+  if (ImGui::CollapsingHeader("Material"))
+  {
+    ImGui::SliderFloat("Ambient", &state.scene.material.Ka, 0.0f, 1.0f);
+    ImGui::SliderFloat("Diffuse", &state.scene.material.Kd, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
+  }
+
   ImGui::End();
 
   if (!state.loaded.failed && (state.loaded.suzanne))
   {
-    state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
+    const auto width = sapp_width();
+    const auto height = sapp_height();
 
-    const vs_params_t vs_params = {
-        .proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f),
-        .view = glm::lookAt(glm::vec3(0.0f, 1.5f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-        .model = state.suzanne.transform.matrix(),
-        .eye = glm::vec3(0.0f, 1.5f, 6.0f),
-        .ambient = state.ambient_light,
+    // math required by the scene
+    auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
+    auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
+    auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    auto camera_view_proj = camera_proj * camera_view;
+
+    // sugar: rotate suzzane
+    state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
+
+    // sugar: rotate light
+    const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+
+    // initialize uniform data
+    const vs_display_params_t vs_params = {
+        .view_proj = camera_view_proj,
+        .model = state.scene.suzanne.transform.matrix(),
+        .eye = camera_pos,
+        .ambient = state.scene.ambient_light,
+        .light_dir = glm::normalize(light_pos),
+    };
+    const fs_display_params_t fs_params = {
+        .Ka = state.scene.material.Ka,
+        .Kd = state.scene.material.Kd,
+        .Ks = state.scene.material.Ks,
+        .Shininess = state.scene.material.Shininess,
     };
 
-    sg_begin_default_pass(&state.pass_action, width, height);
-    sg_apply_pipeline(state.pip);
-    sg_apply_bindings(&state.bind);
+    // graphics pass
+    sg_begin_default_pass(&state.display.pass_action, width, height);
+    sg_apply_pipeline(state.display.pip);
+    sg_apply_bindings(&state.display.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-
-    sg_draw(0, state.suzanne.mesh.num_faces * 3, 1);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
+    sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
   }
 
   // draw ui

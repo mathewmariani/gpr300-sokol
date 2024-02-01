@@ -21,6 +21,10 @@
 
 namespace batteries
 {
+  constexpr int kilobytes(int n) { return 1024 * n; }
+  constexpr int megabytes(int n) { return 1024 * kilobytes(n); }
+  constexpr int gigabytes(int n) { return 1024 * megabytes(n); }
+
   struct vertex_t
   {
     glm::vec3 position;
@@ -36,6 +40,12 @@ namespace batteries
     int num_faces;
     std::vector<float> vertices;
     std::vector<uint16_t> indices;
+  };
+
+  struct material_t
+  {
+    float Ka, Kd, Ks;
+    float Shininess;
   };
 
   struct transform_t
