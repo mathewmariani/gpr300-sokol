@@ -6,7 +6,6 @@
 //
 
 #include "fast_obj/fast_obj.h"
-#include "glm/gtx/transform.hpp"
 
 // shaders
 #include "shaders/blinn_phong.h"
@@ -208,7 +207,6 @@ void frame(void)
     ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
     ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
   }
-
   ImGui::End();
 
   if (!state.loaded.failed && (state.loaded.suzanne))
