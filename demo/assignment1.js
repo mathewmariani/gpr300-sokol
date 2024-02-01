@@ -6194,8 +6194,8 @@ var stackRestore = (a0) => (stackRestore = wasmExports['stackRestore'])(a0);
 var stackAlloc = (a0) => (stackAlloc = wasmExports['stackAlloc'])(a0);
 var ___cxa_is_pointer_type = (a0) => (___cxa_is_pointer_type = wasmExports['__cxa_is_pointer_type'])(a0);
 var dynCall_jiji = Module['dynCall_jiji'] = (a0, a1, a2, a3, a4) => (dynCall_jiji = Module['dynCall_jiji'] = wasmExports['dynCall_jiji'])(a0, a1, a2, a3, a4);
-var ___start_em_js = Module['___start_em_js'] = 51224;
-var ___stop_em_js = Module['___stop_em_js'] = 58532;
+var ___start_em_js = Module['___start_em_js'] = 52088;
+var ___stop_em_js = Module['___stop_em_js'] = 59396;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
