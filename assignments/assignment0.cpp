@@ -5,8 +5,6 @@
 // Assignment0 -- Blinn Phong
 //
 
-#include "fast_obj/fast_obj.h"
-
 // shaders
 #include "shaders/blinn_phong.h"
 
@@ -44,13 +42,7 @@ static struct
     batteries::material_t material;
   } scene;
 
-  uint8_t file_buffer[batteries::megabytes(4)];
-
-  struct
-  {
-    bool suzanne;
-    bool failed;
-  } loaded;
+  uint8_t file_buffer[batteries::megabytes(5)];
 } state = {
     .scene = {
         .ry = 0.0f,
@@ -62,60 +54,7 @@ static struct
             .Shininess = 128.0f,
         },
     },
-    .loaded = {
-        .suzanne = false,
-        .failed = false,
-    },
 };
-
-static void suzanne_data_loaded(const sfetch_response_t *response)
-{
-  if (response->fetched)
-  {
-    auto *mesh = fast_obj_read((const char *)response->data.ptr, response->data.size);
-    if (mesh)
-    {
-      auto *suzanne = &state.scene.suzanne;
-      // https://stackoverflow.com/a/36454139
-      // a face has 3 vertices, so multiply by 3.
-      suzanne->mesh.num_faces = mesh->face_count;
-      for (auto i = 0; i < mesh->face_count * 3; ++i)
-      {
-        auto vertex = mesh->indices[i];
-        // vertex
-        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 0));
-        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 1));
-        suzanne->mesh.vertices.push_back(*((mesh->positions + vertex.p * 3) + 2));
-        // normal
-        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 0));
-        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 1));
-        suzanne->mesh.vertices.push_back(*((mesh->normals + vertex.n * 3) + 2));
-      }
-
-      fast_obj_destroy(mesh);
-
-      suzanne->mesh.vbuf = sg_make_buffer((sg_buffer_desc){
-          .data = {
-              .ptr = suzanne->mesh.vertices.data(),
-              .size = suzanne->mesh.vertices.size() * sizeof(float),
-          },
-          .label = "suzanne-vertices",
-      });
-
-      state.display.bind.vertex_buffers[0] = suzanne->mesh.vbuf;
-
-      state.loaded.suzanne = true;
-    }
-    else
-    {
-      state.loaded.failed = true;
-    }
-  }
-  else if (response->failed)
-  {
-    state.loaded.failed = true;
-  }
-}
 
 void create_display_pass(void)
 {
@@ -171,6 +110,18 @@ void create_display_pass(void)
       },
       .label = "display-pipeline",
   });
+
+  sg_buffer vbuf = sg_alloc_buffer();
+  state.display.bind = (sg_bindings){
+      .vertex_buffers[0] = vbuf,
+  };
+
+  batteries::assets::load_obj((batteries::assets::obj_request_t){
+      .buffer_id = vbuf,
+      .mesh = &state.scene.suzanne.mesh,
+      .path = "assets/suzanne.obj",
+      .buffer = SG_RANGE(state.file_buffer),
+  });
 }
 
 void init(void)
@@ -178,13 +129,6 @@ void init(void)
   batteries::setup();
 
   create_display_pass();
-
-  // start loading data
-  sfetch_send((sfetch_request_t){
-      .path = "assets/suzanne.obj",
-      .callback = suzanne_data_loaded,
-      .buffer = SFETCH_RANGE(state.file_buffer),
-  });
 }
 
 void frame(void)
@@ -209,47 +153,44 @@ void frame(void)
   }
   ImGui::End();
 
-  if (!state.loaded.failed && (state.loaded.suzanne))
-  {
-    const auto width = sapp_width();
-    const auto height = sapp_height();
+  const auto width = sapp_width();
+  const auto height = sapp_height();
 
-    // math required by the scene
-    auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
-    auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
-    auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    auto camera_view_proj = camera_proj * camera_view;
+  // math required by the scene
+  auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
+  auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
+  auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  auto camera_view_proj = camera_proj * camera_view;
 
-    // sugar: rotate suzzane
-    state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
+  // sugar: rotate suzzane
+  state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
 
-    // sugar: rotate light
-    const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  // sugar: rotate light
+  const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+  glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
 
-    // initialize uniform data
-    const vs_display_params_t vs_params = {
-        .view_proj = camera_view_proj,
-        .model = state.scene.suzanne.transform.matrix(),
-        .eye = camera_pos,
-        .ambient = state.scene.ambient_light,
-        .light_dir = glm::normalize(light_pos),
-    };
-    const fs_display_params_t fs_params = {
-        .Ka = state.scene.material.Ka,
-        .Kd = state.scene.material.Kd,
-        .Ks = state.scene.material.Ks,
-        .Shininess = state.scene.material.Shininess,
-    };
+  // initialize uniform data
+  const vs_display_params_t vs_params = {
+      .view_proj = camera_view_proj,
+      .model = state.scene.suzanne.transform.matrix(),
+      .eye = camera_pos,
+      .ambient = state.scene.ambient_light,
+      .light_dir = glm::normalize(light_pos),
+  };
+  const fs_display_params_t fs_params = {
+      .Ka = state.scene.material.Ka,
+      .Kd = state.scene.material.Kd,
+      .Ks = state.scene.material.Ks,
+      .Shininess = state.scene.material.Shininess,
+  };
 
-    // graphics pass
-    sg_begin_default_pass(&state.display.pass_action, width, height);
-    sg_apply_pipeline(state.display.pip);
-    sg_apply_bindings(&state.display.bind);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
-    sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
-  }
+  // graphics pass
+  sg_begin_default_pass(&state.display.pass_action, width, height);
+  sg_apply_pipeline(state.display.pip);
+  sg_apply_bindings(&state.display.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
+  sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
 
   // draw ui
   simgui_render();
