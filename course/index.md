@@ -8,7 +8,7 @@ Students will gain a profound appreciation for the graphics pipeline by implemen
 
 The syllabus for this course was created by Eric Winebrenner [@ewinebrenner][].
 
-This course has been adapted to use [sokol][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
+This course has been adapted to use [sokol headers][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
 
 ---
 
@@ -24,14 +24,28 @@ Before working on any project it's important to understand the [development envi
 *   [Foundations of Game Engine Development - Rendering][]
 
 
+### Reference Cards
+
+*   [OpenGL45][]
+*   [OpenGLES3][]
+
+
 ### Assignments
 
 *   [assignment 0][] - Graphics Pipeline Review 
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
+
+<!-- Future Assignments:
 *   [assignment 3][] - Deffered Rendering
 *   [assignment 4][] - Splines
 *   [assignment 5][] - Skeletal Animations
+-->
+
+
+### Work Sessions
+
+*   [worksession 0][] - Physically Based Rendering (PBR)
 
 
 ### Final Project
@@ -43,11 +57,14 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [OpenGL SuperBible]: https://www.openglsuperbible.com/
 [LearnOpenGL]: https://learnopengl.com/
 [Foundations of Game Engine Development - Rendering]: https://foundationsofgameenginedev.com/#fged2
+[OpenGL45]: https://www.khronos.org/files/opengl45-quick-reference-card.pdf
+[OpenGLES3]: https://www.khronos.org/files/opengles3-quick-reference-card.pdf
 [assignment 0]: assignment0.html
 [assignment 1]: assignment1.html
 [assignment 2]: assignment2.html
 [assignment 3]: assignment3.html
 [assignment 4]: assignment4.html
 [assignment 5]: assignment5.html
+[worksession 0]: worksession0.html
 [development environment]: environment.html
-[sokol]: https://github.com/floooh/sokol
+[sokol headers]: https://github.com/floooh/sokol

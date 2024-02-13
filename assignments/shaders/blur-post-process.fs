@@ -22,10 +22,11 @@ const vec2 offsets[9] = vec2[](
   vec2( offset, -offset)  // bottom-right    
 );
 
+const float strength = 16.0;
 const float kernel[9] = float[](
-  1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0,
-  2.0 / 16.0, 4.0 / 16.0, 2.0 / 16.0,
-  1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0 
+  1.0, 2.0, 1.0,
+  2.0, 4.0, 2.0,
+  1.0, 2.0, 1.0 
 );
 
 void main()
@@ -34,7 +35,7 @@ void main()
   for(int i = 0; i < 9; i++)
   {
     vec3 local = vec3(texture(screen, TexCoords.st + offsets[i]));
-    color += local[i] * kernel[i];
+    color += local[i] * (kernel[i] / strength);
   }
 
   FragColor = vec4(color, 1.0);

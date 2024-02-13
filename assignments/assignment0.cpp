@@ -56,6 +56,17 @@ static struct
     },
 };
 
+void load_suzanne(void)
+{
+  state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
+  batteries::assets::load_obj((batteries::assets::obj_request_t){
+      .buffer_id = state.scene.suzanne.mesh.vbuf,
+      .mesh = &state.scene.suzanne.mesh,
+      .path = "assets/suzanne.obj",
+      .buffer = SG_RANGE(state.file_buffer),
+  });
+}
+
 void create_display_pass(void)
 {
   auto shader_desc = (sg_shader_desc){
@@ -99,6 +110,7 @@ void create_display_pass(void)
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
               [1].format = SG_VERTEXFORMAT_FLOAT3,
+              [2].format = SG_VERTEXFORMAT_FLOAT2,
           }},
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
@@ -111,23 +123,16 @@ void create_display_pass(void)
       .label = "display-pipeline",
   });
 
-  sg_buffer vbuf = sg_alloc_buffer();
   state.display.bind = (sg_bindings){
-      .vertex_buffers[0] = vbuf,
+      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
   };
-
-  batteries::assets::load_obj((batteries::assets::obj_request_t){
-      .buffer_id = vbuf,
-      .mesh = &state.scene.suzanne.mesh,
-      .path = "assets/suzanne.obj",
-      .buffer = SG_RANGE(state.file_buffer),
-  });
 }
 
 void init(void)
 {
   batteries::setup();
 
+  load_suzanne();
   create_display_pass();
 }
 

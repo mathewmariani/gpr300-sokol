@@ -8,14 +8,12 @@ in vec2 TexCoords;
 
 uniform sampler2D screen;
 
-const float redOffset   =  0.009;
-const float greenOffset =  0.006;
-const float blueOffset  = -0.006;
-const vec2 direction    = vec2(1.0);
+const vec3 offset    = vec3(0.009, 0.006, -0.006);
+const vec2 direction = vec2(1.0);
 
 void main()
 {
-  FragColor.r = texture(screen, TexCoords + (direction * vec2(redOffset  ))).r;
-  FragColor.g = texture(screen, TexCoords + (direction * vec2(greenOffset))).g;
-  FragColor.b = texture(screen, TexCoords + (direction * vec2(blueOffset ))).b;
+  FragColor.r = texture(screen, TexCoords + (direction * vec2(offset.r))).r;
+  FragColor.g = texture(screen, TexCoords + (direction * vec2(offset.g))).g;
+  FragColor.b = texture(screen, TexCoords + (direction * vec2(offset.b))).b;
 }

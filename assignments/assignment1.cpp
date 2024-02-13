@@ -47,6 +47,7 @@ static struct
     sg_pass pass;
     sg_pipeline pip;
     sg_bindings bind;
+    sg_bindings img;
   } offscreen;
 
   struct
@@ -81,7 +82,18 @@ static struct
     },
 };
 
-void create_offscreen_pass()
+void load_suzanne(void)
+{
+  state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
+  batteries::assets::load_obj((batteries::assets::obj_request_t){
+      .buffer_id = state.scene.suzanne.mesh.vbuf,
+      .mesh = &state.scene.suzanne.mesh,
+      .path = "assets/suzanne.obj",
+      .buffer = SG_RANGE(state.file_buffer),
+  });
+}
+
+void create_offscreen_pass(void)
 {
   const auto width = sapp_width();
   const auto height = sapp_height();
@@ -158,33 +170,26 @@ void create_offscreen_pass()
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
               [1].format = SG_VERTEXFORMAT_FLOAT3,
-          },
-      },
+              [2].format = SG_VERTEXFORMAT_FLOAT2,
+          }},
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
-      .cull_mode = SG_CULLMODE_FRONT,
+      .face_winding = SG_FACEWINDING_CCW,
+      .cull_mode = SG_CULLMODE_BACK,
       .depth = {
           .pixel_format = SG_PIXELFORMAT_DEPTH,
           .compare = SG_COMPAREFUNC_LESS_EQUAL,
           .write_enabled = true,
       },
-      .colors[0].pixel_format = SG_PIXELFORMAT_RGBA8,
-      .label = "offscreen-pipeline",
+      .label = "display-pipeline",
   });
 
-  // bind image and sampler
+  state.offscreen.bind = (sg_bindings){
+      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
+  };
+
   state.display.bind.fs.images[0] = color_img;
   state.display.bind.fs.samplers[0] = color_smplr;
-
-  sg_buffer vbuf = sg_alloc_buffer();
-  state.display.bind.vertex_buffers[0] = vbuf;
-
-  batteries::assets::load_obj((batteries::assets::obj_request_t){
-      .buffer_id = vbuf,
-      .mesh = &state.scene.suzanne.mesh,
-      .path = "assets/suzanne.obj",
-      .buffer = SG_RANGE(state.file_buffer),
-  });
 }
 
 void create_display_pass()
@@ -257,6 +262,7 @@ void create_display_pass()
 void init(void)
 {
   batteries::setup();
+  load_suzanne();
   create_offscreen_pass();
   create_display_pass();
 }
@@ -300,13 +306,24 @@ void frame(void)
   }
   ImGui::End();
 
+  // ImGui::Begin("Offscreen Render");
+  // // Using a Child allow to fill all the space of the window.
+  // ImGui::BeginChild("Offscreen Render");
+  // // Stretch image to be window size
+  // ImVec2 windowSize = ImGui::GetWindowSize();
+  // // Invert 0-1 V to flip vertically for ImGui display
+  // // shadowMap is the texture2D handle
+  // ImGui::Image((ImTextureID)offscreen., windowSize, ImVec2(0, 1), ImVec2(1, 0));
+  // ImGui::EndChild();
+  // ImGui::End();
+
   const auto width = sapp_width();
   const auto height = sapp_height();
 
   // math required by the scene
   auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
   auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
-  auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   auto camera_view_proj = camera_proj * camera_view;
 
   // sugar: rotate suzzane
@@ -331,7 +348,7 @@ void frame(void)
       .Shininess = state.scene.material.Shininess,
   };
 
-  // display pass
+  // offscreen pass
   sg_begin_pass(state.offscreen.pass, &state.offscreen.pass_action);
   sg_apply_pipeline(state.offscreen.pip);
   sg_apply_bindings(&state.offscreen.bind);
