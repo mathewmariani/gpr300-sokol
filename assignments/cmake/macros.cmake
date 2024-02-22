@@ -24,7 +24,7 @@ macro(add_assignment target file)
   # target_link_libraries(${target} PRIVATE ufbx)
   target_include_directories(${target} PUBLIC ../libs)
 
-  target_compile_options(${target} PRIVATE
+  add_compile_options(
     -Waddress-of-temporary
     -Wreorder-init-list
     -Wc99-designator)
