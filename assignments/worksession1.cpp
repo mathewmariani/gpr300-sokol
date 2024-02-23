@@ -19,6 +19,8 @@ typedef struct
   float time;
   glm::vec3 color;
   glm::vec2 direction;
+  float top_scale;
+  float bottom_scale;
 } vs_water_params_t;
 
 // application state
@@ -50,6 +52,8 @@ static struct
     float scale;
     float strength;
     float tiling;
+    float top_scale;
+    float bottom_scale;
   } ocean;
 
   struct
@@ -71,6 +75,8 @@ static struct
         .scale = 10.0f,
         .strength = 1.0f,
         .tiling = 10.0f,
+        .top_scale = 0.90f,
+        .bottom_scale = 0.02f,
     },
 };
 
@@ -92,6 +98,8 @@ void create_water_pass(void)
                   [6] = {.name = "wave.time", .type = SG_UNIFORMTYPE_FLOAT},
                   [7] = {.name = "wave.color", .type = SG_UNIFORMTYPE_FLOAT3},
                   [8] = {.name = "wave.direction", .type = SG_UNIFORMTYPE_FLOAT2},
+                  [9] = {.name = "Ts", .type = SG_UNIFORMTYPE_FLOAT},
+                  [10] = {.name = "Bs", .type = SG_UNIFORMTYPE_FLOAT},
               },
           },
       },
@@ -111,7 +119,6 @@ void create_water_pass(void)
                   .sampler_slot = 0,
               },
           },
-
       },
   };
 
@@ -212,13 +219,23 @@ void frame(void)
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", t * 1000, 1.0f / t, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-  if (ImGui::CollapsingHeader("Ocean"))
+  ImGui::SliderFloat("Time Factor", &state.time.factor, 0.0f, 1.0f);
+
+  if (ImGui::CollapsingHeader("Color"))
   {
     ImGui::ColorEdit3("Color", &state.ocean.color[0]);
+    ImGui::SliderFloat("Upper Blend", &state.ocean.top_scale, 0.0f, 1.0f);
+    ImGui::SliderFloat("Bottom Blend", &state.ocean.bottom_scale, 0.0f, 1.0f);
+  }
+  if (ImGui::CollapsingHeader("Texture"))
+  {
+    ImGui::SliderFloat("Tilling", &state.ocean.tiling, 1.0f, 10.0f);
+    ImGui::SliderFloat2("Scroll Direction", &state.ocean.direction[0], -1.0f, 1.0f);
+  }
+  if (ImGui::CollapsingHeader("Wave"))
+  {
     ImGui::SliderFloat("Scale", &state.ocean.scale, 1.0f, 100.0f);
     ImGui::SliderFloat("Strength", &state.ocean.strength, 1.0f, 100.0f);
-    ImGui::SliderFloat("Tiling", &state.ocean.tiling, 1.0f, 10.0f);
-    ImGui::SliderFloat2("Direction", &state.ocean.direction[0], -1.0f, 1.0f);
   }
   ImGui::End();
 
@@ -242,6 +259,8 @@ void frame(void)
       .color = state.ocean.color,
       .direction = state.ocean.direction,
       .tiling = state.ocean.tiling,
+      .top_scale = state.ocean.top_scale,
+      .bottom_scale = state.ocean.bottom_scale,
   };
 
   // graphics pass

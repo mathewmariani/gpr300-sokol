@@ -19,14 +19,14 @@ struct WaveProperties {
 uniform WaveProperties wave;
 uniform sampler2D water_texture;
 
-// constants
-const float S1 = 0.90;
-const float S2 = 0.02;
+uniform float Ts;
+uniform float Bs;
 
 void main()
 {
   // give direction and motion
-  vec2 uv = TexCoords * wave.tiling + vec2(wave.time * wave.direction);
+  vec2 dir = normalize(wave.direction);
+  vec2 uv = TexCoords * wave.tiling + vec2(wave.time * dir);
 
   // add a rippling effect by displacing the lookup
   uv.y += 0.01 * (sin(uv.x * 3.5 + wave.time * 0.35) + sin(uv.x * 4.8 + wave.time * 1.05) + sin(uv.x * 7.3 + wave.time * 0.45)) / 3.0;
@@ -38,5 +38,5 @@ void main()
   vec4 smp2 = texture(water_texture, uv * 1.0 + vec2(0.2));
 
   // combine color and sampler values
-  FragColor = vec4(wave.color + vec3(smp1.a * S1  - smp2.a * S2), 1.0);
+  FragColor = vec4(wave.color + vec3(smp1.a * Ts  - smp2.a * Bs), 1.0);
 }
