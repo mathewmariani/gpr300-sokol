@@ -514,8 +514,6 @@ function getBinaryPromise(binaryFile) {
 function instantiateArrayBuffer(binaryFile, imports, receiver) {
   return getBinaryPromise(binaryFile).then((binary) => {
     return WebAssembly.instantiate(binary, imports);
-  }).then((instance) => {
-    return instance;
   }).then(receiver, (reason) => {
     err(`failed to asynchronously prepare wasm: ${reason}`);
 
@@ -673,8 +671,8 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   function getValue(ptr, type = 'i8') {
     if (type.endsWith('*')) type = '*';
     switch (type) {
-      case 'i1': return HEAP8[((ptr)>>0)];
-      case 'i8': return HEAP8[((ptr)>>0)];
+      case 'i1': return HEAP8[ptr];
+      case 'i8': return HEAP8[ptr];
       case 'i16': return HEAP16[((ptr)>>1)];
       case 'i32': return HEAP32[((ptr)>>2)];
       case 'i64': abort('to do getValue(i64) use WASM_BIGINT');
@@ -696,8 +694,8 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   function setValue(ptr, value, type = 'i8') {
     if (type.endsWith('*')) type = '*';
     switch (type) {
-      case 'i1': HEAP8[((ptr)>>0)] = value; break;
-      case 'i8': HEAP8[((ptr)>>0)] = value; break;
+      case 'i1': HEAP8[ptr] = value; break;
+      case 'i8': HEAP8[ptr] = value; break;
       case 'i16': HEAP16[((ptr)>>1)] = value; break;
       case 'i32': HEAP32[((ptr)>>2)] = value; break;
       case 'i64': abort('to do setValue(i64) use WASM_BIGINT');
@@ -733,20 +731,20 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   
       set_caught(caught) {
         caught = caught ? 1 : 0;
-        HEAP8[(((this.ptr)+(12))>>0)] = caught;
+        HEAP8[(this.ptr)+(12)] = caught;
       }
   
       get_caught() {
-        return HEAP8[(((this.ptr)+(12))>>0)] != 0;
+        return HEAP8[(this.ptr)+(12)] != 0;
       }
   
       set_rethrown(rethrown) {
         rethrown = rethrown ? 1 : 0;
-        HEAP8[(((this.ptr)+(13))>>0)] = rethrown;
+        HEAP8[(this.ptr)+(13)] = rethrown;
       }
   
       get_rethrown() {
-        return HEAP8[(((this.ptr)+(13))>>0)] != 0;
+        return HEAP8[(this.ptr)+(13)] != 0;
       }
   
       // Initialize native structure fields. Should be called once after allocated.
@@ -858,10 +856,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         if (lastSlash === -1) return path;
         return path.substr(lastSlash+1);
       },
-  join:function() {
-        var paths = Array.prototype.slice.call(arguments);
-        return PATH.normalize(paths.join('/'));
-      },
+  join:(...paths) => PATH.normalize(paths.join('/')),
   join2:(l, r) => PATH.normalize(l + '/' + r),
   };
   
@@ -901,11 +896,11 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   
   
   var PATH_FS = {
-  resolve:function() {
+  resolve:(...args) => {
         var resolvedPath = '',
           resolvedAbsolute = false;
-        for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-          var path = (i >= 0) ? arguments[i] : FS.cwd();
+        for (var i = args.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+          var path = (i >= 0) ? args[i] : FS.cwd();
           // Skip empty and invalid entries
           if (typeof path != 'string') {
             throw new TypeError('Arguments to path.resolve must be strings');
@@ -2060,7 +2055,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   
           mounts.push(m);
   
-          check.push.apply(check, m.mounts);
+          check.push(...m.mounts);
         }
   
         return mounts;
@@ -3195,9 +3190,9 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         var keys = Object.keys(node.stream_ops);
         keys.forEach((key) => {
           var fn = node.stream_ops[key];
-          stream_ops[key] = function forceLoadLazyFile() {
+          stream_ops[key] = (...args) => {
             FS.forceLoadFile(node);
-            return fn.apply(null, arguments);
+            return fn(...args);
           };
         });
         function writeChunks(stream, buffer, offset, length, position) {
@@ -3394,7 +3389,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
             HEAP32[(((argp)+(8))>>2)] = termios.c_cflag || 0;
             HEAP32[(((argp)+(12))>>2)] = termios.c_lflag || 0;
             for (var i = 0; i < 32; i++) {
-              HEAP8[(((argp + i)+(17))>>0)] = termios.c_cc[i] || 0;
+              HEAP8[(argp + i)+(17)] = termios.c_cc[i] || 0;
             }
             return 0;
           }
@@ -3418,7 +3413,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
             var c_lflag = HEAP32[(((argp)+(12))>>2)];
             var c_cc = []
             for (var i = 0; i < 32; i++) {
-              c_cc.push(HEAP8[(((argp + i)+(17))>>0)]);
+              c_cc.push(HEAP8[(argp + i)+(17)]);
             }
             return stream.tty.ops.ioctl_tcsets(stream.tty, op, { c_iflag, c_oflag, c_cflag, c_lflag, c_cc });
           }
@@ -3559,7 +3554,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
           var call = JSEvents.deferredCalls[i];
           JSEvents.deferredCalls.splice(i, 1);
           --i;
-          call.targetFunction.apply(null, call.argsList);
+          call.targetFunction(...call.argsList);
         }
       },
   eventHandlers:[],
@@ -4188,7 +4183,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       return !!(ctx.multiDrawWebgl = ctx.getExtension('WEBGL_multi_draw'));
     };
   
-  var getEmscriptenSupportedExtensions = function(ctx) {
+  var getEmscriptenSupportedExtensions = (ctx) => {
       // Restrict the list of advertised extensions to those that we actually
       // support.
       var supportedExtensions = [
@@ -4211,17 +4206,24 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         'WEBGL_draw_buffers',
         // WebGL 2 extensions
         'EXT_color_buffer_float',
+        'EXT_conservative_depth',
         'EXT_disjoint_timer_query_webgl2',
         'EXT_texture_norm16',
+        'NV_shader_noperspective_interpolation',
         'WEBGL_clip_cull_distance',
         // WebGL 1 and WebGL 2 extensions
         'EXT_color_buffer_half_float',
+        'EXT_depth_clamp',
         'EXT_float_blend',
         'EXT_texture_compression_bptc',
         'EXT_texture_compression_rgtc',
         'EXT_texture_filter_anisotropic',
         'KHR_parallel_shader_compile',
         'OES_texture_float_linear',
+        'WEBGL_blend_func_extended',
+        'WEBGL_compressed_texture_astc',
+        'WEBGL_compressed_texture_etc',
+        'WEBGL_compressed_texture_etc1',
         'WEBGL_compressed_texture_s3tc',
         'WEBGL_compressed_texture_s3tc_srgb',
         'WEBGL_debug_renderer_info',
@@ -4255,7 +4257,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   stringiCache:{
   },
   unpackAlignment:4,
-  recordError:function recordError(errorCode) {
+  recordError:(errorCode) => {
         if (!GL.lastError) {
           GL.lastError = errorCode;
         }
@@ -4266,6 +4268,20 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
           table[i] = null;
         }
         return ret;
+      },
+  genObject:(n, buffers, createFunction, objectTable
+        ) => {
+        for (var i = 0; i < n; i++) {
+          var buffer = GLctx[createFunction]();
+          var id = buffer && GL.getNewId(objectTable);
+          if (buffer) {
+            buffer.name = id;
+            objectTable[id] = buffer;
+          } else {
+            GL.recordError(0x502 /* GL_INVALID_OPERATION */);
+          }
+          HEAP32[(((buffers)+(i*4))>>2)] = id;
+        }
       },
   getSource:(shader, count, string, length) => {
         var source = '';
@@ -4478,13 +4494,13 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
 
   
   
-  var emscripten_webgl_power_preferences = ['default', 'low-power', 'high-performance'];
+  var webglPowerPreferences = ["default","low-power","high-performance"];
   
   
   
   /** @suppress {duplicate } */
   var _emscripten_webgl_do_create_context = (target, attributes) => {
-      var a = attributes >> 2;
+      var a = ((attributes)>>2);
       var powerPreference = HEAP32[a + (24>>2)];
       var contextAttributes = {
         'alpha': !!HEAP32[a + (0>>2)],
@@ -4493,7 +4509,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         'antialias': !!HEAP32[a + (12>>2)],
         'premultipliedAlpha': !!HEAP32[a + (16>>2)],
         'preserveDrawingBuffer': !!HEAP32[a + (20>>2)],
-        'powerPreference': emscripten_webgl_power_preferences[powerPreference],
+        'powerPreference': webglPowerPreferences[powerPreference],
         'failIfMajorPerformanceCaveat': !!HEAP32[a + (28>>2)],
         // The following are not predefined WebGL context attributes in the WebGL specification, so the property names can be minified by Closure.
         majorVersion: HEAP32[a + (32>>2)],
@@ -4649,7 +4665,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   }
   }
 
-  function _glActiveTexture(x0) { GLctx.activeTexture(x0) }
+  var _glActiveTexture = (x0) => GLctx.activeTexture(x0);
 
   var _glAttachShader = (program, shader) => {
       GLctx.attachShader(GL.programs[program], GL.shaders[shader]);
@@ -4697,13 +4713,13 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.bindVertexArray(GL.vaos[vao]);
     };
 
-  function _glBlendColor(x0, x1, x2, x3) { GLctx.blendColor(x0, x1, x2, x3) }
+  var _glBlendColor = (x0, x1, x2, x3) => GLctx.blendColor(x0, x1, x2, x3);
 
-  function _glBlendEquationSeparate(x0, x1) { GLctx.blendEquationSeparate(x0, x1) }
+  var _glBlendEquationSeparate = (x0, x1) => GLctx.blendEquationSeparate(x0, x1);
 
-  function _glBlendFuncSeparate(x0, x1, x2, x3) { GLctx.blendFuncSeparate(x0, x1, x2, x3) }
+  var _glBlendFuncSeparate = (x0, x1, x2, x3) => GLctx.blendFuncSeparate(x0, x1, x2, x3);
 
-  function _glBlitFramebuffer(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9) { GLctx.blitFramebuffer(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9) }
+  var _glBlitFramebuffer = (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9) => GLctx.blitFramebuffer(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9);
 
   var _glBufferData = (target, size, data, usage) => {
   
@@ -4738,16 +4754,16 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.bufferSubData(target, offset, HEAPU8.subarray(data, data+size));
     };
 
-  function _glClearBufferfi(x0, x1, x2, x3) { GLctx.clearBufferfi(x0, x1, x2, x3) }
+  var _glClearBufferfi = (x0, x1, x2, x3) => GLctx.clearBufferfi(x0, x1, x2, x3);
 
   var _glClearBufferfv = (buffer, drawbuffer, value) => {
   
-      GLctx.clearBufferfv(buffer, drawbuffer, HEAPF32, value>>2);
+      GLctx.clearBufferfv(buffer, drawbuffer, HEAPF32, ((value)>>2));
     };
 
   var _glClearBufferiv = (buffer, drawbuffer, value) => {
   
-      GLctx.clearBufferiv(buffer, drawbuffer, HEAP32, value>>2);
+      GLctx.clearBufferiv(buffer, drawbuffer, HEAP32, ((value)>>2));
     };
 
   var _glColorMask = (red, green, blue, alpha) => {
@@ -4769,7 +4785,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
         return;
       }
-      GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, data ? HEAPU8.subarray((data), (data+imageSize)) : null);
+      GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, data ? HEAPU8.subarray((data), data+imageSize) : null);
     };
 
   var _glCompressedTexImage3D = (target, level, internalFormat, width, height, depth, border, imageSize, data) => {
@@ -4800,7 +4816,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       return id;
     };
 
-  function _glCullFace(x0) { GLctx.cullFace(x0) }
+  var _glCullFace = (x0) => GLctx.cullFace(x0);
 
   var _glDeleteBuffers = (n, buffers) => {
       for (var i = 0; i < n; i++) {
@@ -4901,13 +4917,13 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       }
     };
 
-  function _glDepthFunc(x0) { GLctx.depthFunc(x0) }
+  var _glDepthFunc = (x0) => GLctx.depthFunc(x0);
 
   var _glDepthMask = (flag) => {
       GLctx.depthMask(!!flag);
     };
 
-  function _glDisable(x0) { GLctx.disable(x0) }
+  var _glDisable = (x0) => GLctx.disable(x0);
 
   var _glDisableVertexAttribArray = (index) => {
       GLctx.disableVertexAttribArray(index);
@@ -4933,56 +4949,38 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.drawElementsInstanced(mode, count, type, indices, primcount);
     };
 
-  function _glEnable(x0) { GLctx.enable(x0) }
+  var _glEnable = (x0) => GLctx.enable(x0);
 
   var _glEnableVertexAttribArray = (index) => {
       GLctx.enableVertexAttribArray(index);
     };
 
-  function _glFrontFace(x0) { GLctx.frontFace(x0) }
+  var _glFrontFace = (x0) => GLctx.frontFace(x0);
 
-  var __glGenObject = (n, buffers, createFunction, objectTable
-      ) => {
-      for (var i = 0; i < n; i++) {
-        var buffer = GLctx[createFunction]();
-        var id = buffer && GL.getNewId(objectTable);
-        if (buffer) {
-          buffer.name = id;
-          objectTable[id] = buffer;
-        } else {
-          GL.recordError(0x502 /* GL_INVALID_OPERATION */);
-        }
-        HEAP32[(((buffers)+(i*4))>>2)] = id;
-      }
-    };
-  
   var _glGenBuffers = (n, buffers) => {
-      __glGenObject(n, buffers, 'createBuffer', GL.buffers
+      GL.genObject(n, buffers, 'createBuffer', GL.buffers
         );
     };
 
-  
   var _glGenRenderbuffers = (n, renderbuffers) => {
-      __glGenObject(n, renderbuffers, 'createRenderbuffer', GL.renderbuffers
+      GL.genObject(n, renderbuffers, 'createRenderbuffer', GL.renderbuffers
         );
     };
 
   var _glGenSamplers = (n, samplers) => {
-      __glGenObject(n, samplers, 'createSampler', GL.samplers
+      GL.genObject(n, samplers, 'createSampler', GL.samplers
         );
     };
 
-  
   var _glGenTextures = (n, textures) => {
-      __glGenObject(n, textures, 'createTexture', GL.textures
+      GL.genObject(n, textures, 'createTexture', GL.textures
         );
     };
 
-  
-  function _glGenVertexArrays(n, arrays) {
-      __glGenObject(n, arrays, 'createVertexArray', GL.vaos
+  var _glGenVertexArrays = (n, arrays) => {
+      GL.genObject(n, arrays, 'createVertexArray', GL.vaos
         );
-    }
+    };
 
   
   var _glGetAttribLocation = (program, name) => {
@@ -5108,7 +5106,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
                 switch (type) {
                   case 0: HEAP32[(((p)+(i*4))>>2)] = result[i]; break;
                   case 2: HEAPF32[(((p)+(i*4))>>2)] = result[i]; break;
-                  case 4: HEAP8[(((p)+(i))>>0)] = result[i] ? 1 : 0; break;
+                  case 4: HEAP8[(p)+(i)] = result[i] ? 1 : 0; break;
                 }
               }
               return;
@@ -5133,7 +5131,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         case 1: writeI53ToI64(p, ret); break;
         case 0: HEAP32[((p)>>2)] = ret; break;
         case 2:   HEAPF32[((p)>>2)] = ret; break;
-        case 4: HEAP8[((p)>>0)] = ret ? 1 : 0; break;
+        case 4: HEAP8[p] = ret ? 1 : 0; break;
       }
     };
   
@@ -5388,11 +5386,11 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.pixelStorei(pname, param);
     };
 
-  function _glPolygonOffset(x0, x1) { GLctx.polygonOffset(x0, x1) }
+  var _glPolygonOffset = (x0, x1) => GLctx.polygonOffset(x0, x1);
 
-  function _glReadBuffer(x0) { GLctx.readBuffer(x0) }
+  var _glReadBuffer = (x0) => GLctx.readBuffer(x0);
 
-  function _glRenderbufferStorageMultisample(x0, x1, x2, x3, x4) { GLctx.renderbufferStorageMultisample(x0, x1, x2, x3, x4) }
+  var _glRenderbufferStorageMultisample = (x0, x1, x2, x3, x4) => GLctx.renderbufferStorageMultisample(x0, x1, x2, x3, x4);
 
   var _glSamplerParameterf = (sampler, pname, param) => {
       GLctx.samplerParameterf(GL.samplers[sampler], pname, param);
@@ -5402,7 +5400,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.samplerParameteri(GL.samplers[sampler], pname, param);
     };
 
-  function _glScissor(x0, x1, x2, x3) { GLctx.scissor(x0, x1, x2, x3) }
+  var _glScissor = (x0, x1, x2, x3) => GLctx.scissor(x0, x1, x2, x3);
 
   var _glShaderSource = (shader, count, string, length) => {
       var source = GL.getSource(shader, count, string, length);
@@ -5410,15 +5408,15 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.shaderSource(GL.shaders[shader], source);
     };
 
-  function _glStencilFunc(x0, x1, x2) { GLctx.stencilFunc(x0, x1, x2) }
+  var _glStencilFunc = (x0, x1, x2) => GLctx.stencilFunc(x0, x1, x2);
 
-  function _glStencilFuncSeparate(x0, x1, x2, x3) { GLctx.stencilFuncSeparate(x0, x1, x2, x3) }
+  var _glStencilFuncSeparate = (x0, x1, x2, x3) => GLctx.stencilFuncSeparate(x0, x1, x2, x3);
 
-  function _glStencilMask(x0) { GLctx.stencilMask(x0) }
+  var _glStencilMask = (x0) => GLctx.stencilMask(x0);
 
-  function _glStencilOp(x0, x1, x2) { GLctx.stencilOp(x0, x1, x2) }
+  var _glStencilOp = (x0, x1, x2) => GLctx.stencilOp(x0, x1, x2);
 
-  function _glStencilOpSeparate(x0, x1, x2, x3) { GLctx.stencilOpSeparate(x0, x1, x2, x3) }
+  var _glStencilOpSeparate = (x0, x1, x2, x3) => GLctx.stencilOpSeparate(x0, x1, x2, x3);
 
   var computeUnpackAlignedImageSize = (width, height, sizePerPixel, alignment) => {
       function roundedToNextMultipleOf(x, y) {
@@ -5480,15 +5478,14 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       return HEAPU16;
     };
   
-  var heapAccessShiftForWebGLHeap = (heap) => 31 - Math.clz32(heap.BYTES_PER_ELEMENT);
+  var toTypedArrayIndex = (pointer, heap) =>
+      pointer >>> (31 - Math.clz32(heap.BYTES_PER_ELEMENT));
   
   var emscriptenWebGLGetTexPixelData = (type, format, width, height, pixels, internalFormat) => {
       var heap = heapObjectForWebGLType(type);
-      var shift = heapAccessShiftForWebGLHeap(heap);
-      var byteSize = 1<<shift;
-      var sizePerPixel = colorChannelsInGlTextureFormat(format) * byteSize;
+      var sizePerPixel = colorChannelsInGlTextureFormat(format) * heap.BYTES_PER_ELEMENT;
       var bytes = computeUnpackAlignedImageSize(width, height, sizePerPixel, GL.unpackAlignment);
-      return heap.subarray(pixels >> shift, pixels + bytes >> shift);
+      return heap.subarray(toTypedArrayIndex(pixels, heap), toTypedArrayIndex(pixels + bytes, heap));
     };
   
   
@@ -5501,7 +5498,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
           GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
         } else if (pixels) {
           var heap = heapObjectForWebGLType(type);
-          GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, heap, pixels >> heapAccessShiftForWebGLHeap(heap));
+          GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, heap, toTypedArrayIndex(pixels, heap));
         } else {
           GLctx.texImage2D(target, level, internalFormat, width, height, border, format, type, null);
         }
@@ -5516,13 +5513,13 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         GLctx.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels);
       } else if (pixels) {
         var heap = heapObjectForWebGLType(type);
-        GLctx.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, heap, pixels >> heapAccessShiftForWebGLHeap(heap));
+        GLctx.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, heap, toTypedArrayIndex(pixels, heap));
       } else {
         GLctx.texImage3D(target, level, internalFormat, width, height, depth, border, format, type, null);
       }
     };
 
-  function _glTexParameteri(x0, x1, x2) { GLctx.texParameteri(x0, x1, x2) }
+  var _glTexParameteri = (x0, x1, x2) => GLctx.texParameteri(x0, x1, x2);
 
   var webglGetUniformLocation = (location) => {
       var p = GLctx.currentProgram;
@@ -5548,7 +5545,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   var _glUniform1fv = (location, count, value) => {
   
       if (GL.currentContext.version >= 2) { // WebGL 2 provides new garbage-free entry points to call to WebGL. Use those always when possible.
-        count && GLctx.uniform1fv(webglGetUniformLocation(location), HEAPF32, value>>2, count);
+        count && GLctx.uniform1fv(webglGetUniformLocation(location), HEAPF32, ((value)>>2), count);
         return;
       }
   
@@ -5560,7 +5557,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAPF32.subarray((value)>>2, (value+count*4)>>2);
+        var view = HEAPF32.subarray((((value)>>2)), ((value+count*4)>>2));
       }
       GLctx.uniform1fv(webglGetUniformLocation(location), view);
     };
@@ -5576,7 +5573,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   var _glUniform1iv = (location, count, value) => {
   
       if (GL.currentContext.version >= 2) { // WebGL 2 provides new garbage-free entry points to call to WebGL. Use those always when possible.
-        count && GLctx.uniform1iv(webglGetUniformLocation(location), HEAP32, value>>2, count);
+        count && GLctx.uniform1iv(webglGetUniformLocation(location), HEAP32, ((value)>>2), count);
         return;
       }
   
@@ -5588,7 +5585,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAP32.subarray((value)>>2, (value+count*4)>>2);
+        var view = HEAP32.subarray((((value)>>2)), ((value+count*4)>>2));
       }
       GLctx.uniform1iv(webglGetUniformLocation(location), view);
     };
@@ -5600,7 +5597,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       // WebGL 2 provides new garbage-free entry points to call to WebGL. Use
       // those always when possible.
       if (GL.currentContext.version >= 2) {
-        count && GLctx.uniform2fv(webglGetUniformLocation(location), HEAPF32, value>>2, count*2);
+        count && GLctx.uniform2fv(webglGetUniformLocation(location), HEAPF32, ((value)>>2), count*2);
         return;
       }
   
@@ -5613,7 +5610,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAPF32.subarray((value)>>2, (value+count*8)>>2);
+        var view = HEAPF32.subarray((((value)>>2)), ((value+count*8)>>2));
       }
       GLctx.uniform2fv(webglGetUniformLocation(location), view);
     };
@@ -5623,7 +5620,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   var _glUniform2iv = (location, count, value) => {
   
       if (GL.currentContext.version >= 2) { // WebGL 2 provides new garbage-free entry points to call to WebGL. Use those always when possible.
-        count && GLctx.uniform2iv(webglGetUniformLocation(location), HEAP32, value>>2, count*2);
+        count && GLctx.uniform2iv(webglGetUniformLocation(location), HEAP32, ((value)>>2), count*2);
         return;
       }
   
@@ -5636,7 +5633,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAP32.subarray((value)>>2, (value+count*8)>>2);
+        var view = HEAP32.subarray((((value)>>2)), ((value+count*8)>>2));
       }
       GLctx.uniform2iv(webglGetUniformLocation(location), view);
     };
@@ -5648,7 +5645,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       // WebGL 2 provides new garbage-free entry points to call to WebGL. Use
       // those always when possible.
       if (GL.currentContext.version >= 2) {
-        count && GLctx.uniform3fv(webglGetUniformLocation(location), HEAPF32, value>>2, count*3);
+        count && GLctx.uniform3fv(webglGetUniformLocation(location), HEAPF32, ((value)>>2), count*3);
         return;
       }
   
@@ -5662,7 +5659,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAPF32.subarray((value)>>2, (value+count*12)>>2);
+        var view = HEAPF32.subarray((((value)>>2)), ((value+count*12)>>2));
       }
       GLctx.uniform3fv(webglGetUniformLocation(location), view);
     };
@@ -5672,7 +5669,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
   var _glUniform3iv = (location, count, value) => {
   
       if (GL.currentContext.version >= 2) { // WebGL 2 provides new garbage-free entry points to call to WebGL. Use those always when possible.
-        count && GLctx.uniform3iv(webglGetUniformLocation(location), HEAP32, value>>2, count*3);
+        count && GLctx.uniform3iv(webglGetUniformLocation(location), HEAP32, ((value)>>2), count*3);
         return;
       }
   
@@ -5686,7 +5683,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAP32.subarray((value)>>2, (value+count*12)>>2);
+        var view = HEAP32.subarray((((value)>>2)), ((value+count*12)>>2));
       }
       GLctx.uniform3iv(webglGetUniformLocation(location), view);
     };
@@ -5698,7 +5695,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       // WebGL 2 provides new garbage-free entry points to call to WebGL. Use
       // those always when possible.
       if (GL.currentContext.version >= 2) {
-        count && GLctx.uniform4fv(webglGetUniformLocation(location), HEAPF32, value>>2, count*4);
+        count && GLctx.uniform4fv(webglGetUniformLocation(location), HEAPF32, ((value)>>2), count*4);
         return;
       }
   
@@ -5707,7 +5704,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         var view = miniTempWebGLFloatBuffers[4*count-1];
         // hoist the heap out of the loop for size and for pthreads+growth.
         var heap = HEAPF32;
-        value >>= 2;
+        value = ((value)>>2);
         for (var i = 0; i < 4 * count; i += 4) {
           var dst = value + i;
           view[i] = heap[dst];
@@ -5717,7 +5714,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAPF32.subarray((value)>>2, (value+count*16)>>2);
+        var view = HEAPF32.subarray((((value)>>2)), ((value+count*16)>>2));
       }
       GLctx.uniform4fv(webglGetUniformLocation(location), view);
     };
@@ -5729,7 +5726,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       // WebGL 2 provides new garbage-free entry points to call to WebGL. Use
       // those always when possible.
       if (GL.currentContext.version >= 2) {
-        count && GLctx.uniform4iv(webglGetUniformLocation(location), HEAP32, value>>2, count*4);
+        count && GLctx.uniform4iv(webglGetUniformLocation(location), HEAP32, ((value)>>2), count*4);
         return;
       }
   
@@ -5744,7 +5741,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAP32.subarray((value)>>2, (value+count*16)>>2);
+        var view = HEAP32.subarray((((value)>>2)), ((value+count*16)>>2));
       }
       GLctx.uniform4iv(webglGetUniformLocation(location), view);
     };
@@ -5756,7 +5753,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       // WebGL 2 provides new garbage-free entry points to call to WebGL. Use
       // those always when possible.
       if (GL.currentContext.version >= 2) {
-        count && GLctx.uniformMatrix4fv(webglGetUniformLocation(location), !!transpose, HEAPF32, value>>2, count*16);
+        count && GLctx.uniformMatrix4fv(webglGetUniformLocation(location), !!transpose, HEAPF32, ((value)>>2), count*16);
         return;
       }
   
@@ -5765,7 +5762,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         var view = miniTempWebGLFloatBuffers[16*count-1];
         // hoist the heap out of the loop for size and for pthreads+growth.
         var heap = HEAPF32;
-        value >>= 2;
+        value = ((value)>>2);
         for (var i = 0; i < 16 * count; i += 16) {
           var dst = value + i;
           view[i] = heap[dst];
@@ -5787,7 +5784,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
         }
       } else
       {
-        var view = HEAPF32.subarray((value)>>2, (value+count*64)>>2);
+        var view = HEAPF32.subarray((((value)>>2)), ((value+count*64)>>2));
       }
       GLctx.uniformMatrix4fv(webglGetUniformLocation(location), !!transpose, view);
     };
@@ -5808,7 +5805,7 @@ function slog_js_log(level,c_str) { const str = UTF8ToString(c_str); switch (lev
       GLctx.vertexAttribPointer(index, size, type, !!normalized, stride, ptr);
     };
 
-  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
+  var _glViewport = (x0, x1, x2, x3) => GLctx.viewport(x0, x1, x2, x3);
 
   
   var runtimeKeepaliveCounter = 0;
@@ -6215,8 +6212,8 @@ var stackRestore = (a0) => (stackRestore = wasmExports['stackRestore'])(a0);
 var stackAlloc = (a0) => (stackAlloc = wasmExports['stackAlloc'])(a0);
 var ___cxa_is_pointer_type = (a0) => (___cxa_is_pointer_type = wasmExports['__cxa_is_pointer_type'])(a0);
 var dynCall_jiji = Module['dynCall_jiji'] = (a0, a1, a2, a3, a4) => (dynCall_jiji = Module['dynCall_jiji'] = wasmExports['dynCall_jiji'])(a0, a1, a2, a3, a4);
-var ___start_em_js = Module['___start_em_js'] = 54040;
-var ___stop_em_js = Module['___stop_em_js'] = 61348;
+var ___start_em_js = Module['___start_em_js'] = 54024;
+var ___stop_em_js = Module['___stop_em_js'] = 61332;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
