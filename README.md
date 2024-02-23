@@ -1,5 +1,7 @@
 # Intermediate Graphics Programming (GPR300)
 
+[![Build](/../../actions/workflows/main.yml/badge.svg)](/../../actions/workflows/main.yml)
+
 This adaptation of GPR-300 is a work in progress.
 
 The course has been adapted to use the [sokol headers](https://github.com/floooh/sokol) by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
