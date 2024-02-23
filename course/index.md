@@ -35,9 +35,9 @@ Before working on any project it's important to understand the [development envi
 *   [assignment 0][] - Graphics Pipeline Review 
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
+*   [assignment 3][] - Deferred Lighting
 
 <!-- Future Assignments:
-*   [assignment 3][] - Deffered Rendering
 *   [assignment 4][] - Splines
 *   [assignment 5][] - Skeletal Animations
 -->
@@ -46,6 +46,13 @@ Before working on any project it's important to understand the [development envi
 ### Work Sessions
 
 *   [worksession 0][] - Physically Based Rendering (PBR)
+
+<!-- Future Work Sessions:
+*   [worksession 1][] - Windwaker Ocean
+*   [worksession 2][] - Island Generation
+*   [worksession 3][] - Mandelbrot Set
+*   [worksession 4][] - Delphino Island Water
+-->
 
 
 ### Final Project
