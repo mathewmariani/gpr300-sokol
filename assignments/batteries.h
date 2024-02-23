@@ -7,6 +7,7 @@
 #include "sokol/sokol_log.h"
 #include "sokol/sokol_time.h"
 #include "sokol/sokol_glue.h"
+#include "sokol/sokol_shape.h"
 
 // libs
 #include "imgui/imgui.h"
@@ -41,6 +42,7 @@ namespace batteries
   struct mesh_t
   {
     sg_buffer vbuf;
+    sg_buffer ibuf;
     int num_faces;
     std::vector<float> vertices;
     std::vector<uint16_t> indices;
@@ -98,15 +100,16 @@ namespace batteries
     }
   };
 
+  struct shape_t
+  {
+    transform_t transform;
+    sshape_element_range_t draw;
+  };
+
   void setup(void);
   void shutdown(void);
   void frame(void);
   void event(const sapp_event *event);
-
-  namespace shapes
-  {
-    mesh_t create_plane(float width, float height, int subdivisions);
-  }
 
   namespace assets
   {
@@ -207,38 +210,6 @@ namespace batteries
     simgui_handle_event(event);
   }
 
-  namespace shapes
-  {
-    mesh_t create_plane(float width, float height, int subdivisions)
-    {
-      mesh_t mesh;
-      int columns = subdivisions + 1;
-      for (size_t row = 0; row <= subdivisions; row++)
-      {
-        for (size_t col = 0; col <= subdivisions; col++)
-        {
-          auto uv_x = col / (float)subdivisions;
-          auto uv_y = row / (float)subdivisions;
-
-          // position
-          mesh.vertices.push_back(-width / 2 + width * uv_x);
-          mesh.vertices.push_back(0.0f);
-          mesh.vertices.push_back(height / 2 - height * uv_y);
-
-          // normal
-          mesh.vertices.push_back(0.0f);
-          mesh.vertices.push_back(1.0f);
-          mesh.vertices.push_back(0.0f);
-
-          // texcoords
-          mesh.vertices.push_back(uv_x);
-          mesh.vertices.push_back(uv_y);
-        }
-      }
-      return mesh;
-    }
-  }
-
   namespace assets
   {
     namespace
@@ -313,7 +284,7 @@ namespace batteries
             &width,
             &height,
             &components,
-            0);
+            4);
 
         if (pixels)
         {
@@ -326,7 +297,7 @@ namespace batteries
               .pixel_format = SG_PIXELFORMAT_RGBA8,
               .data.subimage[0][0] = {
                   .ptr = pixels,
-                  .size = (size_t)(width * height * components),
+                  .size = (size_t)(width * height * 4),
               }
           });
           // clang-format on
