@@ -1,0 +1,285 @@
+#define BATTERIES_IMPL
+#include "batteries.h"
+
+//
+// Work Session 1 -- Windwaker Ocean
+//
+
+// shaders
+#include "shaders/windwaker_water.h"
+
+typedef struct
+{
+  glm::mat4 view_proj;
+  glm::mat4 model;
+  glm::vec3 camera_pos;
+  float scale;
+  float strength;
+  float tiling;
+  float time;
+  glm::vec3 color;
+  glm::vec2 direction;
+} vs_water_params_t;
+
+// application state
+static struct
+{
+  struct
+  {
+    sg_pass_action pass_action;
+    sg_pass pass;
+    sg_pipeline pip;
+    sg_bindings bind;
+    sg_image img;
+
+    batteries::shape_t plane;
+  } water;
+
+  struct
+  {
+    double frame;
+    double absolute;
+    float factor;
+    bool paused;
+  } time;
+
+  struct
+  {
+    glm::vec3 color;
+    glm::vec2 direction;
+    float scale;
+    float strength;
+    float tiling;
+  } ocean;
+
+  struct
+  {
+    glm::vec3 ambient_light;
+  } scene;
+
+  uint8_t file_buffer[batteries::megabytes(5)];
+} state = {
+    .time = {
+        .frame = 0.0,
+        .absolute = 0.0,
+        .factor = 1.0f,
+        .paused = false,
+    },
+    .ocean{
+        .color = glm::vec3(0.00f, 0.31f, 0.85f),
+        .direction = glm::vec3(0.5f),
+        .scale = 10.0f,
+        .strength = 1.0f,
+        .tiling = 10.0f,
+    },
+};
+
+void create_water_pass(void)
+{
+  auto shader_desc = (sg_shader_desc){
+      .vs = {
+          .source = windwaker_water_vs,
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(vs_water_params_t),
+              .uniforms = {
+                  [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                  [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                  [2] = {.name = "cameraPos", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [3] = {.name = "wave.scale", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "wave.strength", .type = SG_UNIFORMTYPE_FLOAT},
+                  [5] = {.name = "wave.tiling", .type = SG_UNIFORMTYPE_FLOAT},
+                  [6] = {.name = "wave.time", .type = SG_UNIFORMTYPE_FLOAT},
+                  [7] = {.name = "wave.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [8] = {.name = "wave.direction", .type = SG_UNIFORMTYPE_FLOAT2},
+              },
+          },
+      },
+      .fs = {
+          .source = windwaker_water_fs,
+          .images = {
+              [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+          },
+          .samplers = {
+              [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+          },
+          .image_sampler_pairs = {
+              [0] = {
+                  .used = true,
+                  .glsl_name = "water_texture",
+                  .image_slot = 0,
+                  .sampler_slot = 0,
+              },
+          },
+
+      },
+  };
+
+  state.water.pass_action = (sg_pass_action){
+      .colors[0] = {
+          .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
+          .load_action = SG_LOADACTION_CLEAR,
+      }};
+
+  state.water.pip = sg_make_pipeline((sg_pipeline_desc){
+      .layout = {
+          .buffers[0] = sshape_vertex_buffer_layout_state(),
+          .attrs = {
+              [0] = sshape_position_vertex_attr_state(),
+              [1] = sshape_normal_vertex_attr_state(),
+              [2] = sshape_texcoord_vertex_attr_state(),
+              [3] = sshape_color_vertex_attr_state(),
+          },
+      },
+      // .primitive_type = SG_PRIMITIVETYPE_LINES,
+      .shader = sg_make_shader(shader_desc),
+      .index_type = SG_INDEXTYPE_UINT16,
+      .cull_mode = SG_CULLMODE_NONE,
+      .depth = {
+          .compare = SG_COMPAREFUNC_LESS_EQUAL,
+          .write_enabled = true,
+      },
+      .label = "water-pipeline",
+  });
+
+  state.water.img = sg_alloc_image();
+  sg_sampler smp = sg_make_sampler((sg_sampler_desc){
+      .min_filter = SG_FILTER_LINEAR,
+      .mag_filter = SG_FILTER_LINEAR,
+      .wrap_u = SG_WRAP_REPEAT,
+      .wrap_v = SG_WRAP_REPEAT,
+      .label = "water-sampler",
+  });
+
+  // generate shape geometries
+  sshape_vertex_t vertices[2 * 1024];
+  uint16_t indices[4 * 1024];
+  sshape_buffer_t buf = {
+      .vertices.buffer = SSHAPE_RANGE(vertices),
+      .indices.buffer = SSHAPE_RANGE(indices),
+  };
+
+  // clang-format off
+  sshape_plane_t plane = {
+      .width = 100.0f,
+      .depth = 100.0f,
+      .tiles = 10,
+  };
+  buf = sshape_build_plane(&buf, &plane);
+  state.water.plane.draw = sshape_element_range(&buf);
+  // clang-format on
+
+  state.water.plane.transform.position = glm::vec3(0.0f, -1.0f, 0.0f);
+
+  // one vertex/index-buffer-pair for all shapes
+  const auto vbuf_desc = sshape_vertex_buffer_desc(&buf);
+  const auto ibuf_desc = sshape_index_buffer_desc(&buf);
+
+  state.water.bind = (sg_bindings){
+      .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
+      .index_buffer = sg_make_buffer(&ibuf_desc),
+      .fs = {
+          .images[0] = state.water.img,
+          .samplers[0] = smp,
+      },
+  };
+
+  batteries::assets::load_img((batteries::assets::img_request_t){
+      .image_id = state.water.img,
+      .path = "assets/materials/water.png",
+      .buffer = SG_RANGE(state.file_buffer),
+  });
+}
+
+void init(void)
+{
+  batteries::setup();
+  create_water_pass();
+}
+
+void frame(void)
+{
+  batteries::frame();
+
+  const auto t = (float)sapp_frame_duration();
+
+  state.time.frame = (float)sapp_frame_duration();
+  if (!state.time.paused)
+  {
+    state.time.absolute += state.time.frame * state.time.factor;
+  }
+
+  ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", t * 1000, 1.0f / t, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+  if (ImGui::CollapsingHeader("Ocean"))
+  {
+    ImGui::ColorEdit3("Color", &state.ocean.color[0]);
+    ImGui::SliderFloat("Scale", &state.ocean.scale, 1.0f, 100.0f);
+    ImGui::SliderFloat("Strength", &state.ocean.strength, 1.0f, 100.0f);
+    ImGui::SliderFloat("Tiling", &state.ocean.tiling, 1.0f, 10.0f);
+    ImGui::SliderFloat2("Direction", &state.ocean.direction[0], -1.0f, 1.0f);
+  }
+  ImGui::End();
+
+  const auto width = sapp_width();
+  const auto height = sapp_height();
+
+  // math required by the water
+  auto camera_pos = glm::vec3(0.0f, 25.0f, 25.0f);
+  auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 1000.0f);
+  auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  auto camera_view_proj = camera_proj * camera_view;
+
+  // initialize uniform data
+  const vs_water_params_t vs_params = {
+      .view_proj = camera_view_proj,
+      .model = state.water.plane.transform.matrix(),
+      .camera_pos = camera_pos,
+      .scale = state.ocean.scale,
+      .strength = state.ocean.strength,
+      .time = (float)state.time.absolute,
+      .color = state.ocean.color,
+      .direction = state.ocean.direction,
+      .tiling = state.ocean.tiling,
+  };
+
+  // graphics pass
+  sg_begin_default_pass(&state.water.pass_action, width, height);
+  sg_apply_pipeline(state.water.pip);
+  sg_apply_bindings(&state.water.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
+  sg_draw(state.water.plane.draw.base_element, state.water.plane.draw.num_elements, 1);
+
+  // draw ui
+  simgui_render();
+
+  sg_end_pass();
+  sg_commit();
+}
+
+void event(const sapp_event *event)
+{
+  batteries::event(event);
+}
+
+void cleanup(void)
+{
+  batteries::shutdown();
+}
+
+sapp_desc sokol_main(int argc, char *argv[])
+{
+  (void)argc;
+  (void)argv;
+  return (sapp_desc){
+      .init_cb = init,
+      .frame_cb = frame,
+      .event_cb = event,
+      .cleanup_cb = cleanup,
+      .width = 800,
+      .height = 800,
+      .window_title = "gpr300-sokol",
+      .logger.func = slog_func,
+  };
+}

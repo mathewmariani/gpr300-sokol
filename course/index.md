@@ -46,6 +46,7 @@ Before working on any project it's important to understand the [development envi
 ### Work Sessions
 
 *   [worksession 0][] - Physically Based Rendering (PBR)
+*   [worksession 1][] - Windwaker Ocean
 
 <!-- Future Work Sessions:
 *   [worksession 1][] - Windwaker Ocean
@@ -73,5 +74,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [assignment 4]: assignment4.html
 [assignment 5]: assignment5.html
 [worksession 0]: worksession0.html
+[worksession 1]: worksession1.html
 [development environment]: environment.html
 [sokol headers]: https://github.com/floooh/sokol
