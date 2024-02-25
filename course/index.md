@@ -47,9 +47,9 @@ Before working on any project it's important to understand the [development envi
 
 *   [worksession 0][] - Physically Based Rendering (PBR)
 *   [worksession 1][] - Windwaker Ocean
+*   [worksession 2][] - Landmass Generation
 
 <!-- Future Work Sessions:
-*   [worksession 2][] - Island Generation
 *   [worksession 3][] - Mandelbrot Set
 *   [worksession 4][] - Delphino Island Water
 -->
