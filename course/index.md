@@ -75,5 +75,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [assignment 5]: assignment5.html
 [worksession 0]: worksession0.html
 [worksession 1]: worksession1.html
+[worksession 2]: worksession2.html
 [development environment]: environment.html
 [sokol headers]: https://github.com/floooh/sokol
