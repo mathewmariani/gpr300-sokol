@@ -2,7 +2,7 @@
 #include "batteries.h"
 
 //
-// Assignment0 -- Blinn Phong
+// Assignment0 -- Physically Based Rendering
 //
 
 // shaders

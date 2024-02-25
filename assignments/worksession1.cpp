@@ -61,6 +61,9 @@ static struct
     glm::vec3 ambient_light;
   } scene;
 
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
+
   uint8_t file_buffer[batteries::megabytes(5)];
 } state = {
     .time = {
@@ -69,7 +72,7 @@ static struct
         .factor = 1.0f,
         .paused = false,
     },
-    .ocean{
+    .ocean = {
         .color = glm::vec3(0.00f, 0.31f, 0.85f),
         .direction = glm::vec3(0.5f),
         .scale = 10.0f,
@@ -209,6 +212,7 @@ void frame(void)
   batteries::frame();
 
   const auto t = (float)sapp_frame_duration();
+  state.camera_controller.update(&state.camera, t);
 
   state.time.frame = (float)sapp_frame_duration();
   if (!state.time.paused)
@@ -242,17 +246,14 @@ void frame(void)
   const auto width = sapp_width();
   const auto height = sapp_height();
 
-  // math required by the water
-  auto camera_pos = glm::vec3(0.0f, 25.0f, 25.0f);
-  auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 1000.0f);
-  auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-  auto camera_view_proj = camera_proj * camera_view;
+  // math required by the shader
+  auto camera_view_proj = state.camera.projection() * state.camera.view();
 
   // initialize uniform data
   const vs_water_params_t vs_params = {
       .view_proj = camera_view_proj,
       .model = state.water.plane.transform.matrix(),
-      .camera_pos = camera_pos,
+      .camera_pos = state.camera.position,
       .scale = state.ocean.scale,
       .strength = state.ocean.strength,
       .time = (float)state.time.absolute,
@@ -280,6 +281,7 @@ void frame(void)
 void event(const sapp_event *event)
 {
   batteries::event(event);
+  state.camera_controller.event(event);
 }
 
 void cleanup(void)

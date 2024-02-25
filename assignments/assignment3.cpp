@@ -2,7 +2,7 @@
 #include "batteries.h"
 
 //
-// Assignment2 -- Deferred Lighting
+// Assignment3 -- Deferred Lighting
 //
 
 // shaders
@@ -12,8 +12,6 @@
 
 enum
 {
-  GEOMETRY_COLOR_COUNT = 3,
-  GEOMETRY_SAMPLE_COUNT = 4,
   OFFSCREEN_WIDTH = 512,
   OFFSCREEN_HEIGHT = 512,
 };
