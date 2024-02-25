@@ -43,6 +43,13 @@ function _buildWebsite() {
     });
   }
 
+  // copy all images to output directory
+  fs.cp("course/images", "website/images", { recursive: true }, (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+
   // copy assets directory
   fs.cp("assignments/assets", "website/demo/assets", { recursive: true }, (err) => {
     if (err) {
