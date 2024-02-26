@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Markdown from "markdown-it";
+import Mustache from "mustache";
 import { globSync } from "glob";
 
 function _buildWebsite() {
@@ -19,7 +20,7 @@ function _buildWebsite() {
   for (const file of md_glob) {
     console.log("found a .md file:", file);
     try {
-      const name = path.basename(file, ".md");
+      const name = path.parse(file).base;
       const body = fs.readFileSync(file, "utf8");
       fs.writeFile(`website/${name}.html`, Markdown({ html: true }).render(body), (err) => {
         if (err) {
@@ -31,16 +32,27 @@ function _buildWebsite() {
     }
   }
 
-  // glob demo
-  const demo_glob = globSync("build/assignments/Release/*.{html,js,wasm}");
+  // mustache templates
+  let demo_mustache = fs.readFileSync("extra/mustache/demo.mustache", "utf8");
+
+  const demo_glob = globSync("build/assignments/Release/*.js");
   for (const file of demo_glob) {
-    const name = path.basename(file);
+    const name = path.parse(file).name;
     console.log("found a file:", name);
-    fs.copyFile(file, `website/demo/${name}`, (err) => {
-      if (err) {
-        console.error(err);
-      }
-    });
+    let demo_page = Mustache.render(demo_mustache, { name: name, script: `${name}.js` })
+
+    // render .html, and copy .js
+    fs.writeFile(`website/demo/${name}.html`, demo_page, (err) => { if (err) { console.error(err); } });
+    fs.copyFile(file, `website/demo/${name}.js`, (err) => { if (err) { console.error(err); } });
+  }
+
+  const wasm_glob = globSync("build/assignments/Release/*.wasm");
+  for (const file of wasm_glob) {
+    const name = path.parse(file).base;
+    console.log("found a file:", name);
+
+    // copy js and wasm
+    fs.copyFile(file, `website/demo/${name}`, (err) => { if (err) { console.error(err); } });
   }
 
   // copy all images to output directory

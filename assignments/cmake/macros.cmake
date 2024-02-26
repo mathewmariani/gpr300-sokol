@@ -6,22 +6,18 @@ macro(emscripten target)
       -sINITIAL_MEMORY=50MB
       -sMAXIMUM_MEMORY=200MB
       -sALLOW_MEMORY_GROWTH=1
-      -sUSE_WEBGL2=1
-      --shell-file ../extra/shell.html)
+      -sUSE_WEBGL2=1)
   endif()
 endmacro()
 
 macro(add_assignment target file)
   add_executable(${target} ${file} batteries.h)
 
-  # target_link_libraries(${target} PRIVATE assimp)
   target_link_libraries(${target} PRIVATE fast_obj)
   target_link_libraries(${target} PRIVATE glm)
   target_link_libraries(${target} PRIVATE imgui)
-  # target_link_libraries(${target} PRIVATE ozz-animation)
   target_link_libraries(${target} PRIVATE sokol)
   target_link_libraries(${target} PRIVATE stb)
-  # target_link_libraries(${target} PRIVATE ufbx)
   target_include_directories(${target} PUBLIC ../libs)
 
   add_compile_options(
