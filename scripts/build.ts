@@ -20,7 +20,7 @@ function _buildWebsite() {
   for (const file of md_glob) {
     console.log("found a .md file:", file);
     try {
-      const name = path.parse(file).base;
+      const name = path.parse(file).name;
       const body = fs.readFileSync(file, "utf8");
       fs.writeFile(`website/${name}.html`, Markdown({ html: true }).render(body), (err) => {
         if (err) {
