@@ -4,6 +4,25 @@ import Markdown from "markdown-it";
 import Mustache from "mustache";
 import { globSync } from "glob";
 
+// mustache partials
+const page = fs.readFileSync("extra/mustache/page.mustache", "utf8");
+const header = fs.readFileSync("extra/mustache/header.mustache", "utf8");
+const footer = fs.readFileSync("extra/mustache/footer.mustache", "utf8");
+const demo = fs.readFileSync("extra/mustache/demo.mustache", "utf8");
+
+// builds a single page
+function _buildPage(body: string) {
+  console.log("Building page...");
+
+  // render markdown to html
+  const md = Markdown({ html: true });
+  const view = { body: md.render(body) };
+  const partials = { header: header, footer: footer };
+
+  // template using mustache
+  return Mustache.render(page, view, partials)
+}
+
 function _buildWebsite() {
   console.log("Building website...");
 
@@ -22,7 +41,8 @@ function _buildWebsite() {
     try {
       const name = path.parse(file).name;
       const body = fs.readFileSync(file, "utf8");
-      fs.writeFile(`website/${name}.html`, Markdown({ html: true }).render(body), (err) => {
+      const page = _buildPage(body);
+      fs.writeFile(`website/${name}.html`, Markdown({ html: true }).render(page), (err) => {
         if (err) {
           console.error(err);
         }
@@ -32,20 +52,19 @@ function _buildWebsite() {
     }
   }
 
-  // mustache templates
-  let demo_mustache = fs.readFileSync("extra/mustache/demo.mustache", "utf8");
-
-  const demo_glob = globSync("build/assignments/Release/*.js");
-  for (const file of demo_glob) {
+  // glob all .js files
+  const js_glob = globSync("build/assignments/Release/*.js");
+  for (const file of js_glob) {
     const name = path.parse(file).name;
     console.log("found a file:", name);
-    let demo_page = Mustache.render(demo_mustache, { name: name, script: `${name}.js` })
+    let demo_page = Mustache.render(demo, { name: name, script: `${name}.js` })
 
     // render .html, and copy .js
     fs.writeFile(`website/demo/${name}.html`, demo_page, (err) => { if (err) { console.error(err); } });
     fs.copyFile(file, `website/demo/${name}.js`, (err) => { if (err) { console.error(err); } });
   }
 
+  // glob all .wasm files
   const wasm_glob = globSync("build/assignments/Release/*.wasm");
   for (const file of wasm_glob) {
     const name = path.parse(file).base;

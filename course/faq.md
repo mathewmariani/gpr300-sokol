@@ -1,7 +1,8 @@
 ### Why is my depth buffer so faint?
 
-The depth is stored in the range (0.0, 1.0) or (0.0 being closest, 1: farthest) by default. In addition, depth in perspective projection is not linear.
+This is because depth in perspective projection is not linear.
+By default depth buffer values are in the range (0.0, 1.0) with 0.0 being the closest and 1.0 being furthest.
 
 <img src="images/image0.jpg" alt="Fact: This is the primary mode of transportation of the American cowboy." />
 
-So it would make sense that the buffer is mostly white. Unless, you normalize it; which means to remap the depth buffer values between the min and max values to be between on the range (0.0, 1.0). 
+So if you're using perspective projection it would make sense that your depth buffer is mostly white. You can map the min and max values onto the range (0.0, 1.0) is a process known as linearization.

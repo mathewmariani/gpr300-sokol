@@ -1,6 +1,8 @@
 # Intermediate Graphics Programming (GPR 300)
 
-⚠️ This adaptation and website are a work in progress.
+<div class="alert alert-warning" role="alert">
+  ⚠️ This adaptation and website are a work in progress.
+</div>
 
 It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR 200) has already been completed.
 
@@ -32,7 +34,7 @@ Before working on any project it's important to understand the [development envi
 
 ### Assignments
 
-*   [assignment 0][] - Graphics Pipeline Review 
+*   [assignment 0][] - Blinn-Phong Lighting Model
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
 *   [assignment 3][] - Deferred Lighting
