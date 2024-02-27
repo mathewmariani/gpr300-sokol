@@ -1,29 +1,44 @@
 {
-    "version": 3,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 21,
-        "patch": 0
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Emscripten Debug",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "build",
+      "toolchainFile": "emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     },
-    "configurePresets": [
-        {
-            "name": "default",
-            "displayName": "Emscripten",
-            "generator": "Ninja Multi-Config",
-            "binaryDir": "build",
-            "toolchainFile": "emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "Debug",
-            "configurePreset": "default",
-            "configuration": "Debug"
-        },
-        {
-            "name": "Release",
-            "configurePreset": "default",
-            "configuration": "Release"
-        }
-    ]
+    {
+      "name": "release",
+      "displayName": "Emscripten Release",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "build",
+      "toolchainFile": "emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "displayName": "Build Debug",
+      "configurePreset": "debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "displayName": "Build Release",
+      "configurePreset": "release",
+      "configuration": "Release"
+    }
+  ]
 }

@@ -11,4 +11,4 @@ set(IMGUI_FILES
     imstb_textedit.h
     imstb_truetype.h)
 
-add_library(imgui ${IMGUI_FILES})
+add_library(imgui STATIC ${IMGUI_FILES})

@@ -2,11 +2,12 @@ macro(emscripten target)
   if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     target_link_options(${target} PRIVATE
-      -g
       -sINITIAL_MEMORY=50MB
       -sMAXIMUM_MEMORY=200MB
       -sALLOW_MEMORY_GROWTH=1
-      -sUSE_WEBGL2=1)
+      -sUSE_WEBGL2=1
+      $<$<CONFIG:Debug>:-g>
+      $<$<CONFIG:Debug>:--shell-file ../extra/shell.html>)
   endif()
 endmacro()
 
@@ -29,8 +30,12 @@ macro(add_assignment target file)
 endmacro()
 
 macro(process_shaders)
-  file(GLOB_RECURSE SHADER_FILES ${CMAKE_CURRENT_LIST_DIR}/shaders/*.vs ${CMAKE_CURRENT_LIST_DIR}/shaders/*.fs)
+  # glob all *.{vs, fs} files
+  file(GLOB_RECURSE SHADER_FILES
+    ${CMAKE_CURRENT_LIST_DIR}/shaders/*.vs
+    ${CMAKE_CURRENT_LIST_DIR}/shaders/*.fs)
 
+  # get a list of shaders, without duplicates
   set(SHADER_NAMES )
   foreach(SHADER_FILE ${SHADER_FILES})
     get_filename_component(SHADER_NAME ${SHADER_FILE} NAME_WE)
@@ -38,6 +43,7 @@ macro(process_shaders)
   endforeach()
   list(REMOVE_DUPLICATES SHADER_NAMES)
 
+  # create header file containing contents of shader stages
   set(SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
   foreach(SHADER_NAME ${SHADER_NAMES})
     set(VS_INPUT_FILE ${SHADER_DIR}/${SHADER_NAME}.vs)
