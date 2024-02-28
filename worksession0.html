@@ -8,14 +8,81 @@
 <body class="container" id="top">
 <div class="page">
 <article class="chapter">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 <h3>Work Session 0 - Physically Based Rendering</h3>
 <p>View <a href="demo/worksession0.html">demo</a></p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>This worksession involves converting mathematical equations into a shader program for use in the graphics pipeline. You will be provided with equations, and your task is to express them in GLSL (OpenGL Shading Language) code. This exercise aims to develop your skills in translating equations into a fragment shader for visualization on the GPU.</p>
+<p>Through this practical application, you'll gain hands-on experience in shader programming, connecting mathematical formulations with visual outputs.</p>
+<h4>Lighting Equation</h4>
+<p>The lighting equation, sometimes referred to as the &quot;rendering equation&quot;, is described to as follows:</p>
+<span>
+$$
+L_o(x, V) = L_e(x, V) + \int{f_r(x, L, V)L_i(x, V)(L \cdot N)}dL
+$$
+</span>
+<p>Since we won't be fully simulating all possible lights within a hemisphere. We're going to simplify the equation to use a fixed number of lights.</p>
+<span>
+$$
+\underbrace{L_o(x, V)}_{\text{outgoing}} = \underbrace{L_e(x, V)}_{\text{emitted}} + \sum{\underbrace{f_r(x, L, V)}_{\text{BDRF}} \underbrace{L_i(x, L)}_{\text{incoming}} \underbrace{(L \cdot N)}_{\text{incoming angle}}}
+$$
+</span>
+<h5>Bidirectional Reflective Distribution Function (BDRF)</h5>
+<span>
+$$
+BRDF = k_d\underbrace{f_{diffuse}}_{\text{lambert}} + k_s\underbrace{f_{specular}}_{\text{cook-torrence}}
+\begin{cases}
+k_d=1-k_s, \\[2ex]
+k_s=F,
+\end{cases}
+$$
+</span>
+<h5>Lambertian Distribution</h5>
+<span>
+$$
+f_{\text{lambert}}=\frac{\text{albedo}}{\pi}
+$$
+</span>
+<h5>Cook-Torrence Function</h5>
+<span>
+$$
+f_{\text{cook-torrence}} = \frac{DGF}{4(V \cdot N)(L \cdot N)}
+$$
+</span>
+<h5>GGX / Throwbridge-Reitz Normal Distribution Function</h5>
+<span>
+$$
+D_{\text{throwbridge-reitz}} = \frac{\alpha^2}{\pi((N \cdot H)^2(\alpha^2 - 1) + 1)^2}
+$$
+</span>
+<h5>Schlick-Beckmann Geometry Shadowing Function</h5>
+<span>
+$$
+G_{\text{schlick-beckmann}} = \frac{(N \cdot X)}{(N \cdot X)(1-k)+k}
+\begin{cases}
+k=\frac{\alpha}{2}, \\[2ex]
+k=\frac{(\text{roughness}+1)^2}{8},
+\end{cases}
+$$
+</span>
+<h5>Smith Model</h5>
+<span>
+$$
+G_{\text{smith}} = G_1(L,N)G_1(V,N)
+$$
+</span>
+<h5>Fresnel-Schlick Function</h5>
+<span>
+$$
+F_{\text{fresnel-schlick}} = F_0+(1-F_0)(1 - (V \cdot H))^5
+$$
+</span>
 <h3>Supplementary Reading</h3>
 <ul>
 <li><a href="https://learnopengl.com/PBR/Theory">LearnOpenGL - PBR</a></li>
 </ul>
 </article>
 </div>
+<hr>
+<p class="text-center text-mutes">Made with ❤️ in Montréal.</p>
 </body>
 </html>
