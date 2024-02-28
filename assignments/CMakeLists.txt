@@ -1,5 +1,3 @@
-include("cmake/macros.cmake")
-
 process_shaders()
 
 # assignments

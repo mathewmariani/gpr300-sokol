@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(gpr300)
 
+# macros
+include("extra/cmake/macros.cmake")
+
 #defines
 add_definitions(-DSOKOL_NO_DEPRECATED)
 

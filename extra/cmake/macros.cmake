@@ -54,6 +54,6 @@ macro(process_shaders)
 
     string(REPLACE "." "_" SHADER_NAME ${SHADER_NAME})
     string(REPLACE "-" "_" SHADER_NAME ${SHADER_NAME})
-    configure_file(cmake/shader_template.h.in ${SHADER_DIR}/${SHADER_NAME}.h)
+    configure_file(../extra/cmake/shader_template.h.in ${SHADER_DIR}/${SHADER_NAME}.h)
   endforeach()
 endmacro()
