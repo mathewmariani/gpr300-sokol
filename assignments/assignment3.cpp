@@ -2,7 +2,7 @@
 #include "batteries.h"
 
 //
-// Assignment3 -- Deferred Lighting
+// Assignment3 -- Deferred Rendering
 //
 
 // shaders
@@ -15,11 +15,11 @@ enum
 {
   OFFSCREEN_WIDTH = 1024,
   OFFSCREEN_HEIGHT = 1024,
+  MAX_INSTANCES = 128,
 };
 
 typedef struct
 {
-  glm::mat4 model;
   glm::mat4 view_proj;
 } vs_geometry_params_t;
 
@@ -65,6 +65,7 @@ static struct
 
   uint8_t file_buffer[batteries::megabytes(4)];
 
+  int num_instances;
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
   batteries::model_t suzanne;
@@ -72,6 +73,7 @@ static struct
   batteries::ambient_t ambient;
 
 } state = {
+    .num_instances = 1,
     .ambient = {
         .color = glm::vec3(0.25f, 0.45f, 0.65f),
     },
@@ -83,6 +85,9 @@ static struct
     },
 };
 
+// instance data buffer;
+static glm::mat4 instance_data[MAX_INSTANCES];
+
 void load_suzanne(void)
 {
   state.suzanne.mesh.vbuf = sg_alloc_buffer();
@@ -92,6 +97,52 @@ void load_suzanne(void)
       .path = "assets/suzanne.obj",
       .buffer = SG_RANGE(state.file_buffer),
   });
+}
+
+static void init_instance_data(void)
+{
+  for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_INSTANCES; i++, x += dx, y += dy)
+  {
+    glm::mat4 *inst = &instance_data[i];
+    *inst = glm::translate(glm::vec3(x * 1.5f, 0.0f, y * 1.5f));
+
+    // at a corner?
+    if (abs(x) == abs(y))
+    {
+      if (x >= 0)
+      {
+        // top-right corner: start a new ring
+        if (y >= 0)
+        {
+          x += 1;
+          y += 1;
+          dx = 0;
+          dy = -1;
+        }
+        // bottom-right corner
+        else
+        {
+          dx = -1;
+          dy = 0;
+        }
+      }
+      else
+      {
+        // top-left corner
+        if (y >= 0)
+        {
+          dx = +1;
+          dy = 0;
+        }
+        // bottom-left corner
+        else
+        {
+          dx = 0;
+          dy = +1;
+        }
+      }
+    }
+  }
 }
 
 void create_geometry_pass(void)
@@ -158,7 +209,6 @@ void create_geometry_pass(void)
               .size = sizeof(vs_geometry_params_t),
               .uniforms = {
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                  [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
               },
           },
       },
@@ -173,6 +223,17 @@ void create_geometry_pass(void)
               [0].format = SG_VERTEXFORMAT_FLOAT3,
               [1].format = SG_VERTEXFORMAT_FLOAT3,
               [2].format = SG_VERTEXFORMAT_FLOAT2,
+              [3] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+              [4] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+              [5] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+              [6] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
+          },
+          .buffers = {
+              [0].stride = sizeof(batteries::vertex_t),
+              [1] = {
+                  .stride = sizeof(glm::mat4),
+                  .step_func = SG_VERTEXSTEP_PER_INSTANCE,
+              },
           },
       },
       .shader = sg_make_shader(shader_desc),
@@ -194,8 +255,17 @@ void create_geometry_pass(void)
       .label = "display-pipeline",
   });
 
+  init_instance_data();
+  sg_buffer_desc buf_desc = {
+      .type = SG_BUFFERTYPE_VERTEXBUFFER,
+      .data = SG_RANGE(instance_data),
+  };
+
   state.geometry.bind = (sg_bindings){
-      .vertex_buffers[0] = state.suzanne.mesh.vbuf,
+      .vertex_buffers = {
+          [0] = state.suzanne.mesh.vbuf,
+          [1] = sg_make_buffer(&buf_desc),
+      },
   };
 
   // create an sokol-imgui wrapper for the shadow map
@@ -342,6 +412,8 @@ void draw_ui(void)
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
+  ImGui::SliderInt("Num Instances", &state.num_instances, 1, MAX_INSTANCES);
+
   if (ImGui::ColorEdit3("Ambient Light", &state.ambient.color[0]))
   {
     // state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
@@ -387,7 +459,6 @@ void frame(void)
 
   // parameters for the geometry pass
   const vs_geometry_params_t vs_geometry_params = {
-      .model = state.suzanne.transform.matrix(),
       .view_proj = state.camera.projection() * state.camera.view(),
   };
 
@@ -403,7 +474,7 @@ void frame(void)
   sg_apply_pipeline(state.geometry.pip);
   sg_apply_bindings(&state.geometry.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
-  sg_draw(0, state.suzanne.mesh.num_faces * 3, 1);
+  sg_draw(0, state.suzanne.mesh.num_faces * 3, state.num_instances);
   sg_end_pass();
 
   // render the lighting pass
