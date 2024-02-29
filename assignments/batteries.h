@@ -53,6 +53,12 @@ namespace batteries
     float Shininess;
   };
 
+  struct ambient_t
+  {
+    glm::vec3 direction;
+    glm::vec3 color;
+  };
+
   struct transform_t
   {
     glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);

@@ -7,26 +7,28 @@
 
 // shaders
 #include "shaders/geometry_pass.h"
+#include "shaders/lighting_pass.h"
 
 #include <string>
 
 enum
 {
-  OFFSCREEN_WIDTH = 512,
-  OFFSCREEN_HEIGHT = 512,
+  OFFSCREEN_WIDTH = 1024,
+  OFFSCREEN_HEIGHT = 1024,
 };
 
 typedef struct
 {
   glm::mat4 model;
   glm::mat4 view_proj;
-} vs_shadow_params_t;
+} vs_geometry_params_t;
 
 typedef struct
 {
-  glm::mat4 model;
-  glm::mat4 view_proj;
-} vs_display_params_t;
+  glm::vec3 eye;
+  batteries::ambient_t ambient;
+  batteries::material_t material;
+} fs_lighting_params_t;
 
 // application state
 static struct
@@ -48,7 +50,10 @@ static struct
   struct
   {
     sg_pass_action pass_action;
-  } display;
+    sg_pass pass;
+    sg_pipeline pip;
+    sg_bindings bind;
+  } lighting;
 
   struct
   {
@@ -60,11 +65,22 @@ static struct
 
   uint8_t file_buffer[batteries::megabytes(4)];
 
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
   batteries::model_t suzanne;
-  glm::vec3 ambient_light;
+  batteries::material_t material;
+  batteries::ambient_t ambient;
 
 } state = {
-    .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+    .ambient = {
+        .color = glm::vec3(0.25f, 0.45f, 0.65f),
+    },
+    .material = {
+        .Ka = 1.0f,
+        .Kd = 0.5f,
+        .Ks = 0.5f,
+        .Shininess = 128.0f,
+    },
 };
 
 void load_suzanne(void)
@@ -139,7 +155,7 @@ void create_geometry_pass(void)
           .source = geometry_pass_vs,
           .uniform_blocks[0] = {
               .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(vs_display_params_t),
+              .size = sizeof(vs_geometry_params_t),
               .uniforms = {
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
@@ -209,13 +225,106 @@ void create_geometry_pass(void)
   });
 }
 
-void create_display_pass(void)
+void create_lighting_pass(void)
 {
-  state.display.pass_action = {
-      .colors[0] = {
-          .load_action = SG_LOADACTION_CLEAR,
-          .clear_value = {0.25f, 0.5f, 0.75f, 1.0f},
+  // clang-format off
+  float quad_vertices[] = {
+     -1.0f, 1.0f, 0.0f, 1.0f,
+     -1.0f, -1.0f, 0.0f, 0.0f,
+      1.0f, -1.0f, 1.0f, 0.0f,
+
+     -1.0f, 1.0f, 0.0f, 1.0f,
+      1.0f, -1.0f, 1.0f, 0.0f,
+      1.0f, 1.0f, 1.0f, 1.0f
+  };
+  // clang-format on
+
+  state.lighting.pass_action = (sg_pass_action){
+      .colors[0].load_action = SG_LOADACTION_CLEAR,
+      .depth.load_action = SG_LOADACTION_DONTCARE,
+      .stencil.load_action = SG_LOADACTION_DONTCARE,
+  };
+
+  auto quad_buffer = sg_make_buffer((sg_buffer_desc){
+      .data = {
+          .ptr = &quad_vertices,
+          .size = sizeof(quad_vertices),
       },
+      .label = "quad-vertices",
+  });
+
+  auto lighting_shader_desc = (sg_shader_desc){
+      .vs = {
+          .source = lighting_pass_vs,
+      },
+      .fs = {
+          .source = lighting_pass_fs,
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(fs_lighting_params_t),
+              .uniforms = {
+                  [0] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [1] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [2] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [3] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
+                  [5] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
+                  [6] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+              },
+          },
+          .images = {[0].used = true, [1].used = true, [2].used = true},
+          .samplers = {[0].used = true},
+          .image_sampler_pairs = {
+              [0] = {
+                  .glsl_name = "g_position",
+                  .image_slot = 0,
+                  .sampler_slot = 0,
+                  .used = true,
+              },
+              [1] = {
+                  .glsl_name = "g_normal",
+                  .image_slot = 1,
+                  .sampler_slot = 0,
+                  .used = true,
+              },
+              [2] = {
+                  .glsl_name = "g_albedo",
+                  .image_slot = 2,
+                  .sampler_slot = 0,
+                  .used = true,
+              },
+          },
+      },
+  };
+
+  state.lighting.pip = sg_make_pipeline((sg_pipeline_desc){
+      .layout = {
+          .attrs = {
+              [0].format = SG_VERTEXFORMAT_FLOAT2,
+              [1].format = SG_VERTEXFORMAT_FLOAT2,
+          },
+      },
+      .shader = sg_make_shader(lighting_shader_desc),
+      .label = "display-pipeline",
+  });
+
+  // create an image sampler
+  auto color_smplr = sg_make_sampler((sg_sampler_desc){
+      .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+      .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+      .min_filter = SG_FILTER_LINEAR,
+      .mag_filter = SG_FILTER_LINEAR,
+  });
+
+  // apply bindings
+  state.lighting.bind = (sg_bindings){
+      .vertex_buffers[0] = quad_buffer,
+      .fs.images = {
+          [0] = state.geometry.position_img,
+          [1] = state.geometry.normal_img,
+          [2] = state.geometry.color_img,
+      },
+      .fs.samplers[0] = color_smplr,
   };
 }
 
@@ -225,13 +334,25 @@ void init(void)
 
   load_suzanne();
   create_geometry_pass();
-  create_display_pass();
+  create_lighting_pass();
 }
 
 void draw_ui(void)
 {
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+  if (ImGui::ColorEdit3("Ambient Light", &state.ambient.color[0]))
+  {
+    // state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
+  }
+  if (ImGui::CollapsingHeader("Material"))
+  {
+    ImGui::SliderFloat("Ambient", &state.material.Ka, 0.0f, 1.0f);
+    ImGui::SliderFloat("Diffuse", &state.material.Kd, 0.0f, 1.0f);
+    ImGui::SliderFloat("Specular", &state.material.Ks, 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &state.material.Shininess, 2.0f, 1024.0f);
+  }
   ImGui::End();
 
   ImGui::Begin("Offscreen Render");
@@ -249,34 +370,48 @@ void frame(void)
 {
   batteries::frame();
 
+  // math required by scene
   const float t = (float)(sapp_frame_duration() * 60.0);
   const auto width = sapp_width();
   const auto height = sapp_height();
+
+  // update the camera controller
+  state.camera_controller.update(&state.camera, t);
 
   // rotate suzanne
   // state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
 
   // display pass matrices
-  glm::vec3 eye = glm::vec3(0.0f, 1.5f, 6.0f);
-  glm::mat4 view = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 100.0f);
-  glm::mat4 view_proj = proj * view;
+  glm::vec3 light_pos = glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  state.ambient.direction = glm::normalize(light_pos);
 
-  // parameters for drawing suzanne
-  const vs_display_params_t suzanne_vs_display_params = {
+  // parameters for the geometry pass
+  const vs_geometry_params_t vs_geometry_params = {
       .model = state.suzanne.transform.matrix(),
-      .view_proj = view_proj,
+      .view_proj = state.camera.projection() * state.camera.view(),
+  };
+
+  // parameters for the lighting pass
+  const fs_lighting_params_t fs_lighting_params = {
+      .eye = state.camera.position,
+      .ambient = state.ambient,
+      .material = state.material,
   };
 
   // render the geometry pass
   sg_begin_pass(state.geometry.pass, &state.geometry.pass_action);
   sg_apply_pipeline(state.geometry.pip);
   sg_apply_bindings(&state.geometry.bind);
-  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(suzanne_vs_display_params));
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
   sg_draw(0, state.suzanne.mesh.num_faces * 3, 1);
   sg_end_pass();
 
-  sg_begin_default_pass(&state.display.pass_action, width, height);
+  // render the lighting pass
+  sg_begin_default_pass(&state.lighting.pass_action, width, height);
+  sg_apply_pipeline(state.lighting.pip);
+  sg_apply_bindings(&state.lighting.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lighting_params));
+  sg_draw(0, 6, 1);
 
   // draw ui
   draw_ui();
@@ -289,6 +424,7 @@ void frame(void)
 void event(const sapp_event *event)
 {
   batteries::event(event);
+  state.camera_controller.event(event);
 }
 
 void cleanup(void)

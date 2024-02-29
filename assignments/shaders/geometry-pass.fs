@@ -14,5 +14,5 @@ void main()
 {
   frag_position = vs_proj;
   frag_normal = vs_normal;
-  frag_albedo = vec4(1.0, 0.0, 1.0, 1.0);
+  frag_albedo = vec4(vs_normal.rgb * 0.5 + 0.5, 1.0);
 }
