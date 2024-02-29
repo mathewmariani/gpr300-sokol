@@ -213,9 +213,12 @@ namespace batteries
       }
       if (e->type == SAPP_EVENTTYPE_MOUSE_MOVE)
       {
-        yaw += e->mouse_dx;
-        pitch -= e->mouse_dy;
-        pitch = glm::clamp(min_pitch, pitch, max_pitch);
+        if (enable_aim)
+        {
+          yaw += e->mouse_dx;
+          pitch -= e->mouse_dy;
+          pitch = glm::clamp(min_pitch, pitch, max_pitch);
+        }
       }
     }
   };
