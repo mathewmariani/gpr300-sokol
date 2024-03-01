@@ -16,6 +16,7 @@ enum
   OFFSCREEN_WIDTH = 1024,
   OFFSCREEN_HEIGHT = 1024,
   MAX_INSTANCES = 128,
+  MAX_LIGHTS = 64,
 };
 
 typedef struct
@@ -28,6 +29,7 @@ typedef struct
   glm::vec3 eye;
   batteries::ambient_t ambient;
   batteries::material_t material;
+  batteries::pointlight_t lights[MAX_LIGHTS];
 } fs_lighting_params_t;
 
 // application state
@@ -36,7 +38,7 @@ static struct
   struct
   {
     sg_pass_action pass_action;
-    sg_pass pass;
+    sg_attachments attachments;
     sg_pipeline pip;
     sg_bindings bind;
 
@@ -87,6 +89,7 @@ static struct
 
 // instance data buffer;
 static glm::mat4 instance_data[MAX_INSTANCES];
+static batteries::pointlight_t instance_light_data[MAX_LIGHTS];
 
 void load_suzanne(void)
 {
@@ -104,7 +107,56 @@ static void init_instance_data(void)
   for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_INSTANCES; i++, x += dx, y += dy)
   {
     glm::mat4 *inst = &instance_data[i];
-    *inst = glm::translate(glm::vec3(x * 1.5f, 0.0f, y * 1.5f));
+    *inst = glm::translate(glm::vec3(x * 3.0f, 0.0f, y * 3.0f));
+
+    // at a corner?
+    if (abs(x) == abs(y))
+    {
+      if (x >= 0)
+      {
+        // top-right corner: start a new ring
+        if (y >= 0)
+        {
+          x += 1;
+          y += 1;
+          dx = 0;
+          dy = -1;
+        }
+        // bottom-right corner
+        else
+        {
+          dx = -1;
+          dy = 0;
+        }
+      }
+      else
+      {
+        // top-left corner
+        if (y >= 0)
+        {
+          dx = +1;
+          dy = 0;
+        }
+        // bottom-left corner
+        else
+        {
+          dx = 0;
+          dy = +1;
+        }
+      }
+    }
+  }
+}
+
+static void init_instance_lights(void)
+{
+  for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_LIGHTS; i++, x += dx, y += dy)
+  {
+    instance_light_data[i] = {
+        .color = glm::vec3(1.0, 0.0, 1.0),
+        .position = glm::vec3(x * 3.0f, 5.0f, y * 3.0f),
+        .radius = 10.0f,
+    };
 
     // at a corner?
     if (abs(x) == abs(y))
@@ -191,15 +243,16 @@ void create_geometry_pass(void)
       },
   };
 
-  state.geometry.pass = sg_make_pass((sg_pass_desc){
-      .color_attachments = {
+  auto attachment_desc = (sg_attachments_desc){
+      .colors = {
           [0].image = state.geometry.position_img,
           [1].image = state.geometry.normal_img,
           [2].image = state.geometry.color_img,
       },
-      .depth_stencil_attachment.image = state.geometry.depth_img,
+      .depth_stencil.image = state.geometry.depth_img,
       .label = "geometry-pass",
-  });
+  };
+  state.geometry.attachments = sg_make_attachments(&attachment_desc);
 
   auto shader_desc = (sg_shader_desc){
       .vs = {
@@ -217,7 +270,7 @@ void create_geometry_pass(void)
       },
   };
 
-  state.geometry.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.geometry.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -269,7 +322,7 @@ void create_geometry_pass(void)
   };
 
   // create an sokol-imgui wrapper for the shadow map
-  auto dbg_smp = sg_make_sampler((sg_sampler_desc){
+  auto dbg_smp = sg_make_sampler({
       .min_filter = SG_FILTER_NEAREST,
       .mag_filter = SG_FILTER_NEAREST,
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
@@ -277,19 +330,19 @@ void create_geometry_pass(void)
       .label = "ui-sampler",
   });
 
-  state.debug.color_img = simgui_make_image((simgui_image_desc_t){
+  state.debug.color_img = simgui_make_image({
       .image = state.geometry.color_img,
       .sampler = dbg_smp,
   });
-  state.debug.position_img = simgui_make_image((simgui_image_desc_t){
+  state.debug.position_img = simgui_make_image({
       .image = state.geometry.position_img,
       .sampler = dbg_smp,
   });
-  state.debug.normal_img = simgui_make_image((simgui_image_desc_t){
+  state.debug.normal_img = simgui_make_image({
       .image = state.geometry.normal_img,
       .sampler = dbg_smp,
   });
-  state.debug.depth_img = simgui_make_image((simgui_image_desc_t){
+  state.debug.depth_img = simgui_make_image({
       .image = state.geometry.depth_img,
       .sampler = dbg_smp,
   });
@@ -309,17 +362,16 @@ void create_lighting_pass(void)
   };
   // clang-format on
 
+  init_instance_lights();
+
   state.lighting.pass_action = (sg_pass_action){
       .colors[0].load_action = SG_LOADACTION_CLEAR,
       .depth.load_action = SG_LOADACTION_DONTCARE,
       .stencil.load_action = SG_LOADACTION_DONTCARE,
   };
 
-  auto quad_buffer = sg_make_buffer((sg_buffer_desc){
-      .data = {
-          .ptr = &quad_vertices,
-          .size = sizeof(quad_vertices),
-      },
+  auto quad_buffer = sg_make_buffer({
+      .data = SG_RANGE(quad_vertices),
       .label = "quad-vertices",
   });
 
@@ -340,8 +392,21 @@ void create_lighting_pass(void)
                   [4] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
                   [5] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
                   [6] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                  [7] = {.name = "light.radius", .type = SG_UNIFORMTYPE_FLOAT, .array_count = MAX_LIGHTS},
+                  [8] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
+                  [9] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
+
               },
           },
+          // .uniform_blocks[1] = {
+          //     .layout = SG_UNIFORMLAYOUT_NATIVE,
+          //     .size = sizeof(batteries::pointlight_t) * MAX_LIGHTS,
+          //     .uniforms = {
+          //         [0] = {.name = "light.radius", .type = SG_UNIFORMTYPE_FLOAT, .array_count = MAX_LIGHTS},
+          //         [1] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
+          //         [2] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
+          //     },
+          // },
           .images = {[0].used = true, [1].used = true, [2].used = true},
           .samplers = {[0].used = true},
           .image_sampler_pairs = {
@@ -367,7 +432,7 @@ void create_lighting_pass(void)
       },
   };
 
-  state.lighting.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.lighting.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -379,7 +444,7 @@ void create_lighting_pass(void)
   });
 
   // create an image sampler
-  auto color_smplr = sg_make_sampler((sg_sampler_desc){
+  auto color_smplr = sg_make_sampler({
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
       .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
       .min_filter = SG_FILTER_LINEAR,
@@ -467,10 +532,11 @@ void frame(void)
       .eye = state.camera.position,
       .ambient = state.ambient,
       .material = state.material,
+      .lights = *instance_light_data,
   };
 
   // render the geometry pass
-  sg_begin_pass(state.geometry.pass, &state.geometry.pass_action);
+  sg_begin_pass({.action = state.geometry.pass_action, .attachments = state.geometry.attachments});
   sg_apply_pipeline(state.geometry.pip);
   sg_apply_bindings(&state.geometry.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
@@ -478,7 +544,7 @@ void frame(void)
   sg_end_pass();
 
   // render the lighting pass
-  sg_begin_default_pass(&state.lighting.pass_action, width, height);
+  sg_begin_pass({.action = state.lighting.pass_action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.lighting.pip);
   sg_apply_bindings(&state.lighting.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lighting_params));

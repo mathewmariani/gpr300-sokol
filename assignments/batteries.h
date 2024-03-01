@@ -59,6 +59,13 @@ namespace batteries
     glm::vec3 color;
   };
 
+  struct pointlight_t
+  {
+    float radius;
+    glm::vec3 color;
+    glm::vec3 position;
+  };
+
   struct transform_t
   {
     glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);

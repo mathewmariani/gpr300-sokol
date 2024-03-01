@@ -20,7 +20,7 @@ void main()
   mat4 instance_matrix = mat4(inst_xxxx, inst_yyyy, inst_zzzz, inst_wwww);
   mat4 mvp = view_proj * instance_matrix;
   vs_proj = mvp * vec4(in_position, 1.0);
-  vs_normal = vec4(in_normal, 0.0);
+  vs_normal = vec4(normalize(in_normal), 0.0);
 
   gl_Position = vs_proj;
 }
