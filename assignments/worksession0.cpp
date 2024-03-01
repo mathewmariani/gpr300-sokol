@@ -121,7 +121,7 @@ void create_display_pass(void)
             .load_action = SG_LOADACTION_CLEAR,
         }};
 
-    state.display.pip = sg_make_pipeline((sg_pipeline_desc){
+    state.display.pip = sg_make_pipeline({
         .layout = {
             .attrs = {
                 // position, normal, texcoords
@@ -146,14 +146,14 @@ void create_display_pass(void)
         .vertex_buffers[0] = vbuf,
     };
 
-    batteries::assets::load_obj((batteries::assets::obj_request_t){
+    batteries::assets::load_obj({
         .buffer_id = vbuf,
         .mesh = &state.scene.suzanne.mesh,
         .path = "assets/objects/togezoshell/togezoshell.obj",
         .buffer = SG_RANGE(state.file_buffer),
     });
 
-    sg_sampler smp = sg_make_sampler((sg_sampler_desc){
+    sg_sampler smp = sg_make_sampler({
         .min_filter = SG_FILTER_LINEAR,
         .mag_filter = SG_FILTER_LINEAR,
         .wrap_u = SG_WRAP_REPEAT,
@@ -172,27 +172,27 @@ void create_display_pass(void)
         .samplers[0] = smp,
     };
 
-    batteries::assets::load_img((batteries::assets::img_request_t){
+    batteries::assets::load_img({
         .image_id = ao,
         .path = "assets/materials/togezoshell/togezoshell_ao.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img((batteries::assets::img_request_t){
+    batteries::assets::load_img({
         .image_id = col,
         .path = "assets/materials/togezoshell/togezoshell_col.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img((batteries::assets::img_request_t){
+    batteries::assets::load_img({
         .image_id = mtl,
         .path = "assets/materials/togezoshell/togezoshell_mtl.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img((batteries::assets::img_request_t){
+    batteries::assets::load_img({
         .image_id = rgh,
         .path = "assets/materials/togezoshell/togezoshell_rgh.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img((batteries::assets::img_request_t){
+    batteries::assets::load_img({
         .image_id = spc,
         .path = "assets/materials/togezoshell/togezoshell_spc.png",
         .buffer = SG_RANGE(state.file_buffer),
@@ -255,7 +255,7 @@ void frame(void)
     };
 
     // graphics pass
-    sg_begin_default_pass(&state.display.pass_action, width, height);
+    sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.display.pip);
     sg_apply_bindings(&state.display.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));

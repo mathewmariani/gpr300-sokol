@@ -131,7 +131,7 @@ void create_water_pass(void)
           .load_action = SG_LOADACTION_CLEAR,
       }};
 
-  state.water.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.water.pip = sg_make_pipeline({
       .layout = {
           .buffers[0] = sshape_vertex_buffer_layout_state(),
           .attrs = {
@@ -141,7 +141,6 @@ void create_water_pass(void)
               [3] = sshape_color_vertex_attr_state(),
           },
       },
-      // .primitive_type = SG_PRIMITIVETYPE_LINES,
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_UINT16,
       .cull_mode = SG_CULLMODE_NONE,
@@ -153,7 +152,7 @@ void create_water_pass(void)
   });
 
   state.water.img = sg_alloc_image();
-  sg_sampler smp = sg_make_sampler((sg_sampler_desc){
+  sg_sampler smp = sg_make_sampler({
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
       .wrap_u = SG_WRAP_REPEAT,
@@ -169,7 +168,6 @@ void create_water_pass(void)
       .indices.buffer = SSHAPE_RANGE(indices),
   };
 
-  // clang-format off
   sshape_plane_t plane = {
       .width = 100.0f,
       .depth = 100.0f,
@@ -177,7 +175,6 @@ void create_water_pass(void)
   };
   buf = sshape_build_plane(&buf, &plane);
   state.water.plane.draw = sshape_element_range(&buf);
-  // clang-format on
 
   state.water.plane.transform.position = glm::vec3(0.0f, -1.0f, 0.0f);
 
@@ -194,7 +191,7 @@ void create_water_pass(void)
       },
   };
 
-  batteries::assets::load_img((batteries::assets::img_request_t){
+  batteries::assets::load_img({
       .image_id = state.water.img,
       .path = "assets/materials/water.png",
       .buffer = SG_RANGE(state.file_buffer),
@@ -265,7 +262,7 @@ void frame(void)
   };
 
   // graphics pass
-  sg_begin_default_pass(&state.water.pass_action, width, height);
+  sg_begin_pass({.action = state.water.pass_action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.water.pip);
   sg_apply_bindings(&state.water.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));

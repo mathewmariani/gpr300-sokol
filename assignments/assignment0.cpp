@@ -59,7 +59,7 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-  batteries::assets::load_obj((batteries::assets::obj_request_t){
+  batteries::assets::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
       .path = "assets/suzanne.obj",
@@ -103,15 +103,17 @@ void create_display_pass(void)
       .colors[0] = {
           .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
-      }};
+      },
+  };
 
-  state.display.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.display.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
               [1].format = SG_VERTEXFORMAT_FLOAT3,
               [2].format = SG_VERTEXFORMAT_FLOAT2,
-          }},
+          },
+      },
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
       .face_winding = SG_FACEWINDING_CCW,
@@ -190,7 +192,7 @@ void frame(void)
   };
 
   // graphics pass
-  sg_begin_default_pass(&state.display.pass_action, width, height);
+  sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.display.pip);
   sg_apply_bindings(&state.display.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));

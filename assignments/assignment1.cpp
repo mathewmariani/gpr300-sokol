@@ -44,7 +44,7 @@ static struct
   struct
   {
     sg_pass_action pass_action;
-    sg_pass pass;
+    sg_attachments attachments;
     sg_pipeline pip;
     sg_bindings bind;
     sg_bindings img;
@@ -85,7 +85,7 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-  batteries::assets::load_obj((batteries::assets::obj_request_t){
+  batteries::assets::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
       .path = "assets/suzanne.obj",
@@ -123,11 +123,11 @@ void create_offscreen_pass(void)
       .mag_filter = SG_FILTER_LINEAR,
   });
 
-  state.offscreen.pass = sg_make_pass((sg_pass_desc){
-      .color_attachments[0].image = color_img,
-      .depth_stencil_attachment.image = depth_img,
-      .label = "offscreen-pass",
-  });
+  auto attachment_desc = (sg_attachments_desc){
+      .colors[0].image = color_img,
+      .depth_stencil.image = depth_img,
+  };
+  state.offscreen.attachments = sg_make_attachments(&attachment_desc);
 
   auto shader_desc = (sg_shader_desc){
       .vs = {
@@ -165,7 +165,7 @@ void create_offscreen_pass(void)
           .load_action = SG_LOADACTION_CLEAR,
       }};
 
-  state.offscreen.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.offscreen.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -213,11 +213,8 @@ void create_display_pass()
   };
   // clang-format on
 
-  auto quad_buffer = sg_make_buffer((sg_buffer_desc){
-      .data = {
-          .ptr = &quad_vertices,
-          .size = sizeof(quad_vertices),
-      },
+  auto quad_buffer = sg_make_buffer({
+      .data = SG_RANGE(quad_vertices),
       .label = "quad-vertices",
   });
 
@@ -244,7 +241,7 @@ void create_display_pass()
       .stencil.load_action = SG_LOADACTION_DONTCARE,
   };
 
-  state.display.pip = sg_make_pipeline((sg_pipeline_desc){
+  state.display.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -349,7 +346,7 @@ void frame(void)
   };
 
   // offscreen pass
-  sg_begin_pass(state.offscreen.pass, &state.offscreen.pass_action);
+  sg_begin_pass({.action = state.offscreen.pass_action, .attachments = state.offscreen.attachments});
   sg_apply_pipeline(state.offscreen.pip);
   sg_apply_bindings(&state.offscreen.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
@@ -358,7 +355,7 @@ void frame(void)
   sg_end_pass();
 
   // draws the fullscreen quad
-  sg_begin_default_pass(&state.display.pass_action, width, height);
+  sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.display.pip);
   sg_apply_bindings(&state.display.bind);
   sg_draw(0, 6, 1);

@@ -292,7 +292,7 @@ namespace batteries
   {
     // setup sokol-gfx
     sg_setup((sg_desc){
-        .context = sapp_sgcontext(),
+        .environment = sglue_environment(),
         .logger.func = slog_func,
     });
 
