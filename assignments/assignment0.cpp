@@ -13,19 +13,19 @@ typedef struct
   glm::mat4 view_proj;
   glm::mat4 model;
   glm::vec3 eye;
-  glm::vec3 ambient;
-  glm::vec3 light_dir;
 } vs_display_params_t;
 
 typedef struct
 {
-  float Ka, Kd, Ks;
-  float Shininess;
+  batteries::material_t material;
+  batteries::ambient_t ambient;
 } fs_display_params_t;
 
 // application state
 static struct
 {
+  uint8_t file_buffer[batteries::megabytes(5)];
+
   struct
   {
     sg_pass_action pass_action;
@@ -37,16 +37,16 @@ static struct
   struct
   {
     float ry;
-    glm::vec3 ambient_light;
+    batteries::ambient_t ambient;
     batteries::model_t suzanne;
     batteries::material_t material;
   } scene;
-
-  uint8_t file_buffer[batteries::megabytes(5)];
 } state = {
     .scene = {
         .ry = 0.0f,
-        .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+        .ambient = {
+            .color = glm::vec3(0.25f, 0.45f, 0.65f),
+        },
         .material = {
             .Ka = 1.0f,
             .Kd = 0.5f,
@@ -79,8 +79,6 @@ void create_display_pass(void)
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
                   [2] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [3] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [4] = {.name = "light_dir", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -94,6 +92,8 @@ void create_display_pass(void)
                   [1] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
                   [2] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
                   [3] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [5] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -101,7 +101,7 @@ void create_display_pass(void)
 
   state.display.pass_action = (sg_pass_action){
       .colors[0] = {
-          .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
+          .clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
       },
   };
@@ -147,9 +147,9 @@ void frame(void)
 
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient_light[0]))
+  if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient.color[0]))
   {
-    state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
+    state.display.pass_action.colors[0].clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f};
   }
   if (ImGui::CollapsingHeader("Material"))
   {
@@ -173,22 +173,19 @@ void frame(void)
   state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
 
   // sugar: rotate light
-  const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+  const auto light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  state.scene.ambient.direction = glm::normalize(light_pos);
 
   // initialize uniform data
   const vs_display_params_t vs_params = {
       .view_proj = camera_view_proj,
       .model = state.scene.suzanne.transform.matrix(),
       .eye = camera_pos,
-      .ambient = state.scene.ambient_light,
-      .light_dir = glm::normalize(light_pos),
   };
   const fs_display_params_t fs_params = {
-      .Ka = state.scene.material.Ka,
-      .Kd = state.scene.material.Kd,
-      .Ks = state.scene.material.Ks,
-      .Shininess = state.scene.material.Shininess,
+      .material = state.scene.material,
+      .ambient = state.scene.ambient,
   };
 
   // graphics pass

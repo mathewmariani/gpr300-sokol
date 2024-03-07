@@ -21,14 +21,12 @@ typedef struct
   glm::mat4 view_proj;
   glm::mat4 model;
   glm::vec3 eye;
-  glm::vec3 ambient;
-  glm::vec3 light_dir;
 } vs_display_params_t;
 
 typedef struct
 {
-  float Ka, Kd, Ks;
-  float Shininess;
+  batteries::material_t material;
+  batteries::ambient_t ambient;
 } fs_display_params_t;
 
 std::vector<std::string> post_processing_effects = {
@@ -47,7 +45,9 @@ static struct
     sg_attachments attachments;
     sg_pipeline pip;
     sg_bindings bind;
-    sg_bindings img;
+    sg_image img;
+    sg_image depth;
+    sg_sampler sampler;
   } offscreen;
 
   struct
@@ -64,7 +64,7 @@ static struct
   struct
   {
     float ry;
-    glm::vec3 ambient_light;
+    batteries::ambient_t ambient;
     batteries::model_t suzanne;
     batteries::material_t material;
   } scene;
@@ -72,7 +72,9 @@ static struct
     .effect_index = 0,
     .scene = {
         .ry = 0.0f,
-        .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
+        .ambient = {
+            .color = glm::vec3(0.25f, 0.45f, 0.65f),
+        },
         .material = {
             .Ka = 1.0f,
             .Kd = 0.5f,
@@ -108,15 +110,15 @@ void create_offscreen_pass(void)
   // color attachment
   img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
   img_desc.label = "color-image";
-  auto color_img = sg_make_image(&img_desc);
+  state.offscreen.img = sg_make_image(&img_desc);
 
   // depth attachment
   img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
   img_desc.label = "depth-image";
-  auto depth_img = sg_make_image(&img_desc);
+  state.offscreen.depth = sg_make_image(&img_desc);
 
   // create an image sampler
-  auto color_smplr = sg_make_sampler((sg_sampler_desc){
+  state.offscreen.sampler = sg_make_sampler({
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
       .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
       .min_filter = SG_FILTER_LINEAR,
@@ -124,8 +126,8 @@ void create_offscreen_pass(void)
   });
 
   auto attachment_desc = (sg_attachments_desc){
-      .colors[0].image = color_img,
-      .depth_stencil.image = depth_img,
+      .colors[0].image = state.offscreen.img,
+      .depth_stencil.image = state.offscreen.depth,
   };
   state.offscreen.attachments = sg_make_attachments(&attachment_desc);
 
@@ -139,8 +141,6 @@ void create_offscreen_pass(void)
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
                   [2] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [3] = {.name = "ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [4] = {.name = "light_dir", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -154,6 +154,8 @@ void create_offscreen_pass(void)
                   [1] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
                   [2] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
                   [3] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [5] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -161,9 +163,10 @@ void create_offscreen_pass(void)
 
   state.offscreen.pass_action = (sg_pass_action){
       .colors[0] = {
-          .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
+          .clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
-      }};
+      },
+  };
 
   state.offscreen.pip = sg_make_pipeline({
       .layout = {
@@ -171,7 +174,8 @@ void create_offscreen_pass(void)
               [0].format = SG_VERTEXFORMAT_FLOAT3,
               [1].format = SG_VERTEXFORMAT_FLOAT3,
               [2].format = SG_VERTEXFORMAT_FLOAT2,
-          }},
+          },
+      },
       .shader = sg_make_shader(shader_desc),
       .index_type = SG_INDEXTYPE_NONE,
       .face_winding = SG_FACEWINDING_CCW,
@@ -187,9 +191,6 @@ void create_offscreen_pass(void)
   state.offscreen.bind = (sg_bindings){
       .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
   };
-
-  state.display.bind.fs.images[0] = color_img;
-  state.display.bind.fs.samplers[0] = color_smplr;
 }
 
 void create_display_pass()
@@ -253,7 +254,13 @@ void create_display_pass()
   });
 
   // apply bindings
-  state.display.bind.vertex_buffers[0] = quad_buffer;
+  state.display.bind = (sg_bindings){
+      .vertex_buffers[0] = quad_buffer,
+      .fs = {
+          .images[0] = state.offscreen.img,
+          .samplers[0] = state.offscreen.sampler,
+      },
+  };
 }
 
 void init(void)
@@ -290,9 +297,9 @@ void frame(void)
     }
     ImGui::EndCombo();
   }
-  if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient_light[0]))
+  if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient.color[0]))
   {
-    state.offscreen.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
+    state.display.pass_action.colors[0].clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f};
   }
   if (ImGui::CollapsingHeader("Material"))
   {
@@ -302,17 +309,6 @@ void frame(void)
     ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
   }
   ImGui::End();
-
-  // ImGui::Begin("Offscreen Render");
-  // // Using a Child allow to fill all the space of the window.
-  // ImGui::BeginChild("Offscreen Render");
-  // // Stretch image to be window size
-  // ImVec2 windowSize = ImGui::GetWindowSize();
-  // // Invert 0-1 V to flip vertically for ImGui display
-  // // shadowMap is the texture2D handle
-  // ImGui::Image((ImTextureID)offscreen., windowSize, ImVec2(0, 1), ImVec2(1, 0));
-  // ImGui::EndChild();
-  // ImGui::End();
 
   const auto width = sapp_width();
   const auto height = sapp_height();
@@ -327,22 +323,19 @@ void frame(void)
   state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
 
   // sugar: rotate light
-  const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-  glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+  const auto light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
+  state.scene.ambient.direction = glm::normalize(light_pos);
 
   // initialize uniform data
   const vs_display_params_t vs_params = {
       .view_proj = camera_view_proj,
       .model = state.scene.suzanne.transform.matrix(),
       .eye = camera_pos,
-      .ambient = state.scene.ambient_light,
-      .light_dir = glm::normalize(light_pos),
   };
   const fs_display_params_t fs_params = {
-      .Ka = state.scene.material.Ka,
-      .Kd = state.scene.material.Kd,
-      .Ks = state.scene.material.Ks,
-      .Shininess = state.scene.material.Shininess,
+      .material = state.scene.material,
+      .ambient = state.scene.ambient,
   };
 
   // offscreen pass
