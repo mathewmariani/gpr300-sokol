@@ -50,10 +50,11 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 0][] - Physically Based Rendering (PBR)
 *   [worksession 1][] - Windwaker Ocean
 *   [worksession 2][] - Landmass Generation
+*   [worksession 4][] - Toon Shading
 
 <!-- Future Work Sessions:
-*   [worksession 3][] - Mandelbrot Set
-*   [worksession 4][] - Delphino Island Water
+*   [worksession 3][] - Super Mario Sunshine Water
+*   [worksession 4][] - Mandelbrot Set
 -->
 
 
@@ -78,5 +79,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 0]: worksession0.html
 [worksession 1]: worksession1.html
 [worksession 2]: worksession2.html
+[worksession 3]: worksession3.html
+[worksession 4]: worksession4.html
+[worksession 5]: worksession5.html
 [development environment]: environment.html
 [sokol headers]: https://github.com/floooh/sokol
