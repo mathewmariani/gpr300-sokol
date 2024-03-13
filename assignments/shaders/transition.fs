@@ -6,6 +6,7 @@ struct Transition
 {
   sampler2D gradient;
   float cutoff;
+  vec3 color;
 };
 
 out vec4 FragColor;
@@ -18,5 +19,5 @@ void main()
 {
   float transit = texture(transition.gradient, texcoords).r;
   if (transit >= transition.cutoff) { discard; }
-  FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+  FragColor = vec4(transition.color, 1.0);
 }

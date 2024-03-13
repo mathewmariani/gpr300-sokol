@@ -11,6 +11,7 @@
 typedef struct
 {
   float cutoff;
+  glm::vec3 color;
 } transition_t;
 
 typedef struct
@@ -29,8 +30,10 @@ static struct
 {
   uint8_t file_buffer[batteries::megabytes(5)];
 
+  glm::vec3 backgroud;
   transition_t transition;
   gradient_t gradient;
+
   sg_pass_action pass_action;
 
   struct
@@ -40,7 +43,12 @@ static struct
     sg_bindings bind;
   } display;
 } state = {
-    .transition.cutoff = 0.0f,
+    .backgroud = glm::vec3(0.16f, 0.50f, 0.72f),
+    .transition = {
+        .cutoff = 0.0f,
+        .color = glm::vec3(0.94f, 0.76f, 0.05f),
+    },
+
 };
 
 void load_gradients(void)
@@ -102,6 +110,7 @@ void create_display_pass(void)
               .size = sizeof(fs_display_params_t),
               .uniforms = {
                   [0] = {.name = "transition.cutoff", .type = SG_UNIFORMTYPE_FLOAT},
+                  [1] = {.name = "transition.color", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
           .images[0].used = true,
@@ -161,15 +170,18 @@ void frame(void)
   ImGui::Text("Transition");
   ImGui::DragFloat("Cutoff", &state.transition.cutoff, 0.01f, 0.00f, 1.00f);
 
-  if (ImGui::Button("Button 1"))
+  ImGui::ColorEdit3("Background", &state.backgroud[0]);
+  ImGui::ColorEdit3("Fadeout Color", &state.transition.color[0]);
+
+  if (ImGui::Button("Gradient 1"))
   {
     state.display.bind.fs.images[0] = state.gradient.img[0];
   }
-  if (ImGui::Button("Button 2"))
+  if (ImGui::Button("Gradient 2"))
   {
     state.display.bind.fs.images[0] = state.gradient.img[1];
   }
-  if (ImGui::Button("Button 3"))
+  if (ImGui::Button("Gradient 3"))
   {
     state.display.bind.fs.images[0] = state.gradient.img[2];
   }
@@ -186,7 +198,7 @@ void frame(void)
       .action = (sg_pass_action){
           .colors[0] = {
               .load_action = SG_LOADACTION_CLEAR,
-              .clear_value = {1.0f, 0.0f, 0.0f, 1.0f},
+              .clear_value = {state.backgroud.r, state.backgroud.g, state.backgroud.b, 1.0f},
           },
       },
       .swapchain = sglue_swapchain(),
