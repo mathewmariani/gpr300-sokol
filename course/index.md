@@ -51,6 +51,7 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 1][] - Windwaker Ocean
 *   [worksession 2][] - Landmass Generation
 *   [worksession 4][] - Toon Shading
+*   [worksession 5][] - Transition Sequences
 
 <!-- Future Work Sessions:
 *   [worksession 3][] - Super Mario Sunshine Water
