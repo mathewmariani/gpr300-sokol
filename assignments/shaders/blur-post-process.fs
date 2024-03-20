@@ -35,7 +35,7 @@ void main()
   for(int i = 0; i < 9; i++)
   {
     vec3 local = vec3(texture(screen, TexCoords.st + offsets[i]));
-    color += local[i] * (kernel[i] / strength);
+    color += local * (kernel[i] / strength);
   }
 
   FragColor = vec4(color, 1.0);

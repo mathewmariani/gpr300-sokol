@@ -7,6 +7,7 @@
 
 // shaders
 #include "shaders/blinn_phong.h"
+#include "shaders/no_post_process.h"
 #include "shaders/chromatic_aberration.h"
 #include "shaders/blur_post_process.h"
 #include "shaders/grayscale_post_process.h"
@@ -30,6 +31,7 @@ typedef struct
 } fs_display_params_t;
 
 std::vector<std::string> post_processing_effects = {
+    "None",
     "Grayscale",
     "Kernel Blur",
     "Inverse",
@@ -196,6 +198,7 @@ void create_offscreen_pass(void)
 void create_display_pass()
 {
   static std::vector<std::array<std::string, 2>> shader_stage = {
+      {no_post_process_vs, no_post_process_fs},
       {grayscale_post_process_vs, grayscale_post_process_fs},
       {blur_post_process_vs, blur_post_process_fs},
       {inverse_post_process_vs, inverse_post_process_fs},
@@ -275,6 +278,9 @@ void frame(void)
 {
   batteries::frame();
 
+  const auto width = sapp_width();
+  const auto height = sapp_height();
+
   const auto t = (float)sapp_frame_duration();
   state.scene.ry += 0.2f * t;
 
@@ -309,9 +315,6 @@ void frame(void)
     ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
   }
   ImGui::End();
-
-  const auto width = sapp_width();
-  const auto height = sapp_height();
 
   // math required by the scene
   auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
