@@ -2,7 +2,11 @@ import fs from "fs";
 import path from "path";
 import Markdown from "markdown-it";
 import Mustache from "mustache";
+import hljs from "highlight.js"
 import { globSync } from "glob";
+
+hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
+const md = Markdown({ html: true }).use(require('markdown-it-highlightjs'), { hljs })
 
 // mustache partials
 const page = fs.readFileSync("extra/mustache/page.mustache", "utf8");
@@ -15,7 +19,6 @@ function _buildPage(body: string) {
   console.log("Building page...");
 
   // render markdown to html
-  const md = Markdown({ html: true });
   const view = { body: md.render(body) };
   const partials = { header: header, footer: footer };
 
