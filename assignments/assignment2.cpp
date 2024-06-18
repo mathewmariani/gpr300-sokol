@@ -8,7 +8,6 @@
 // shaders
 #include "shaders/shadow_depth.h"
 #include "shaders/simple.h"
-#include "shaders/debug_quad.h"
 
 #include <string>
 

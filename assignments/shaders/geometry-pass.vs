@@ -12,15 +12,15 @@ layout(location = 6) in vec4 inst_wwww;
 // uniforms
 uniform mat4 view_proj;
 
-out vec4 vs_proj;
-out vec4 vs_normal;
+out vec3 vs_position;
+out vec3 vs_normal;
 
 void main()
 {
-  mat4 instance_matrix = mat4(inst_xxxx, inst_yyyy, inst_zzzz, inst_wwww);
-  mat4 mvp = view_proj * instance_matrix;
-  vs_proj = mvp * vec4(in_position, 1.0);
-  vs_normal = vec4(normalize(in_normal), 0.0);
+  mat4 model = mat4(inst_xxxx, inst_yyyy, inst_zzzz, inst_wwww);
+  vec4 position = model * vec4(in_position, 1.0);
 
-  gl_Position = vs_proj;
+  vs_position = position.xyz;
+  vs_normal = transpose(inverse(mat3(model))) * in_normal;
+  gl_Position = view_proj * position;
 }

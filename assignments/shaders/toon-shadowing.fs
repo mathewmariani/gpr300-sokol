@@ -33,10 +33,11 @@ void main()
   float diff = (dot(normal, ambient.direction) + 1.0) / 2.0;
   float zatoon = texture(material.zatoon, vec2(diff)).r;
 
-  // mix between the shadow and highlights
+  // apply color palette by mixing
+  // between the shadow and highlights
   vec3 light_color = mix(palette.shadow, palette.highlight, zatoon);
 
-  // sample the albedo to get the base object color
+  // use the albedo to as the base color
   vec3 object_color = texture(material.albedo, texcoords).rgb;
 
   FragColor = vec4(object_color * light_color, 1.0);
