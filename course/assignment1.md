@@ -5,7 +5,7 @@ Checkout the [demo](demo/assignment1.html)
 
 #### Goal
 
-The goal of this assignment is to strengthen your understanding of framebuffers by implementing the following post-processing effects. Build off of the previous assignment to complete this one.
+The goal of this assignment is to strengthen your understanding of framebuffers by implementing the following post-processing effects.
 
 *   [Box Blur][]
 *   [Gaussian Blur][]
@@ -18,6 +18,9 @@ The goal of this assignment is to strengthen your understanding of framebuffers 
 *   [Lens Distortion][]
 *   [Film Grain][]
 *   [Screen-Space Fog][]
+
+
+Build off of the previous assignment to complete this one.
 
 
 #### Instructions

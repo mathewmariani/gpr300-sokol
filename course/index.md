@@ -12,6 +12,8 @@ The syllabus for this course was created by Eric Winebrenner [@ewinebrenner][].
 
 This course has been adapted to use [sokol headers][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
 
+All demos for both assignments and worksessions can be viewed in the [showcase][].
+
 ---
 
 ### Prerequisites
@@ -70,7 +72,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [Foundations of Game Engine Development - Rendering]: https://foundationsofgameenginedev.com/#fged2
 [OpenGL45]: https://www.khronos.org/files/opengl45-quick-reference-card.pdf
 [OpenGLES3]: https://www.khronos.org/files/opengles3-quick-reference-card.pdf
-[FAQ]: faq.md
 [assignment 0]: assignment0.html
 [assignment 1]: assignment1.html
 [assignment 2]: assignment2.html
@@ -84,4 +85,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 4]: worksession4.html
 [worksession 5]: worksession5.html
 [development environment]: environment.html
+[FAQ]: faq.html
+[showcase]: showcase.html
 [sokol headers]: https://github.com/floooh/sokol

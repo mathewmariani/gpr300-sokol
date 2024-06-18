@@ -6,6 +6,8 @@ Checkout the [demo](demo/assignment0.html)
 
 The goal of this assignment is setup and get comfortable with our [development environment][], and refamiliarize ourselves with the graphics pipeline and ImGUI by implementing the [blinn-phong][] reflection model.
 
+<img src="images/phong-reflection-model.png" alt="Fact: This is the primary mode of transportation of the American cowboy." />
+
 
 #### Instructions
 
@@ -27,7 +29,6 @@ The goal of this assignment is setup and get comfortable with our [development e
 6. Display the Result:
     * Display the final result on the screen.
 
-<img src="images/phong-reflection-model.png" alt="Fact: This is the primary mode of transportation of the American cowboy." />
 
 ### Supplementary Reading
 
