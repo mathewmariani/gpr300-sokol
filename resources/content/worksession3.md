@@ -2,7 +2,22 @@
 
 View [demo](demo/worksession3.html)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+#### Goal
+
+The goal of this work-session is to explore the power of textures. We will be using a texture as a lookup table to map values from our vertex lighting calculation onto a range authored by an artist.
+
+
+#### Instructions
+
+1. Vertex Lighting:
+    * Apply a simple vertex lighting effect. Because we are trying to achieve a stylized effect we're going to use the diffuse portion of the Phong reflection model and ommit all specular lighting.
+
+2. Toonification:
+    * To achieve the cel-shaded effect, we will sample from `ZAtoon.png` which will be used as a lookup map for our vertex lighting values.
+
+3. Color Tint:
+    * Using the color palette mix between the highlight and shadow colors to give our object a stylized color tint.
 
 
 ### Supplementary Reading
