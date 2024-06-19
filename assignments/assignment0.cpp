@@ -165,7 +165,7 @@ void frame(void)
 
   // math required by the scene
   auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
-  auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
+  auto camera_proj = glm::perspective(glm::radians(45.0f), (float)(width / (float)height), 0.01f, 10.0f);
   auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   auto camera_view_proj = camera_proj * camera_view;
 
