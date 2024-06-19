@@ -19,6 +19,6 @@ void main()
   WorldPos = vec3(model * vec4(vPosition, 1.0));
   WorldNormal = transpose(inverse(mat3(model))) * vNormal;
 
-  light_proj_pos = light_view_proj * model * vec4(vPosition, 1.0);
+  light_proj_pos = light_view_proj * vec4(WorldPos, 1.0);
   gl_Position = view_proj * model * vec4(vPosition, 1.0);
 }

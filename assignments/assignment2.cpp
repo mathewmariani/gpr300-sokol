@@ -7,7 +7,7 @@
 
 // shaders
 #include "shaders/shadow_depth.h"
-#include "shaders/simple.h"
+#include "shaders/shadow_map.h"
 
 #include <string>
 
@@ -26,7 +26,7 @@ typedef struct
 
 typedef struct
 {
-    glm::vec3 light_dir;
+    glm::vec3 light_pos;
     glm::vec3 eye_pos;
 } fs_display_params_t;
 
@@ -84,8 +84,8 @@ void create_shadow_pass(void)
     // create a texture with only a depth attachment
     state.shadow.map = sg_make_image((sg_image_desc){
         .render_target = true,
-        .width = 2048,
-        .height = 2048,
+        .width = 1024,
+        .height = 1024,
         .sample_count = 1,
         .pixel_format = SG_PIXELFORMAT_DEPTH,
         .label = "depth-image",
@@ -101,11 +101,10 @@ void create_shadow_pass(void)
         .label = "shadow-sampler",
     });
 
-    auto attachment_desc = (sg_attachments_desc){
+    state.shadow.attachments = sg_make_attachments((sg_attachments_desc){
         .depth_stencil.image = state.shadow.map,
         .label = "shadow-pass",
-    };
-    state.shadow.attachments = sg_make_attachments(&attachment_desc);
+    });
 
     auto shadow_shader_desc = (sg_shader_desc){
         .vs = {
@@ -168,7 +167,7 @@ void create_display_pass(void)
     };
     auto shader_desc = (sg_shader_desc){
         .vs = {
-            .source = simple_vs,
+            .source = shadow_map_vs,
             .uniform_blocks[0] = {
                 .layout = SG_UNIFORMLAYOUT_NATIVE,
                 .size = sizeof(vs_display_params_t),
@@ -180,12 +179,12 @@ void create_display_pass(void)
             },
         },
         .fs = {
-            .source = simple_fs,
+            .source = shadow_map_fs,
             .uniform_blocks[0] = {
                 .layout = SG_UNIFORMLAYOUT_NATIVE,
                 .size = sizeof(fs_display_params_t),
                 .uniforms = {
-                    [0] = {.name = "light_dir", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [0] = {.name = "light_pos", .type = SG_UNIFORMTYPE_FLOAT3},
                     [1] = {.name = "eye_pos", .type = SG_UNIFORMTYPE_FLOAT3},
                 },
             },
@@ -249,15 +248,15 @@ void init(void)
     });
 
     // clang-format off
-  const float plane_vertices[] = {
-    // position, normal, texcoord:
-     5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-    -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-    -5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-     5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-    -5.0f,  -2.0f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-     5.0f,  -2.0f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-  };
+    const float plane_vertices[] = {
+        // position, normal, texcoord:
+        5.0f,  -1.5f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        -5.0f,  -1.5f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        -5.0f,  -1.5f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        5.0f,  -1.5f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        -5.0f,  -1.5f, -5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        5.0f,  -1.5f,  5.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+    };
     // clang-format on
 
     state.plane_vbuf = sg_make_buffer((sg_buffer_desc){
@@ -276,15 +275,15 @@ void init(void)
 
 void draw_ui(void)
 {
+    auto windowSize = ImGui::GetWindowSize();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Offscreen Render");
-    ImVec2 windowSize = ImGui::GetWindowSize();
-    ImGui::Image(simgui_imtextureid(state.ui.shadow_map),
-                 windowSize, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(simgui_imtextureid(state.ui.shadow_map), windowSize, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }
@@ -305,17 +304,16 @@ void frame(void)
     state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
 
     // shadow pass matrices
-
     const glm::mat4 rym = glm::rotate(state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::vec3 light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
-    glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-    glm::mat4 light_proj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 100.0f);
+    glm::vec3 light_pos = rym * glm::vec4(10.0f, 10.0f, -10.0f, 1.0f);
+    glm::mat4 light_view = glm::lookAt(light_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
     glm::mat4 light_view_proj = light_proj * light_view;
 
     // display pass matrices
     glm::vec3 eye = glm::vec3(0.0f, 1.5f, 6.0f);
     glm::mat4 view = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)(width / (float)height), 0.01f, 10.0f);
     glm::mat4 view_proj = proj * view;
 
     // parameters for drawing a shadow
@@ -325,7 +323,7 @@ void frame(void)
     };
 
     const fs_display_params_t fs_display_params = {
-        .light_dir = glm::normalize(light_pos),
+        .light_pos = light_pos,
         .eye_pos = eye,
     };
 
@@ -333,14 +331,14 @@ void frame(void)
     const vs_display_params_t suzanne_vs_display_params = {
         .model = state.suzanne.transform.matrix(),
         .view_proj = view_proj,
-        .light_view_proj = light_view_proj * state.suzanne.transform.matrix(),
+        .light_view_proj = light_view_proj,
     };
 
     // parameters for drawing the plane
     const vs_display_params_t plane_vs_display_params = {
         .model = glm::mat4(1.0f),
         .view_proj = view_proj,
-        .light_view_proj = light_view_proj * glm::mat4(1.0f),
+        .light_view_proj = light_view_proj,
     };
 
     // render the shadow map
