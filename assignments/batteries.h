@@ -55,8 +55,9 @@ namespace batteries
 
   struct ambient_t
   {
-    glm::vec3 direction;
+    float intensity;
     glm::vec3 color;
+    glm::vec3 direction;
   };
 
   struct pointlight_t

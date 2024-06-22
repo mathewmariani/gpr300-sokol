@@ -66,22 +66,24 @@ static struct
 
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
+    batteries::ambient_t ambient;
 
     struct
     {
         float ry;
-        batteries::ambient_t ambient;
         batteries::model_t suzanne;
         batteries::material_t material;
         sg_buffer plane_vbuf;
         sg_bindings plane_bind;
     } scene;
 } state = {
+    .ambient = {
+        .intensity = 1.0f,
+        .color = glm::vec3(1.0f, 1.0f, 1.0f),
+        .direction = glm::vec3(0.0f, 0.0f, 0.0f),
+    },
     .scene = {
         .ry = 0.0f,
-        .ambient = {
-            .color = glm::vec3(0.25f, 0.45f, 0.65f),
-        },
         .material = {
             .Ka = 1.0f,
             .Kd = 0.5f,
@@ -165,7 +167,7 @@ void create_depth_pass(void)
         .shader = sg_make_shader(shadow_shader_desc),
         .index_type = SG_INDEXTYPE_NONE,
         .face_winding = SG_FACEWINDING_CCW,
-        .cull_mode = SG_CULLMODE_BACK,
+        .cull_mode = SG_CULLMODE_FRONT,
         .depth = {
             .pixel_format = SG_PIXELFORMAT_DEPTH,
             .compare = SG_COMPAREFUNC_LESS_EQUAL,
@@ -184,7 +186,7 @@ void create_shadow_pass(void)
 {
     state.shadow.pass_action = (sg_pass_action){
         .colors[0] = {
-            .clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f},
+            .clear_value = {state.ambient.color.r, state.ambient.color.g, state.ambient.color.b, 1.0f},
             .load_action = SG_LOADACTION_CLEAR,
         },
     };
@@ -213,8 +215,9 @@ void create_shadow_pass(void)
                     [3] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
                     [4] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
                     [5] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                    [6] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [6] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
                     [7] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [8] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
                 },
             },
             .images[0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
@@ -308,9 +311,21 @@ void draw_ui(void)
 
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient.color[0]))
+
+    if (ImGui::CollapsingHeader("Ambient Light"))
     {
-        state.shadow.pass_action.colors[0].clear_value = {state.scene.ambient.color.r, state.scene.ambient.color.g, state.scene.ambient.color.b, 1.0f};
+        ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f);
+        ImGui::DragFloat3("Direction", &state.ambient.direction[0], 0.01f, -1.0f, 1.0f);
+        if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
+        {
+            state.shadow.pass_action.colors[0].clear_value = {state.ambient.color.r, state.ambient.color.g, state.ambient.color.b, 1.0f};
+        }
+    }
+    if (ImGui::CollapsingHeader("Suzanne"))
+    {
+        ImGui::DragFloat3("Position", &state.scene.suzanne.transform.position[0], 0.01f, 0.0f, 1.0f);
+        ImGui::DragFloat3("Rotation", &state.scene.suzanne.transform.rotation[0], 0.01f, 0.0f, 1.0f);
+        ImGui::DragFloat3("Scale", &state.scene.suzanne.transform.scale[0], 0.01f, 0.0f, 1.0f);
     }
     if (ImGui::CollapsingHeader("Material"))
     {
@@ -350,8 +365,7 @@ void frame(void)
     // depth pass matrices
     const glm::mat4 light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
     const glm::vec3 light_pos = glm::vec4(10.0f, 10.0f, -10.0f, 1.0f);
-    const glm::vec3 light_dir = glm::vec3(0.0f, 0.0f, 0.0f);
-    const glm::mat4 light_view = glm::lookAt(light_pos, light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 light_view = glm::lookAt(light_pos, state.ambient.direction, glm::vec3(0.0f, 1.0f, 0.0f));
     const glm::mat4 light_view_proj = light_proj * light_view;
 
     // shadow pass matrices
@@ -390,7 +404,7 @@ void frame(void)
         .light_pos = light_pos,
         .eye_pos = state.camera.position,
         .material = state.scene.material,
-        .ambient = state.scene.ambient,
+        .ambient = state.ambient,
     };
 
     // render suzanne
