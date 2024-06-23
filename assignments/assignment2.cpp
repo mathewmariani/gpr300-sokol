@@ -78,8 +78,8 @@ static struct
     } scene;
 } state = {
     .ambient = {
-        .intensity = 1.0f,
-        .color = glm::vec3(1.0f, 1.0f, 1.0f),
+        .intensity = 0.3f,
+        .color = glm::vec3(0.25f, 0.45f, 0.65f),
         .direction = glm::vec3(0.0f, 0.0f, 0.0f),
     },
     .scene = {
@@ -356,11 +356,11 @@ void frame(void)
     const auto height = sapp_height();
 
     // update the camera controller
-    state.camera_controller.update(&state.camera, t);
+    state.camera_controller.update(&state.camera, sapp_frame_duration());
 
     // rotate suzanne
     // state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
-    // const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // depth pass matrices
     const glm::mat4 light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);

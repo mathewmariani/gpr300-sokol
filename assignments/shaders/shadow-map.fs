@@ -47,8 +47,10 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     // PCF
     float shadow = 0.0;
     vec3 texel_size = 1.0 / vec3(2048.0, 2048.0, 1.0);
-    for(int x = -1; x <= 1; ++x) {
-        for(int y = -1; y <= 1; ++y) {
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
             float pcf_depth = texture(shadow_map, proj_coords + vec3(x, y, 0.0) * texel_size); 
             shadow += (current_depth - bias) > pcf_depth  ? 1.0 : 0.0;        
         }    
@@ -61,8 +63,6 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 void main()
 {
     vec3 normal = normalize(WorldNormal);
-
-    vec3 light_color = vec3(1.0);
     vec3 light_dir = normalize(light_pos - WorldPos);
 
     // diffuse
@@ -70,15 +70,15 @@ void main()
     vec3 diffuse = diff * ambient.color;
 
     // specular
-    vec3 view_dir = normalize(eye_pos - WorldPos);
-    vec3 h = normalize(light_dir + view_dir);  
-    float spec = pow(max(dot(normal, h), 0.0), 64.0);
-    vec3 specular = spec * ambient.color;    
+    vec3 to_eye = normalize(eye_pos - WorldPos);
+    vec3 h = normalize(light_dir + to_eye);
+    float spec = pow(max(dot(normal, h), 0.0), material.Shininess);
+    vec3 specular = spec * ambient.color;
 
     // calculate shadow
-    float shadow = ShadowCalculation(light_proj_pos);                      
-    vec3 lighting_color = (ambient.color * ambient.intensity + (1.0 - shadow) * (diffuse + specular)); 
+    float shadow = ShadowCalculation(light_proj_pos);                   
+    vec3 light_color = (ambient.color * material.Ka) + (1.0 - shadow) * (material.Kd * diffuse + material.Ks * specular);
     vec3 object_color = vec3(normal * 0.5 + 0.5);   
     
-    FragColor = vec4(lighting_color * object_color, 1.0);
+    FragColor = vec4(light_color * object_color, 1.0);
 }
