@@ -9,6 +9,7 @@
 #include "shaders/blinn_phong.h"
 #include "shaders/no_post_process.h"
 #include "shaders/chromatic_aberration.h"
+#include "shaders/crt_post_process.h"
 #include "shaders/blur_post_process.h"
 #include "shaders/grayscale_post_process.h"
 #include "shaders/inverse_post_process.h"
@@ -36,6 +37,7 @@ std::vector<std::string> post_processing_effects = {
     "Kernel Blur",
     "Inverse",
     "Chromatic Aberration",
+    "CRT",
 };
 
 // application state
@@ -208,6 +210,7 @@ void create_postprocess_pass()
       {blur_post_process_vs, blur_post_process_fs},
       {inverse_post_process_vs, inverse_post_process_fs},
       {chromatic_aberration_vs, chromatic_aberration_fs},
+      {crt_post_process_vs, crt_post_process_fs},
   };
 
   // clang-format off
