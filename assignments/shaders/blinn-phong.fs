@@ -9,8 +9,9 @@ struct Material {
   float Shininess;
 };
 struct Ambient {
-  vec3 direction;
+  float intensity;
   vec3 color;
+  vec3 direction;
 };
 
 out vec4 FragColor;
@@ -38,10 +39,10 @@ void main()
   float specularFactor = pow(max(dot(normal, h), 0.0), material.Shininess);
 
   // Combination of specular and diffuse reflection
-  vec3 light_color = (material.Kd * diffuseFactor + material.Ks * specularFactor) * ambient.color;
+  vec3 light_color = (material.Kd * diffuseFactor + material.Ks * specularFactor) * ambient.color * ambient.intensity;
 
   // Add some ambient light
-  light_color += ambient.color * material.Ka;
+  light_color += ambient.intensity * material.Ka * ambient.color;
 
   vec3 object_color = vec3(normal * 0.5 + 0.5);
   FragColor = vec4(object_color * light_color, 1.0);
