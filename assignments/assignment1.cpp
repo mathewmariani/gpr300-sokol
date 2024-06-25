@@ -47,13 +47,17 @@ static struct
 
   struct
   {
+    sg_image color;
+    sg_image depth;
+    sg_sampler sampler;
+  } framebuffer;
+
+  struct
+  {
     sg_pass_action pass_action;
     sg_attachments attachments;
     sg_pipeline pip;
     sg_bindings bind;
-    sg_image img;
-    sg_image depth;
-    sg_sampler sampler;
   } blinnphong;
 
   struct
@@ -103,13 +107,13 @@ void load_suzanne(void)
   });
 }
 
-void create_blinnphong_pass(void)
+void create_framebuffer(void)
 {
   const auto width = sapp_width();
   const auto height = sapp_height();
 
   // color attachment
-  state.blinnphong.img = sg_make_image((sg_image_desc){
+  state.framebuffer.color = sg_make_image((sg_image_desc){
       .pixel_format = SG_PIXELFORMAT_RGBA8,
       .render_target = true,
       .width = width,
@@ -118,7 +122,7 @@ void create_blinnphong_pass(void)
   });
 
   // depth attachment
-  state.blinnphong.depth = sg_make_image((sg_image_desc){
+  state.framebuffer.depth = sg_make_image((sg_image_desc){
       .pixel_format = SG_PIXELFORMAT_DEPTH,
       .render_target = true,
       .width = width,
@@ -127,18 +131,16 @@ void create_blinnphong_pass(void)
   });
 
   // create an image sampler
-  state.blinnphong.sampler = sg_make_sampler({
+  state.framebuffer.sampler = sg_make_sampler({
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
       .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
   });
+}
 
-  state.blinnphong.attachments = sg_make_attachments((sg_attachments_desc){
-      .colors[0].image = state.blinnphong.img,
-      .depth_stencil.image = state.blinnphong.depth,
-  });
-
+void create_blinnphong_pass(void)
+{
   auto shader_desc = (sg_shader_desc){
       .vs = {
           .source = blinn_phong_vs,
@@ -176,6 +178,11 @@ void create_blinnphong_pass(void)
           .load_action = SG_LOADACTION_CLEAR,
       },
   };
+
+  state.blinnphong.attachments = sg_make_attachments((sg_attachments_desc){
+      .colors[0].image = state.framebuffer.color,
+      .depth_stencil.image = state.framebuffer.depth,
+  });
 
   state.blinnphong.pip = sg_make_pipeline({
       .layout = {
@@ -268,8 +275,8 @@ void create_postprocess_pass()
   state.postprocess.bind = (sg_bindings){
       .vertex_buffers[0] = quad_buffer,
       .fs = {
-          .images[0] = state.blinnphong.img,
-          .samplers[0] = state.blinnphong.sampler,
+          .images[0] = state.framebuffer.color,
+          .samplers[0] = state.framebuffer.sampler,
       },
   };
 }
@@ -278,6 +285,7 @@ void init(void)
 {
   batteries::setup();
   load_suzanne();
+  create_framebuffer();
   create_blinnphong_pass();
   create_postprocess_pass();
 }
