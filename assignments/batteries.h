@@ -11,6 +11,7 @@
 
 // libs
 #include "imgui/imgui.h"
+#include "fast_obj/fast_obj.h"
 
 // glm
 #define GLM_FORCE_SWIZZLE
@@ -42,6 +43,7 @@ namespace batteries
   {
     sg_buffer vbuf;
     sg_buffer ibuf;
+    fastObjMesh *obj;
     int num_faces;
     std::vector<float> vertices;
     std::vector<uint16_t> indices;
@@ -101,7 +103,7 @@ namespace batteries
     // old but can be useful
     float fov = 60.0f;
     float nearPlane = 0.01f;
-    float farPlane = 100.0f;
+    float farPlane = 1000000.0f;
     bool orthographic = false;
     float orthoHeight = 6.0f;
     float aspectRatio = 1.77f;
@@ -291,9 +293,6 @@ namespace batteries
 // stb
 #include "stb/stb_image.h"
 
-// fast_obj
-#include "fast_obj/fast_obj.h"
-
 namespace batteries
 {
   void setup(void)
@@ -309,7 +308,7 @@ namespace batteries
 
     // setup sokol-fetch
     sfetch_setup((sfetch_desc_t){
-        .max_requests = 8,
+        .max_requests = 24,
         .num_channels = 1,
         .num_lanes = 1,
         .logger.func = slog_func,
@@ -392,9 +391,12 @@ namespace batteries
             // texcoords
             mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 0));
             mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 1));
+
+            mesh->indices.push_back(i);
           }
 
-          fast_obj_destroy(obj);
+          // fast_obj_destroy(obj);
+          mesh->obj = obj;
 
           // clang-format off
           sg_init_buffer(req_inst->buffer_id, (sg_buffer_desc){
@@ -493,7 +495,7 @@ namespace batteries
         }
         else if (response->failed)
         {
-          printf("[!!!] Failed to load .obj file.\n");
+          printf("[!!!] Failed to load object file.\n");
         }
       };
 
@@ -522,7 +524,7 @@ namespace batteries
         }
         else if (response->failed)
         {
-          printf("[!!!] Failed to load .obj file.\n");
+          printf("[!!!] Failed to load image file.\n");
         }
       };
 
