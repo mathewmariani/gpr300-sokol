@@ -314,11 +314,24 @@ void draw_ui(void)
 
     if (ImGui::CollapsingHeader("Ambient Light"))
     {
-        ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f);
+        if (ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f))
+        {
+            state.shadow.pass_action.colors[0].clear_value = {
+                state.ambient.color.r * state.ambient.intensity,
+                state.ambient.color.g * state.ambient.intensity,
+                state.ambient.color.b * state.ambient.intensity,
+                1.0f,
+            };
+        }
         ImGui::DragFloat3("Direction", &state.ambient.direction[0], 0.01f, -1.0f, 1.0f);
         if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
         {
-            state.shadow.pass_action.colors[0].clear_value = {state.ambient.color.r, state.ambient.color.g, state.ambient.color.b, 1.0f};
+            state.shadow.pass_action.colors[0].clear_value = {
+                state.ambient.color.r * state.ambient.intensity,
+                state.ambient.color.g * state.ambient.intensity,
+                state.ambient.color.b * state.ambient.intensity,
+                1.0f,
+            };
         }
     }
     if (ImGui::CollapsingHeader("Suzanne"))
@@ -364,14 +377,11 @@ void frame(void)
 
     // depth pass matrices
     const glm::mat4 light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
-    const glm::vec3 light_pos = glm::vec4(10.0f, 10.0f, -10.0f, 1.0f);
+    const glm::vec3 light_pos = rym * glm::vec4(10.0f, 10.0f, -10.0f, 1.0f);
     const glm::mat4 light_view = glm::lookAt(light_pos, state.ambient.direction, glm::vec3(0.0f, 1.0f, 0.0f));
     const glm::mat4 light_view_proj = light_proj * light_view;
 
     // shadow pass matrices
-    const glm::vec3 eye = glm::vec3(0.0f, 1.5f, 6.0f);
-    const glm::mat4 view = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    const glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)(width / (float)height), 0.01f, 10.0f);
     const glm::mat4 view_proj = state.camera.projection() * state.camera.view();
 
     // step 1:

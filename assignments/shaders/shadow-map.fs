@@ -76,8 +76,8 @@ void main()
     vec3 specular = spec * ambient.color;
 
     // calculate shadow
-    float shadow = ShadowCalculation(light_proj_pos);                   
-    vec3 light_color = (ambient.color * material.Ka) + (1.0 - shadow) * (material.Kd * diffuse + material.Ks * specular);
+    float shadow = ShadowCalculation(light_proj_pos);
+    vec3 light_color = (ambient.color * ambient.intensity * material.Ka) + (1.0 - shadow) * (material.Kd * diffuse + material.Ks * specular);
     vec3 object_color = vec3(normal * 0.5 + 0.5);   
     
     FragColor = vec4(light_color * object_color, 1.0);
