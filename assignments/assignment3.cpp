@@ -17,7 +17,7 @@ enum
 {
     OFFSCREEN_WIDTH = 1024,
     OFFSCREEN_HEIGHT = 1024,
-    MAX_INSTANCES = 128,
+    MAX_INSTANCES = 64,
     MAX_LIGHTS = 64,
 };
 
@@ -105,6 +105,7 @@ static struct
         simgui_image_t normal_img;
         simgui_image_t depth_img;
         float radius;
+        float instance_offset;
     } debug;
 
     uint8_t file_buffer[batteries::megabytes(4)];
@@ -147,52 +148,6 @@ void load_suzanne(void)
     });
 }
 
-static void init_instance_data(void)
-{
-    for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_INSTANCES; i++, x += dx, y += dy)
-    {
-        glm::mat4 *inst = &instance_data[i];
-        *inst = glm::translate(glm::vec3(x * 3.0f, 0.0f, y * 3.0f));
-
-        // at a corner?
-        if (abs(x) == abs(y))
-        {
-            if (x >= 0)
-            {
-                // top-right corner: start a new ring
-                if (y >= 0)
-                {
-                    x += 1;
-                    y += 1;
-                    dx = 0;
-                    dy = -1;
-                }
-                // bottom-right corner
-                else
-                {
-                    dx = -1;
-                    dy = 0;
-                }
-            }
-            else
-            {
-                // top-left corner
-                if (y >= 0)
-                {
-                    dx = +1;
-                    dy = 0;
-                }
-                // bottom-left corner
-                else
-                {
-                    dx = 0;
-                    dy = +1;
-                }
-            }
-        }
-    }
-}
-
 static glm::vec3 generateRandomPointOnUnitSphere()
 {
     double u = static_cast<double>(rand()) / RAND_MAX;
@@ -208,16 +163,23 @@ static glm::vec3 generateRandomPointOnUnitSphere()
     return glm::vec3(x, y, z);
 }
 
-static void init_instance_lights(void)
+static void init_instance_data(void)
 {
-    for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_LIGHTS; i++, x += dx, y += dy)
+    const auto offset = 5.0f;
+    const auto radius = 2.0f;
+    for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_INSTANCES; i++, x += dx, y += dy)
     {
+        // suzanne
+        glm::mat4 *inst = &instance_data[i];
+        *inst = glm::translate(glm::vec3(x, 0.0f, y) * offset);
+
+        // lights
         const auto r = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
         const auto g = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
         const auto b = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
 
-        const auto pos = glm::vec3(x * 3.0f, 0.0f, y * 3.0f);
-        const auto offset = generateRandomPointOnUnitSphere();
+        const auto pos = glm::vec3(x, 0.0f, y) * offset;
+        const auto offset = generateRandomPointOnUnitSphere() * radius;
 
         instance_light_data[i] = {
             .color = glm::vec3(r, g, b),
@@ -407,7 +369,6 @@ void create_geometry_pass(void)
         .label = "display-pipeline",
     });
 
-    init_instance_data();
     sg_buffer_desc buf_desc = {
         .type = SG_BUFFERTYPE_VERTEXBUFFER,
         .data = SG_RANGE(instance_data),
@@ -460,8 +421,6 @@ void create_lighting_pass(void)
       1.0f, 1.0f, 1.0f, 1.0f
   };
     // clang-format on
-
-    init_instance_lights();
 
     state.lighting.pass_action = (sg_pass_action){
         .colors[0].load_action = SG_LOADACTION_CLEAR,
@@ -713,6 +672,7 @@ void init(void)
     batteries::setup();
 
     load_suzanne();
+    init_instance_data();
     create_framebuffer();
     create_geometry_pass();
     create_lighting_pass();
@@ -726,6 +686,7 @@ void draw_ui(void)
     ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
     ImGui::SliderInt("Num Instances", &state.num_instances, 1, MAX_INSTANCES);
+    ImGui::SliderFloat("Instance Spacing", &state.debug.instance_offset, 3.0f, 10.0f);
 
     ImGui::SliderFloat("Ambient", &state.debug.radius, 0.0f, 10.0f);
 
