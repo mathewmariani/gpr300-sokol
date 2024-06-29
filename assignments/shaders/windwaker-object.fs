@@ -30,14 +30,15 @@ uniform sampler2D albedo;
 void main()
 {
   // calculate the diffuse lighting
-  // vec3 normal = normalize(world_normal);
-  // float diff = (dot(normal, ambient.direction) + 1.0) / 2.0;
+  vec3 normal = normalize(world_normal);
+  float diff = (dot(normal, ambient.direction) + 1.0) / 2.0;
   // float zatoon = texture(material.zatoon, vec2(diff)).r;
+  float zatoon = 1.0;
 
   // apply color palette by mixing
   // between the shadow and highlights
-  // vec3 light_color = mix(palette.shadow, palette.highlight, zatoon);
-  vec3 light_color = palette.highlight;
+  vec3 light_color = mix(palette.shadow, palette.highlight, zatoon);
+  // vec3 light_color = palette.highlight;
 
   // use the albedo to as the base color
   vec4 object_color = texture(albedo, texcoords).rgba;
