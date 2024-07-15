@@ -1,0 +1,21 @@
+:root {
+  --highlight-color: null;
+  --highlight-background: null;
+}
+
+::selection {
+  color: var(--highlight-color);
+  background: var(--highlight-background);
+}
+
+.highlight {
+  height: 24px;
+  position: relative;
+  top: -28px;
+  left: -10px;
+  width: calc(100% + 10px);
+  max-width: 100vw;
+  z-index: -1;
+  border-radius: 2px;
+  background-color: #576574;
+}

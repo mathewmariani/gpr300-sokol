@@ -85,6 +85,13 @@ function _buildWebsite() {
     }
   });
 
+  // copy assets to output
+  fs.cp("resources/assets", "website/assets", { recursive: true }, (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+
   // copy assets directory
   fs.cp("assignments/assets", "website/demo/assets", { recursive: true }, (err) => {
     if (err) {
