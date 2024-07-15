@@ -9,18 +9,19 @@ hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
 const md = Markdown({ html: true }).use(require('markdown-it-highlightjs'), { hljs })
 
 // mustache partials
-const page = fs.readFileSync("extra/mustache/page.mustache", "utf8");
-const header = fs.readFileSync("extra/mustache/header.mustache", "utf8");
-const footer = fs.readFileSync("extra/mustache/footer.mustache", "utf8");
-const demo = fs.readFileSync("extra/mustache/demo.mustache", "utf8");
+const page = fs.readFileSync("resources/mustache/page.mustache", "utf8");
+const meta = fs.readFileSync("resources/mustache/meta.mustache", "utf8");
+const header = fs.readFileSync("resources/mustache/header.mustache", "utf8");
+const footer = fs.readFileSync("resources/mustache/footer.mustache", "utf8");
+const demo = fs.readFileSync("resources/mustache/demo.mustache", "utf8");
 
 // builds a single page
 function _buildPage(body: string) {
   console.log("Building page...");
 
   // render markdown to html
-  const view = { body: md.render(body) };
-  const partials = { header: header, footer: footer };
+  const view = { body: body };
+  const partials = { meta: meta, header: header, footer: footer };
 
   // template using mustache
   return Mustache.render(page, view, partials)
@@ -38,7 +39,7 @@ function _buildWebsite() {
   }
 
   // glob all .md files
-  const md_glob = globSync("course/*.md");
+  const md_glob = globSync("resources/content/*.md");
   for (const file of md_glob) {
     console.log("found a .md file:", file);
     try {
@@ -78,7 +79,7 @@ function _buildWebsite() {
   }
 
   // copy all images to output directory
-  fs.cp("course/images", "website/images", { recursive: true }, (err) => {
+  fs.cp("resources/images", "website/images", { recursive: true }, (err) => {
     if (err) {
       console.error(err);
     }
