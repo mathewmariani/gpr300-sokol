@@ -158,12 +158,8 @@ void init(void)
   create_display_pass();
 }
 
-void frame(void)
+void draw_ui(void)
 {
-  batteries::frame();
-
-  const auto t = (float)sapp_frame_duration();
-
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -187,6 +183,14 @@ void frame(void)
   }
 
   ImGui::End();
+}
+
+void frame(void)
+{
+  batteries::frame();
+  draw_ui();
+
+  const auto t = (float)sapp_frame_duration();
 
   // initialize uniform data
   const fs_display_params_t fs_params = {

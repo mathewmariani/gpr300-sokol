@@ -20,6 +20,9 @@ struct Material {
   float Ks;
   float Shininess;
 };
+struct ImGUI {
+  float radius;
+};
 
 uniform sampler2D g_position;
 uniform sampler2D g_normal;
@@ -33,60 +36,41 @@ uniform Ambient ambient;
 uniform PointLight lights[MAX_LIGHTS];
 uniform Material material;
 
-// linear falloff
-float attenuateLinear(float distance, float radius)
-{
-	return clamp((radius - distance) / radius, 0.0, 1.0);
+uniform ImGUI imgui;
+
+float attenuateExponential(float distance, float radius){
+	float i = clamp(1.0 - pow(distance/radius,4.0),0.0,1.0);
+	return i * i;
+	
 }
 
-// exponential falloff
-float attenuateExponential(float distance, float radius)
+vec3 calculateLighting(vec3 lightPosition, vec3 lightColor, vec3 normal, vec3 position)
 {
-	float i = clamp(1.0 - pow(distance / radius, 4.0), 0.0, 1.0);
-	return i * i;	
+	vec3 normalVec = normalize(normal); //Re-normalize normal vector; it may have been distorted when it was interpolated
+	vec3 toLight = normalize(lightPosition - position);
+	vec3 toCamera = normalize(eye - position);
+	
+	//Diffuse
+	float diffuseFactor = max(dot(normal, toLight), 0.0);
+
+	//Specular
+	vec3 h = normalize(toLight + toCamera); //Blinn-Phong uses half angle
+	float specularFactor = pow(max(dot(normalVec,h),0.0),material.Shininess);
+	
+	vec3 totalColor = ((material.Kd * diffuseFactor + material.Ks * specularFactor) * lightColor) + material.Ka * ambient.color;
+
+	return totalColor;
 }
 
-vec3 calculateDirectionalLight(vec3 position, vec3 normal)
-{
-  // Light pointing straight down
-  float diffuseFactor = max(dot(normal, ambient.direction), 0.0);
-
-  // Direction towards eye
-  vec3 toEye = normalize(eye - position);
-
-  // Blinn-phong uses half angle
-  vec3 h = normalize(ambient.direction + toEye);
-  float specularFactor = pow(max(dot(normal, h), 0.0), material.Shininess);
-
-  // Combination of specular and diffuse reflection
-  vec3 lightColor = (material.Kd * diffuseFactor + material.Ks * specularFactor) * vec3(1.0);
-
-  // Add some ambient light
-  return ambient.color * material.Ka;
-}
-
-vec3 calculatePointLight(PointLight light, vec3 position, vec3 normal)
-{
+vec3 calcPointLight(PointLight light, vec3 normal, vec3 position){
   vec3 diff = light.position - position;
-	// direction toward light position
-	vec3 toLight = normalize(diff);
-  vec3 toEye = normalize(eye - position);
-	
-  // Light pointing straight down
-  float diffuseFactor = max(dot(normal, toLight), 0.0);  
-
-  // Blinn-phong uses half angle
-  vec3 h = normalize(toLight + toEye);
-  float specularFactor = pow(max(dot(normal, h), 0.0), material.Shininess);
-
-  vec3 lightColor = (diffuseFactor + specularFactor) * light.color;
-	
-  // attenuation based on distance to light 
-	float d = length(diff); 
-	lightColor *= attenuateLinear(d, light.radius);
-	
+  vec3 toLight = normalize(diff);
+  vec3 lightColor = calculateLighting(light.position, light.color, normal, position);
+  float d = length(diff); //Distance to light
+  lightColor*=attenuateExponential(d, imgui.radius);
   return lightColor;
 }
+
 
 void main()
 {
@@ -94,22 +78,10 @@ void main()
   vec3 normal = texture(g_normal, TexCoords).xyz;
   vec3 albedo = texture(g_albedo, TexCoords).rgb;
 
-  // vec3 light_color = calculateDirectionalLight(position, normal);
-  // for (int i = 0; i < MAX_LIGHTS; i++)
-  // {
-  //   light_color += calculatePointLight(lights[i], position, normal);
-  // }
-
-  // then calculate lighting as usual
-  vec3 lighting = albedo * 0.1; // hard-coded ambient component
-  vec3 viewDir = normalize(eye - position);
-  for(int i = 0; i < MAX_LIGHTS; ++i)
+  vec3 totalLight = vec3(0.0);
+  for(int i = 0; i < MAX_LIGHTS; i++)
   {
-      // diffuse
-      vec3 lightDir = normalize(lights[i].position - position);
-      vec3 diffuse = max(dot(normal, lightDir), 0.0) * albedo * lights[i].color;
-      lighting += diffuse;
+    totalLight += calcPointLight(lights[i], position, normal);
   }
-
-  FragColor = vec4(lighting, 1.0);
+  FragColor = vec4(albedo * totalLight, 1.0);
 }

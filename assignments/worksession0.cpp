@@ -6,7 +6,7 @@
 //
 
 // shaders
-#include "shaders/pbr.h"
+#include "shaders/pbr_pass.h"
 
 typedef struct
 {
@@ -15,7 +15,16 @@ typedef struct
     glm::vec3 camera_pos;
     glm::vec3 light_pos;
     glm::vec3 ambient;
-} vs_display_params_t;
+} vs_pbr_params_t;
+
+typedef struct
+{
+    sg_image col;
+    sg_image mtl;
+    sg_image rgh;
+    sg_image ao;
+    sg_image spc;
+} pbr_material_t;
 
 // application state
 static struct
@@ -26,14 +35,17 @@ static struct
         sg_pass pass;
         sg_pipeline pip;
         sg_bindings bind;
-    } display;
+    } pbr;
+
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
 
     struct
     {
         float ry;
         glm::vec3 ambient_light;
-        batteries::model_t suzanne;
-        batteries::material_t material;
+        batteries::model_t togezoshell;
+        pbr_material_t material;
     } scene;
 
     uint8_t file_buffer[batteries::megabytes(5)];
@@ -41,23 +53,17 @@ static struct
     .scene = {
         .ry = 0.0f,
         .ambient_light = glm::vec3(0.25f, 0.45f, 0.65f),
-        .material = {
-            .Ka = 1.0f,
-            .Kd = 0.5f,
-            .Ks = 0.5f,
-            .Shininess = 128.0f,
-        },
     },
 };
 
-void create_display_pass(void)
+void create_pbr_pass(void)
 {
     auto shader_desc = (sg_shader_desc){
         .vs = {
-            .source = pbr_vs,
+            .source = pbr_pass_vs,
             .uniform_blocks[0] = {
                 .layout = SG_UNIFORMLAYOUT_NATIVE,
-                .size = sizeof(vs_display_params_t),
+                .size = sizeof(vs_pbr_params_t),
                 .uniforms = {
                     [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                     [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
@@ -68,7 +74,7 @@ void create_display_pass(void)
             },
         },
         .fs = {
-            .source = pbr_fs,
+            .source = pbr_pass_fs,
             .images = {
                 [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
                 [1] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
@@ -115,13 +121,13 @@ void create_display_pass(void)
         },
     };
 
-    state.display.pass_action = (sg_pass_action){
+    state.pbr.pass_action = (sg_pass_action){
         .colors[0] = {
             .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
             .load_action = SG_LOADACTION_CLEAR,
         }};
 
-    state.display.pip = sg_make_pipeline({
+    state.pbr.pip = sg_make_pipeline({
         .layout = {
             .attrs = {
                 // position, normal, texcoords
@@ -138,20 +144,13 @@ void create_display_pass(void)
             .compare = SG_COMPAREFUNC_LESS_EQUAL,
             .write_enabled = true,
         },
-        .label = "display-pipeline",
+        .label = "pbr-pipeline",
     });
 
     auto vbuf = sg_alloc_buffer();
-    state.display.bind = (sg_bindings){
-        .vertex_buffers[0] = vbuf,
+    state.pbr.bind = (sg_bindings){
+        .vertex_buffers[0] = state.scene.togezoshell.mesh.vbuf,
     };
-
-    batteries::assets::load_obj({
-        .buffer_id = vbuf,
-        .mesh = &state.scene.suzanne.mesh,
-        .path = "assets/objects/togezoshell/togezoshell.obj",
-        .buffer = SG_RANGE(state.file_buffer),
-    });
 
     sg_sampler smp = sg_make_sampler({
         .min_filter = SG_FILTER_LINEAR,
@@ -161,39 +160,58 @@ void create_display_pass(void)
         .label = "model-sampler",
     });
 
-    auto col = sg_alloc_image();
-    auto mtl = sg_alloc_image();
-    auto rgh = sg_alloc_image();
-    auto ao = sg_alloc_image();
-    auto spc = sg_alloc_image();
-
-    state.display.bind.fs = {
-        .images = {[0] = col, [1] = mtl, [2] = rgh, [3] = ao, [4] = spc},
+    state.pbr.bind.fs = {
+        .images = {
+            [0] = state.scene.material.col,
+            [1] = state.scene.material.mtl,
+            [2] = state.scene.material.rgh,
+            [3] = state.scene.material.ao,
+            [4] = state.scene.material.spc,
+        },
         .samplers[0] = smp,
+    };
+}
+
+void load_togezoshell(void)
+{
+    state.scene.togezoshell.mesh.vbuf = sg_alloc_buffer();
+    batteries::assets::load_obj({
+        .buffer_id = state.scene.togezoshell.mesh.vbuf,
+        .mesh = &state.scene.togezoshell.mesh,
+        .path = "assets/objects/togezoshell/togezoshell.obj",
+        .buffer = SG_RANGE(state.file_buffer),
+    });
+
+    state.scene.material = {
+        .col = sg_alloc_image(),
+        .mtl = sg_alloc_image(),
+        .rgh = sg_alloc_image(),
+        .ao = sg_alloc_image(),
+        .spc = sg_alloc_image(),
     };
 
     batteries::assets::load_img({
-        .image_id = ao,
+        .image_id = state.scene.material.ao,
         .path = "assets/materials/togezoshell/togezoshell_ao.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     batteries::assets::load_img({
-        .image_id = col,
+        .image_id = state.scene.material.col,
         .path = "assets/materials/togezoshell/togezoshell_col.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     batteries::assets::load_img({
-        .image_id = mtl,
+        .image_id = state.scene.material.mtl,
         .path = "assets/materials/togezoshell/togezoshell_mtl.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     batteries::assets::load_img({
-        .image_id = rgh,
+        .image_id = state.scene.material.rgh,
         .path = "assets/materials/togezoshell/togezoshell_rgh.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     batteries::assets::load_img({
-        .image_id = spc,
+        .image_id = state.scene.material.spc,
         .path = "assets/materials/togezoshell/togezoshell_spc.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
@@ -202,8 +220,19 @@ void create_display_pass(void)
 void init(void)
 {
     batteries::setup();
+    load_togezoshell();
+    create_pbr_pass();
+}
 
-    create_display_pass();
+void draw_ui(void)
+{
+    ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient_light[0]))
+    {
+        state.pbr.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
+    }
+    ImGui::End();
 }
 
 void frame(void)
@@ -211,55 +240,32 @@ void frame(void)
     batteries::frame();
 
     const auto t = (float)sapp_frame_duration();
+    state.camera_controller.update(&state.camera, t);
     state.scene.ry += 0.2f * t;
 
-    ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    if (ImGui::ColorEdit3("Ambient Light", &state.scene.ambient_light[0]))
-    {
-        state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
-    }
-    if (ImGui::CollapsingHeader("Material"))
-    {
-        ImGui::SliderFloat("Ambient", &state.scene.material.Ka, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse", &state.scene.material.Kd, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
-        ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
-    }
-    ImGui::End();
-
-    const auto width = sapp_width();
-    const auto height = sapp_height();
-
-    // math required by the scene
-    auto camera_pos = glm::vec3(0.0f, 1.5f, 6.0f);
-    auto camera_proj = glm::perspective(glm::radians(60.0f), (float)(width / (float)height), 0.01f, 10.0f);
-    auto camera_view = glm::lookAt(camera_pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    auto camera_view_proj = camera_proj * camera_view;
-
     // sugar: rotate suzzane
-    state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
-    state.scene.suzanne.transform.scale = glm::vec3(0.5f);
+    state.scene.togezoshell.transform.rotation = glm::rotate(state.scene.togezoshell.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
+    state.scene.togezoshell.transform.scale = glm::vec3(0.5f);
 
     // sugar: rotate light
     const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
     glm::vec3 light_pos = rym * glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
 
     // initialize uniform data
-    const vs_display_params_t vs_params = {
-        .view_proj = camera_view_proj,
-        .model = state.scene.suzanne.transform.matrix(),
-        .camera_pos = camera_pos,
+    const vs_pbr_params_t vs_params = {
+        .view_proj = state.camera.projection() * state.camera.view(),
+        .model = state.scene.togezoshell.transform.matrix(),
+        .camera_pos = state.camera.position,
         .light_pos = light_pos,
         .ambient = state.scene.ambient_light,
     };
 
-    // graphics pass
-    sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
-    sg_apply_pipeline(state.display.pip);
-    sg_apply_bindings(&state.display.bind);
+    // pbr pass
+    sg_begin_pass({.action = state.pbr.pass_action, .swapchain = sglue_swapchain()});
+    sg_apply_pipeline(state.pbr.pip);
+    sg_apply_bindings(&state.pbr.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-    sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
+    sg_draw(0, state.scene.togezoshell.mesh.num_faces * 3, 1);
 
     // draw ui
     simgui_render();
@@ -271,6 +277,7 @@ void frame(void)
 void event(const sapp_event *event)
 {
     batteries::event(event);
+    state.camera_controller.event(event);
 }
 
 void cleanup(void)

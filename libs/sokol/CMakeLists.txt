@@ -19,10 +19,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     target_link_libraries(sokol
         "-framework QuartzCore"
         "-framework Cocoa"
-        "-framework MetalKit"
-        "-framework Metal"
-        "-framework OpenGL"
-        "-framework AudioToolbox")
+        "-framework OpenGL")
 else()
     if (CMAKE_SYSTEM_NAME STREQUAL Linux)
         target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m)

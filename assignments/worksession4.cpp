@@ -68,6 +68,7 @@ static struct
         .ry = 0.0f,
         .ambient = {
             .color = glm::vec3(0.25f, 0.45f, 0.65f),
+            .intensity = 1.0f,
         },
         .palette = {
             .highlight = glm::vec3(1.00f, 1.00f, 1.00f),
@@ -119,10 +120,11 @@ void create_object_pass(void)
                 .layout = SG_UNIFORMLAYOUT_NATIVE,
                 .size = sizeof(fs_display_params_t),
                 .uniforms = {
-                    [0] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [1] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [2] = {.name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [3] = {.name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [0] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                    [1] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [2] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [3] = {.name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [4] = {.name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
                 },
             },
             .images = {
@@ -203,13 +205,8 @@ void init(void)
     create_object_pass();
 }
 
-void frame(void)
+void draw_ui(void)
 {
-    batteries::frame();
-
-    const auto t = (float)sapp_frame_duration();
-    state.camera_controller.update(&state.camera, t);
-
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -236,9 +233,18 @@ void frame(void)
     ImGui::ColorEdit3("Shadow", &state.scene.palette.shadow[0]);
 
     ImGui::End();
+}
+
+void frame(void)
+{
+    batteries::frame();
+    draw_ui();
+
+    const auto t = (float)sapp_frame_duration();
+    state.camera_controller.update(&state.camera, t);
 
     // math required by the scene
-    auto camera_view_proj = state.camera.projection() * state.camera.view();
+    const auto camera_view_proj = state.camera.projection() * state.camera.view();
     const auto light_pos = glm::vec4(10.0f, 10.0f, 0.0f, 0.0f);
     state.scene.ambient.direction = glm::normalize(light_pos);
 
