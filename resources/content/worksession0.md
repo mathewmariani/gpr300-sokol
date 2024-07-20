@@ -1,8 +1,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
-### Work Session 0 - Physically Based Rendering
+# Work Session 0
+<p class="lead">Physically Based Rendering</p>
+
 
 View [demo](demo/worksession0.html)
+
 
 This worksession involves converting mathematical equations into a shader program for use in the graphics pipeline. You will be provided with equations, and your task is to express them in GLSL (OpenGL Shading Language) code. This exercise aims to develop your skills in translating equations into a fragment shader for visualization on the GPU.
 

@@ -1,4 +1,6 @@
-### Assignment 1 - Postprocessing
+# Assignment 1
+<p class="lead">Framebuffers & Postprocessing</p>
+
 
 Checkout the [demo](demo/assignment1.html)
 

@@ -1,6 +1,9 @@
-### Assignment 0 - Blinn-Phong Lighting Model
+# Assignment 0
+<p class="lead">Blinn-Phong Lighting Model</p>
+
 
 Checkout the [demo](demo/assignment0.html)
+
 
 #### Goal
 

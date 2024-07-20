@@ -1,4 +1,6 @@
-### Assignment 4 - Splines
+# Assignment 4
+<p class="lead">Splines</p>
+
 
 View [demo](demo/assignment4.html)
 

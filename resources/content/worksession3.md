@@ -1,4 +1,6 @@
-### Work Session 3 - Super Mario Sunshine Water
+# Work Session 3
+<p class="lead">Super Mario Sunshine Water</p>
+
 
 View [demo](demo/worksession3.html)
 

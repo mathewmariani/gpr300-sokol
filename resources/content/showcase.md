@@ -66,7 +66,7 @@
   </div>
   <div class="col">
     <div class="card h-100">
-      <a href="demo/worksession3.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <a href="demo/worksession4.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
       <div class="card-footer">
         <small class="text-body-secondary">Toon Shading</small>
       </div>
@@ -74,7 +74,7 @@
   </div>
   <div class="col">
     <div class="card h-100">
-      <a href="demo/worksession4.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <a href="demo/worksession5.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
       <div class="card-footer">
         <small class="text-body-secondary">Transition Sequences</small>
       </div>
@@ -82,10 +82,11 @@
   </div>
   <div class="col">
     <div class="card h-100">
-      <a href="demo/worksession5.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <a href="demo/worksession6.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
       <div class="card-footer">
         <small class="text-body-secondary">Complex Geometries</small>
       </div>
     </div>
   </div>
+
 </div>
