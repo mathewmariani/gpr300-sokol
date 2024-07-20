@@ -20,7 +20,7 @@ function _buildPage(body: string) {
   console.log("Building page...");
 
   // render markdown to html
-  const view = { body: body };
+  const view = { body: md.render(body) };
   const partials = { meta: meta, header: header, footer: footer };
 
   // template using mustache
