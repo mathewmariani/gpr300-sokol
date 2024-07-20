@@ -10,40 +10,32 @@
 
 typedef struct
 {
-  glm::mat4 view_proj;
-  glm::mat4 model;
-} vs_water_params_t;
+  glm::mat4 model_view_proj;
+} vs_params_t;
 
 // application state
 static struct
 {
   uint8_t file_buffer[batteries::megabytes(5)];
 
+  sg_pipeline pip;
+  sg_buffer vbuf;
+  sg_image img;
+  sg_sampler smp[12];
+  float r;
+  int sidx;
   struct
   {
-    sg_pass_action pass_action;
-    sg_pass pass;
-    sg_pipeline pip;
-    sg_bindings bind;
-
-    batteries::shape_t plane;
-
-    // texture
-    sg_image img;
-    sg_sampler smp[12];
-    struct
-    {
-      uint32_t mip0[65536]; // 256x256
-      uint32_t mip1[16384]; // 128x128
-      uint32_t mip2[4096];  // 64*64
-      uint32_t mip3[1024];  // 32*32
-      uint32_t mip4[256];   // 16*16
-      uint32_t mip5[64];    // 8*8
-      uint32_t mip6[16];    // 4*4
-      uint32_t mip7[4];     // 2*2
-      uint32_t mip8[1];     // 1*2
-    } pixels;
-  } water;
+    uint32_t mip0[65536]; // 256x256
+    uint32_t mip1[16384]; // 128x128
+    uint32_t mip2[4096];  // 64*64
+    uint32_t mip3[1024];  // 32*32
+    uint32_t mip4[256];   // 16*16
+    uint32_t mip5[64];    // 8*8
+    uint32_t mip6[16];    // 4*4
+    uint32_t mip7[4];     // 2*2
+    uint32_t mip8[1];     // 1*2
+  } pixels;
 
   struct
   {
@@ -61,6 +53,7 @@ static struct
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
 } state = {
+    .sidx = 0,
     .time = {
         .frame = 0.0,
         .absolute = 0.0,
@@ -69,7 +62,11 @@ static struct
     },
 };
 
-static const uint32_t mip_colors[5] = {
+static const uint32_t mip_colors[9] = {
+    0xFF0000FF, // red
+    0xFF00FF00, // green
+    0xFFFF0000, // blue
+    0xFFFF00FF, // magenta
     0xFFFFFF00, // cyan
     0xFF00FFFF, // yellow
     0xFFFF00A0, // violet
@@ -77,7 +74,7 @@ static const uint32_t mip_colors[5] = {
     0xFFA000FF, // purple
 };
 
-void create_water_pass(void)
+void create_water_texture(void)
 {
   // create image with mipmap content, different colors and checkboard pattern
   // we need to generate 5 mipmaps.
@@ -87,54 +84,116 @@ void create_water_pass(void)
   // 3. ripple texture (32x32) [loaded]
   // 4. black texture (16x16) [generated]
 
+  // a plane vertex buffer
+  float vertices[] = {
+      -1.0,
+      -1.0,
+      0.0,
+      0.0,
+      0.0,
+      +1.0,
+      -1.0,
+      0.0,
+      1.0,
+      0.0,
+      -1.0,
+      +1.0,
+      0.0,
+      0.0,
+      1.0,
+      +1.0,
+      +1.0,
+      0.0,
+      1.0,
+      1.0,
+  };
+  state.vbuf = sg_make_buffer((sg_buffer_desc){
+      .data = SG_RANGE(vertices),
+  });
+
+  // create image with mipmap content, different colors and checkboard pattern
   sg_image_data img_data;
-  // auto *ptr = state.water.pixels.mip0;
-  // for (int mip_index = 0; mip_index <= 8; mip_index++)
-  // {
-  //   const int dim = 1 << (8 - mip_index);
-  //   img_data.subimage[0][mip_index].ptr = ptr;
-  //   img_data.subimage[0][mip_index].size = (size_t)(dim * dim * 4);
-  //   for (int y = 0; y < dim; y++)
-  //   {
-  //     for (int x = 0; x < dim; x++)
-  //     {
-  //       *ptr++ = mip_colors[mip_index];
-  //     }
-  //   }
-  // }
-  // state.water.img = sg_alloc_image();
-  state.water.img = sg_make_image({
+  uint32_t *ptr = state.pixels.mip0;
+  bool even_odd = false;
+  for (int mip_index = 0; mip_index <= 8; mip_index++)
+  {
+    const int dim = 1 << (8 - mip_index);
+    img_data.subimage[0][mip_index].ptr = ptr;
+    img_data.subimage[0][mip_index].size = (size_t)(dim * dim * 4);
+    for (int y = 0; y < dim; y++)
+    {
+      for (int x = 0; x < dim; x++)
+      {
+        *ptr++ = mip_colors[mip_index];
+      }
+    }
+  }
+  state.img = sg_make_image((sg_image_desc){
       .width = 256,
       .height = 256,
-      .num_mipmaps = 1,
+      .num_mipmaps = 9,
       .pixel_format = SG_PIXELFORMAT_RGBA8,
       .data = img_data,
   });
-  auto smp = sg_make_sampler({
-      .min_filter = SG_FILTER_LINEAR,
+
+  // the first 4 samplers are just different min-filters
+  sg_sampler_desc smp_desc = {
       .mag_filter = SG_FILTER_LINEAR,
-      .mipmap_filter = SG_FILTER_LINEAR,
-      .wrap_u = SG_WRAP_REPEAT,
-      .wrap_v = SG_WRAP_REPEAT,
-      .label = "water-sampler",
-  });
-
-  state.water.pass_action = (sg_pass_action){
-      .colors[0] = {
-          .clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f},
-          .load_action = SG_LOADACTION_CLEAR,
-      },
   };
+  sg_filter filters[] = {
+      SG_FILTER_NEAREST,
+      SG_FILTER_LINEAR,
+  };
+  sg_filter mipmap_filters[] = {
+      SG_FILTER_NEAREST,
+      SG_FILTER_LINEAR,
+  };
+  int smp_index = 0;
+  for (int i = 0; i < 2; i++)
+  {
+    for (int j = 0; j < 2; j++)
+    {
+      smp_desc.min_filter = filters[i];
+      smp_desc.mipmap_filter = mipmap_filters[j];
+      smp_desc.min_lod = 0.0f;
+      smp_desc.max_lod = 4.0f;
+      state.smp[smp_index++] = sg_make_sampler(&smp_desc);
+    }
+  }
+  // the next 4 samplers use min_lod/max_lod
+  smp_desc.min_lod = 2.0f;
+  smp_desc.max_lod = 4.0f;
+  for (int i = 0; i < 2; i++)
+  {
+    for (int j = 0; j < 2; j++)
+    {
+      smp_desc.min_filter = filters[i];
+      smp_desc.mipmap_filter = mipmap_filters[j];
+      state.smp[smp_index++] = sg_make_sampler(&smp_desc);
+    }
+  }
+  // the last 4 samplers use different anistropy levels
+  smp_desc.min_lod = 0.0f;
+  smp_desc.max_lod = 0.0f; // for max_lod, zero-initialized means "FLT_MAX"
+  smp_desc.min_filter = SG_FILTER_LINEAR;
+  smp_desc.mag_filter = SG_FILTER_LINEAR;
+  smp_desc.mipmap_filter = SG_FILTER_LINEAR;
+  for (int i = 0; i < 4; i++)
+  {
+    smp_desc.max_anisotropy = 1 << i;
+    state.smp[smp_index++] = sg_make_sampler(&smp_desc);
+  }
+  assert(smp_index == 12);
 
+  // shader
   auto shader_desc = (sg_shader_desc){
       .vs = {
           .source = mariosunshine_water_vs,
           .uniform_blocks[0] = {
               .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(vs_water_params_t),
+              .size = sizeof(vs_params_t),
               .uniforms = {
-                  [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                  [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                  [0] = {.name = "model_view_proj", .type = SG_UNIFORMTYPE_MAT4},
               },
           },
       },
@@ -157,66 +216,39 @@ void create_water_pass(void)
       },
   };
 
-  state.water.pip = sg_make_pipeline({
+  // pipeline state
+  state.pip = sg_make_pipeline((sg_pipeline_desc){
       .layout = {
-          .buffers[0] = sshape_vertex_buffer_layout_state(),
           .attrs = {
-              [0] = sshape_position_vertex_attr_state(),
-              [1] = sshape_normal_vertex_attr_state(),
-              [2] = sshape_texcoord_vertex_attr_state(),
-              [3] = sshape_color_vertex_attr_state(),
+              [0].format = SG_VERTEXFORMAT_FLOAT3,
+              [1].format = SG_VERTEXFORMAT_FLOAT2,
           },
       },
       .shader = sg_make_shader(shader_desc),
-      .index_type = SG_INDEXTYPE_UINT16,
-      .cull_mode = SG_CULLMODE_BACK,
-      .depth = {
-          .compare = SG_COMPAREFUNC_LESS_EQUAL,
-          .write_enabled = true,
-      },
-      .label = "water-pipeline",
+      .primitive_type = SG_PRIMITIVETYPE_TRIANGLE_STRIP,
   });
-
-  // generate shape geometries
-  sshape_vertex_t vertices[2 * 1024];
-  uint16_t indices[4 * 1024];
-  sshape_buffer_t buf = {
-      .vertices.buffer = SSHAPE_RANGE(vertices),
-      .indices.buffer = SSHAPE_RANGE(indices),
-  };
-  sshape_plane_t plane = {
-      .width = 100.0f,
-      .depth = 100.0f,
-      .tiles = 10,
-  };
-  buf = sshape_build_plane(&buf, &plane);
-  state.water.plane.draw = sshape_element_range(&buf);
-
-  state.water.plane.transform.position = glm::vec3(0.0f, -1.0f, 0.0f);
-
-  // one vertex/index-buffer-pair for all shapes
-  const auto vbuf_desc = sshape_vertex_buffer_desc(&buf);
-  const auto ibuf_desc = sshape_index_buffer_desc(&buf);
-
-  state.water.bind = (sg_bindings){
-      .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
-      .index_buffer = sg_make_buffer(&ibuf_desc),
-      .fs = {
-          .images[0] = state.water.img,
-          .samplers[0] = smp,
-      },
-  };
 }
 
 void init(void)
 {
   batteries::setup();
-  create_water_pass();
+  create_water_texture();
+}
+
+void draw_ui(void)
+{
+  const auto t = (float)sapp_frame_duration();
+  ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", t * 1000, 1.0f / t, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  ImGui::SliderFloat("Time Factor", &state.time.factor, 0.0f, 1.0f);
+  ImGui::SliderInt("Sampler", &state.sidx, 0, 11);
+  ImGui::End();
 }
 
 void frame(void)
 {
   batteries::frame();
+  draw_ui();
 
   const auto t = (float)sapp_frame_duration();
   state.camera_controller.update(&state.camera, t);
@@ -227,29 +259,27 @@ void frame(void)
     state.time.absolute += state.time.frame * state.time.factor;
   }
 
-  ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-  ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", t * 1000, 1.0f / t, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  ImGui::SliderFloat("Time Factor", &state.time.factor, 0.0f, 1.0f);
-  ImGui::End();
-
-  const auto width = sapp_width();
-  const auto height = sapp_height();
-
   // math required by the shader
-  auto camera_view_proj = state.camera.projection() * state.camera.view();
+  const auto camera_view_proj = state.camera.projection() * state.camera.view();
 
-  // initialize uniform data
-  const vs_water_params_t vs_params = {
-      .view_proj = camera_view_proj,
-      .model = state.water.plane.transform.matrix(),
-  };
+  vs_params_t vs_params;
+
+  state.r += 0.1f * 60.0f * (float)sapp_frame_duration();
+  const glm::mat4 rm = glm::rotate(state.r, glm::vec3(1.0f, 0.0f, 0.0f));
 
   // graphics pass
-  sg_begin_pass({.action = state.water.pass_action, .swapchain = sglue_swapchain()});
-  // sg_apply_pipeline(state.water.pip);
-  // sg_apply_bindings(&state.water.bind);
-  // sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-  // sg_draw(state.water.plane.draw.base_element, state.water.plane.draw.num_elements, 1);
+  sg_bindings bind = {
+      .vertex_buffers[0] = state.vbuf,
+      .fs.images[0] = state.img,
+  };
+  vs_params.model_view_proj = camera_view_proj * glm::scale(glm::mat4(1.0f), glm::vec3(500.0f, 500.0f, 500.0f));
+  bind.fs.samplers[0] = state.smp[state.sidx];
+
+  sg_begin_pass((sg_pass){.swapchain = sglue_swapchain()});
+  sg_apply_pipeline(state.pip);
+  sg_apply_bindings(&bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
+  sg_draw(0, 4, 1);
 
   // draw ui
   simgui_render();
