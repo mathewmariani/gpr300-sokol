@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment2 -- Shadow Mapping
@@ -33,8 +33,8 @@ typedef struct
 {
     glm::vec3 light_pos;
     glm::vec3 eye_pos;
-    batteries::material_t material;
-    batteries::ambient_t ambient;
+    boilerplate::material_t material;
+    boilerplate::ambient_t ambient;
 } fs_shadow_params_t;
 
 // application state
@@ -62,17 +62,17 @@ static struct
         simgui_image_t shadow_map;
     } ui;
 
-    uint8_t file_buffer[batteries::megabytes(4)];
+    uint8_t file_buffer[boilerplate::megabytes(4)];
 
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
-    batteries::ambient_t ambient;
+    boilerplate::camera_t camera;
+    boilerplate::camera_controller_t camera_controller;
+    boilerplate::ambient_t ambient;
 
     struct
     {
         float ry;
-        batteries::model_t suzanne;
-        batteries::material_t material;
+        boilerplate::model_t suzanne;
+        boilerplate::material_t material;
         sg_buffer plane_vbuf;
         sg_bindings plane_bind;
     } scene;
@@ -96,7 +96,7 @@ static struct
 void load_suzanne(void)
 {
     state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-    batteries::assets::load_obj({
+    boilerplate::assets::load_obj({
         .buffer_id = state.scene.suzanne.mesh.vbuf,
         .mesh = &state.scene.suzanne.mesh,
         .path = "assets/suzanne.obj",
@@ -260,7 +260,7 @@ void create_shadow_pass(void)
 
 void init(void)
 {
-    batteries::setup();
+    boilerplate::setup();
 
     load_suzanne();
     create_depth_pass();
@@ -358,7 +358,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-    batteries::frame();
+    boilerplate::frame();
 
     draw_ui();
 
@@ -442,27 +442,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-    batteries::event(event);
+    boilerplate::event(event);
     state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-    batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 800,
-        .window_title = "gpr300-sokol",
-        .logger.func = slog_func,
-    };
+    boilerplate::shutdown();
 }

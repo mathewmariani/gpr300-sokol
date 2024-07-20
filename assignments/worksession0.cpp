@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment0 -- Physically Based Rendering
@@ -37,18 +37,18 @@ static struct
         sg_bindings bind;
     } pbr;
 
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
+    boilerplate::camera_t camera;
+    boilerplate::camera_controller_t camera_controller;
 
     struct
     {
         float ry;
         glm::vec3 ambient_light;
-        batteries::model_t togezoshell;
+        boilerplate::model_t togezoshell;
         pbr_material_t material;
     } scene;
 
-    uint8_t file_buffer[batteries::megabytes(5)];
+    uint8_t file_buffer[boilerplate::megabytes(5)];
 } state = {
     .scene = {
         .ry = 0.0f,
@@ -175,7 +175,7 @@ void create_pbr_pass(void)
 void load_togezoshell(void)
 {
     state.scene.togezoshell.mesh.vbuf = sg_alloc_buffer();
-    batteries::assets::load_obj({
+    boilerplate::assets::load_obj({
         .buffer_id = state.scene.togezoshell.mesh.vbuf,
         .mesh = &state.scene.togezoshell.mesh,
         .path = "assets/objects/togezoshell/togezoshell.obj",
@@ -190,27 +190,27 @@ void load_togezoshell(void)
         .spc = sg_alloc_image(),
     };
 
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.material.ao,
         .path = "assets/materials/togezoshell/togezoshell_ao.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.material.col,
         .path = "assets/materials/togezoshell/togezoshell_col.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.material.mtl,
         .path = "assets/materials/togezoshell/togezoshell_mtl.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.material.rgh,
         .path = "assets/materials/togezoshell/togezoshell_rgh.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.material.spc,
         .path = "assets/materials/togezoshell/togezoshell_spc.png",
         .buffer = SG_RANGE(state.file_buffer),
@@ -219,7 +219,7 @@ void load_togezoshell(void)
 
 void init(void)
 {
-    batteries::setup();
+    boilerplate::setup();
     load_togezoshell();
     create_pbr_pass();
 }
@@ -237,7 +237,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-    batteries::frame();
+    boilerplate::frame();
 
     const auto t = (float)sapp_frame_duration();
     state.camera_controller.update(&state.camera, t);
@@ -276,27 +276,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-    batteries::event(event);
+    boilerplate::event(event);
     state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-    batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 800,
-        .window_title = "gpr300-sokol",
-        .logger.func = slog_func,
-    };
+    boilerplate::shutdown();
 }

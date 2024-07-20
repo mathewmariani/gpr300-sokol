@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Work Session 1 -- Landmass Generation
@@ -19,7 +19,7 @@ typedef struct
 // application state
 static struct
 {
-  uint8_t file_buffer[batteries::megabytes(5)];
+  uint8_t file_buffer[boilerplate::megabytes(5)];
 
   struct
   {
@@ -29,7 +29,7 @@ static struct
     sg_bindings bind;
     sg_image img;
 
-    batteries::shape_t plane;
+    boilerplate::shape_t plane;
   } landmass;
 
   struct
@@ -50,8 +50,8 @@ static struct
     glm::vec3 ambient_light;
   } scene;
 
-  batteries::camera_t camera;
-  batteries::camera_controller_t camera_controller;
+  boilerplate::camera_t camera;
+  boilerplate::camera_controller_t camera_controller;
 } state = {
     .time = {
         .frame = 0.0,
@@ -186,7 +186,7 @@ void create_water_pass(void)
       .index_buffer = sg_make_buffer(&ibuf_desc),
   };
 
-  batteries::assets::load_img({
+  boilerplate::assets::load_img({
       .image_id = state.landmass.img,
       .path = "assets/materials/heightmap.png",
       .buffer = SG_RANGE(state.file_buffer),
@@ -195,13 +195,13 @@ void create_water_pass(void)
 
 void init(void)
 {
-  batteries::setup();
+  boilerplate::setup();
   create_water_pass();
 }
 
 void frame(void)
 {
-  batteries::frame();
+  boilerplate::frame();
 
   const auto t = (float)sapp_frame_duration();
   state.camera_controller.update(&state.camera, t);
@@ -253,27 +253,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  batteries::event(event);
+  boilerplate::event(event);
   state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-  batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-  (void)argc;
-  (void)argv;
-  return (sapp_desc){
-      .init_cb = init,
-      .frame_cb = frame,
-      .event_cb = event,
-      .cleanup_cb = cleanup,
-      .width = 800,
-      .height = 800,
-      .window_title = "gpr300-sokol",
-      .logger.func = slog_func,
-  };
+  boilerplate::shutdown();
 }

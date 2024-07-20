@@ -12,8 +12,9 @@ macro(emscripten target)
 endmacro()
 
 macro(add_assignment target file)
-  add_executable(${target} ${file} batteries.h)
+  add_executable(${target} ${file} boilerplate.h)
 
+  target_link_libraries(${target} PRIVATE batteries)
   target_link_libraries(${target} PRIVATE fast_obj)
   target_link_libraries(${target} PRIVATE glm)
   target_link_libraries(${target} PRIVATE imgui)

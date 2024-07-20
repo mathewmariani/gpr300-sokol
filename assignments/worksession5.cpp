@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Work Session 5 -- Transitions
@@ -28,7 +28,7 @@ typedef struct
 // application state
 static struct
 {
-  uint8_t file_buffer[batteries::megabytes(5)];
+  uint8_t file_buffer[boilerplate::megabytes(5)];
 
   glm::vec3 backgroud;
   transition_t transition;
@@ -61,19 +61,19 @@ void load_gradients(void)
       .mag_filter = SG_FILTER_LINEAR,
   });
   state.gradient.img[0] = sg_alloc_image();
-  batteries::assets::load_img({
+  boilerplate::assets::load_img({
       .image_id = state.gradient.img[0],
       .path = "assets/transitions/gradient1.png",
       .buffer = SG_RANGE(state.file_buffer),
   });
   state.gradient.img[1] = sg_alloc_image();
-  batteries::assets::load_img({
+  boilerplate::assets::load_img({
       .image_id = state.gradient.img[1],
       .path = "assets/transitions/gradient2.png",
       .buffer = SG_RANGE(state.file_buffer),
   });
   state.gradient.img[2] = sg_alloc_image();
-  batteries::assets::load_img({
+  boilerplate::assets::load_img({
       .image_id = state.gradient.img[2],
       .path = "assets/transitions/gradient3.png",
       .buffer = SG_RANGE(state.file_buffer),
@@ -153,7 +153,7 @@ void create_display_pass(void)
 
 void init(void)
 {
-  batteries::setup();
+  boilerplate::setup();
   load_gradients();
   create_display_pass();
 }
@@ -187,7 +187,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-  batteries::frame();
+  boilerplate::frame();
   draw_ui();
 
   const auto t = (float)sapp_frame_duration();
@@ -225,26 +225,10 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  batteries::event(event);
+  boilerplate::event(event);
 }
 
 void cleanup(void)
 {
-  batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-  (void)argc;
-  (void)argv;
-  return (sapp_desc){
-      .init_cb = init,
-      .frame_cb = frame,
-      .event_cb = event,
-      .cleanup_cb = cleanup,
-      .width = 800,
-      .height = 800,
-      .window_title = "gpr300-sokol",
-      .logger.func = slog_func,
-  };
+  boilerplate::shutdown();
 }

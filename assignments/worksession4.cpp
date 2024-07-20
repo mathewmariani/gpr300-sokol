@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Work Session 4 -- Toonshader
@@ -22,14 +22,14 @@ typedef struct
 
 typedef struct
 {
-    batteries::ambient_t ambient;
+    boilerplate::ambient_t ambient;
     palette_t palette;
 } fs_display_params_t;
 
 // application state
 static struct
 {
-    uint8_t file_buffer[batteries::megabytes(5)];
+    uint8_t file_buffer[boilerplate::megabytes(5)];
 
     palette_t pal[4];
 
@@ -44,19 +44,19 @@ static struct
     struct
     {
         float ry;
-        batteries::ambient_t ambient;
+        boilerplate::ambient_t ambient;
         palette_t palette;
 
         struct
         {
-            batteries::model_t model;
+            boilerplate::model_t model;
             sg_image albedo;
             sg_image zatoon;
         } skull;
     } scene;
 
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
+    boilerplate::camera_t camera;
+    boilerplate::camera_controller_t camera_controller;
 } state = {
     .pal = {
         {.highlight = glm::vec3(1.00f, 1.00f, 1.00f), .shadow = glm::vec3(0.60f, 0.54f, 0.52f)},
@@ -80,20 +80,20 @@ static struct
 void load_skull(void)
 {
     state.scene.skull.model.mesh.vbuf = sg_alloc_buffer();
-    batteries::assets::load_obj({
+    boilerplate::assets::load_obj({
         .buffer_id = state.scene.skull.model.mesh.vbuf,
         .mesh = &state.scene.skull.model.mesh,
         .path = "assets/skull/skull.obj",
         .buffer = SG_RANGE(state.file_buffer),
     });
     state.scene.skull.albedo = sg_alloc_image();
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.skull.albedo,
         .path = "assets/skull/skull.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     state.scene.skull.zatoon = sg_alloc_image();
-    batteries::assets::load_img({
+    boilerplate::assets::load_img({
         .image_id = state.scene.skull.zatoon,
         .path = "assets/skull/ZAtoon.png",
         .buffer = SG_RANGE(state.file_buffer),
@@ -199,7 +199,7 @@ void create_object_pass(void)
 
 void init(void)
 {
-    batteries::setup();
+    boilerplate::setup();
 
     load_skull();
     create_object_pass();
@@ -237,7 +237,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-    batteries::frame();
+    boilerplate::frame();
     draw_ui();
 
     const auto t = (float)sapp_frame_duration();
@@ -279,27 +279,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-    batteries::event(event);
+    boilerplate::event(event);
     state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-    batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 800,
-        .window_title = "gpr300-sokol",
-        .logger.func = slog_func,
-    };
+    boilerplate::shutdown();
 }

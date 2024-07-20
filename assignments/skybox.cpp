@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment0 -- Blinn Phong
@@ -50,13 +50,13 @@ static struct
   {
     float ry;
     glm::vec3 ambient_light;
-    batteries::model_t suzanne;
-    batteries::material_t material;
+    boilerplate::model_t suzanne;
+    boilerplate::material_t material;
   } scene;
 
-  uint8_t file_buffer[batteries::megabytes(10)];
-  uint8_t cubemap_buffer[batteries::megabytes(10)];
-  uint8_t vertex_buffer[batteries::megabytes(10)];
+  uint8_t file_buffer[boilerplate::megabytes(10)];
+  uint8_t cubemap_buffer[boilerplate::megabytes(10)];
+  uint8_t vertex_buffer[boilerplate::megabytes(10)];
 } state = {
     .scene = {
         .ry = 0.0f,
@@ -135,7 +135,7 @@ void create_display_pass(void)
       .vertex_buffers[0] = vbuf,
   };
 
-  batteries::assets::load_obj((batteries::assets::obj_request_t){
+  boilerplate::assets::load_obj((boilerplate::assets::obj_request_t){
       .buffer_id = vbuf,
       .mesh = &state.scene.suzanne.mesh,
       .path = "assets/objects/coin/coin.obj",
@@ -255,7 +255,7 @@ void create_skybox_pass(void)
       },
   };
 
-  batteries::assets::load_cubemap((batteries::assets::cubemap_request_t){
+  boilerplate::assets::load_cubemap((boilerplate::assets::cubemap_request_t){
       .img_id = skybox_img,
       .path_right = "assets/skybox/right.jpg",
       .path_left = "assets/skybox/left.jpg",
@@ -270,7 +270,7 @@ void create_skybox_pass(void)
 
 void init(void)
 {
-  batteries::setup();
+  boilerplate::setup();
 
   create_display_pass();
   create_skybox_pass();
@@ -278,7 +278,7 @@ void init(void)
 
 void frame(void)
 {
-  // batteries::frame();
+  // boilerplate::frame();
   sfetch_dowork();
 
   const auto t = (float)sapp_frame_duration();
@@ -340,12 +340,12 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  batteries::event(event);
+  boilerplate::event(event);
 }
 
 void cleanup(void)
 {
-  batteries::shutdown();
+  boilerplate::shutdown();
 }
 
 sapp_desc sokol_main(int argc, char *argv[])

@@ -1,5 +1,5 @@
-#ifndef BATTERIES_INCLUDED
-#define BATTERIES_INCLUDED
+#ifndef BOILERPLATE_INCLUDED
+#define BOILERPLATE_INCLUDED
 
 // sokol
 #include "sokol/sokol_app.h"
@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace batteries
+namespace boilerplate
 {
   constexpr int kilobytes(int n) { return 1024 * n; }
   constexpr int megabytes(int n) { return 1024 * kilobytes(n); }
@@ -280,8 +280,8 @@ namespace batteries
   }
 }
 
-#endif // BATTERIES_INCLUDED
-#ifdef BATTERIES_IMPL
+#endif // BOILERPLATE_INCLUDED
+#ifdef BOILERPLATE_IMPL
 
 // sokol-fetch
 #include "sokol/sokol_fetch.h"
@@ -293,7 +293,7 @@ namespace batteries
 // stb
 #include "stb/stb_image.h"
 
-namespace batteries
+namespace boilerplate
 {
   void setup(void)
   {
@@ -609,4 +609,27 @@ namespace batteries
   }
 }
 
-#endif // BATTERIES_IMPL
+// forward declarations
+static void init(void);
+static void frame(void);
+static void event(const sapp_event *event);
+static void cleanup(void);
+
+// main entry point
+sapp_desc sokol_main(int argc, char *argv[])
+{
+  (void)argc;
+  (void)argv;
+  return (sapp_desc){
+      .init_cb = init,
+      .frame_cb = frame,
+      .event_cb = event,
+      .cleanup_cb = cleanup,
+      .width = 800,
+      .height = 800,
+      .window_title = "gpr300-sokol",
+      .logger.func = slog_func,
+  };
+}
+
+#endif // BOILERPLATE_IMPL

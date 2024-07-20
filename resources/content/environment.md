@@ -66,12 +66,12 @@ All of these libraries will be used throughout the course.
 Each assignment is an individual implementation file (.cpp) that will need to be added to `CMakeLists.txt` like so
 
 ```cmake
-add_assignment(assignment0 assignment0.cpp batteries.h)
+add_assignment(assignment0 assignment0.cpp boilerplate.h)
 ```
 
 Behind the scenes a compilation target will be created, and the libraries will automatically be linked and included.
 
-`batteries.h` is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
+`boilerplate.h` is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
 
 Assets such as textures and models **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built.
 

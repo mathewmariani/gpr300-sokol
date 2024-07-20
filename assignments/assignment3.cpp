@@ -1,5 +1,5 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment3 -- Deferred Rendering
@@ -29,9 +29,9 @@ typedef struct
 typedef struct
 {
     glm::vec3 eye;
-    batteries::ambient_t ambient;
-    batteries::material_t material;
-    batteries::pointlight_t lights[MAX_LIGHTS];
+    boilerplate::ambient_t ambient;
+    boilerplate::material_t material;
+    boilerplate::pointlight_t lights[MAX_LIGHTS];
     struct
     {
         float radius;
@@ -108,14 +108,14 @@ static struct
         float instance_offset;
     } debug;
 
-    uint8_t file_buffer[batteries::megabytes(4)];
+    uint8_t file_buffer[boilerplate::megabytes(4)];
 
     int num_instances;
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
-    batteries::model_t suzanne;
-    batteries::material_t material;
-    batteries::ambient_t ambient;
+    boilerplate::camera_t camera;
+    boilerplate::camera_controller_t camera_controller;
+    boilerplate::model_t suzanne;
+    boilerplate::material_t material;
+    boilerplate::ambient_t ambient;
 
 } state = {
     .num_instances = 1,
@@ -135,12 +135,12 @@ static struct
 
 // instance data buffer;
 static glm::mat4 instance_data[MAX_INSTANCES];
-static batteries::pointlight_t instance_light_data[MAX_LIGHTS];
+static boilerplate::pointlight_t instance_light_data[MAX_LIGHTS];
 
 void load_suzanne(void)
 {
     state.suzanne.mesh.vbuf = sg_alloc_buffer();
-    batteries::assets::load_obj((batteries::assets::obj_request_t){
+    boilerplate::assets::load_obj((boilerplate::assets::obj_request_t){
         .buffer_id = state.suzanne.mesh.vbuf,
         .mesh = &state.suzanne.mesh,
         .path = "assets/suzanne.obj",
@@ -343,7 +343,7 @@ void create_geometry_pass(void)
                 [6] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
             },
             .buffers = {
-                [0].stride = sizeof(batteries::vertex_t),
+                [0].stride = sizeof(boilerplate::vertex_t),
                 [1] = {
                     .stride = sizeof(glm::mat4),
                     .step_func = SG_VERTEXSTEP_PER_INSTANCE,
@@ -669,7 +669,7 @@ void create_display_pass()
 
 void init(void)
 {
-    batteries::setup();
+    boilerplate::setup();
 
     load_suzanne();
     init_instance_data();
@@ -716,7 +716,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-    batteries::frame();
+    boilerplate::frame();
 
     // math required by scene
     const float t = sapp_frame_duration();
@@ -800,27 +800,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-    batteries::event(event);
+    boilerplate::event(event);
     state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-    batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 800,
-        .window_title = "gpr300-sokol",
-        .logger.func = slog_func,
-    };
+    boilerplate::shutdown();
 }
