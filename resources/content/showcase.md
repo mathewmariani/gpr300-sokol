@@ -1,31 +1,91 @@
 ### Showcase
 
-### Assignments
+#### Assignments
 
-*   [assignment 0][] - Blinn-Phong Lighting Model
-*   [assignment 1][] - Framebuffers and Postprocessing
-*   [assignment 2][] - Shadow Mapping
-*   [assignment 3][] - Deferred Lighting
+<div class="row row-cols-1 row-cols-sm-2 g-4">
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/assignment0.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Blinn-Phong Lighting Model</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/assignment1.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Framebuffers and Postprocessing</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/assignment2.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Shadow Mapping</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/assignment3.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Deferred Lighting</small>
+      </div>
+    </div>
+  </div>
+</div>
 
-### Work Sessions
+#### Work Sessions
 
-*   [worksession 0][] - Physically Based Rendering (PBR)
-*   [worksession 1][] - Windwaker Ocean
-*   [worksession 2][] - Landmass Generation
-*   [worksession 4][] - Toon Shading
-*   [worksession 5][] - Transition Sequences
-*   [worksession 6][] - Complex Geometries
-
-[assignment 0]: assignment0.html
-[assignment 1]: assignment1.html
-[assignment 2]: assignment2.html
-[assignment 3]: assignment3.html
-[assignment 4]: assignment4.html
-[assignment 5]: assignment5.html
-[worksession 0]: worksession0.html
-[worksession 1]: worksession1.html
-[worksession 2]: worksession2.html
-[worksession 3]: worksession3.html
-[worksession 4]: worksession4.html
-[worksession 5]: worksession5.html
-[worksession 6]: worksession6.html
+<div class="row row-cols-1 row-cols-sm-2 g-4">
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession0.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Physically Based Rendering (PBR)</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession1.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Windwaker Ocean</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession2.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Landmass Generation</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession3.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Toon Shading</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession4.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Transition Sequences</small>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card h-100">
+      <a href="demo/worksession5.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <div class="card-footer">
+        <small class="text-body-secondary">Complex Geometries</small>
+      </div>
+    </div>
+  </div>
+</div>
