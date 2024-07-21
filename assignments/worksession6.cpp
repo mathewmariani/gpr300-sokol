@@ -5,6 +5,8 @@
 // Work Session 4 -- Toonshader
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/windwaker_object.h"
 #include "shaders/windwaker_sea.h"
@@ -92,8 +94,8 @@ static struct
     } water;
   } scene;
 
-  boilerplate::camera_t camera;
-  boilerplate::camera_controller_t camera_controller;
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
 } state = {
     .pal = {
         {.highlight = glm::vec3(1.00f, 1.00f, 1.00f), .shadow = glm::vec3(0.60f, 0.54f, 0.52f)},

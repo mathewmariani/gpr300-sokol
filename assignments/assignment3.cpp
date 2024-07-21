@@ -5,6 +5,8 @@
 // Assignment3 -- Deferred Rendering
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/geometry_pass.h"
 #include "shaders/lighting_pass.h"
@@ -111,8 +113,8 @@ static struct
     uint8_t file_buffer[boilerplate::megabytes(4)];
 
     int num_instances;
-    boilerplate::camera_t camera;
-    boilerplate::camera_controller_t camera_controller;
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
     boilerplate::model_t suzanne;
     boilerplate::material_t material;
     boilerplate::ambient_t ambient;

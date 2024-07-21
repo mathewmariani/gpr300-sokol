@@ -5,6 +5,8 @@
 // Assignment0 -- Physically Based Rendering
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/pbr_pass.h"
 
@@ -37,8 +39,8 @@ static struct
         sg_bindings bind;
     } pbr;
 
-    boilerplate::camera_t camera;
-    boilerplate::camera_controller_t camera_controller;
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
 
     struct
     {

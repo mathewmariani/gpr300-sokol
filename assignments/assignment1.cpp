@@ -5,6 +5,8 @@
 // Assignment1 -- Post Processing
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/blinn_phong.h"
 #include "shaders/no_post_process.h"
@@ -69,8 +71,8 @@ static struct
 
   int effect_index;
 
-  boilerplate::camera_t camera;
-  boilerplate::camera_controller_t camera_controller;
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
   boilerplate::ambient_t ambient;
 
   struct

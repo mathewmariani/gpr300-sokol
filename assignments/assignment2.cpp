@@ -5,6 +5,8 @@
 // Assignment2 -- Shadow Mapping
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/shadow_depth.h"
 #include "shaders/shadow_map.h"
@@ -64,8 +66,8 @@ static struct
 
     uint8_t file_buffer[boilerplate::megabytes(4)];
 
-    boilerplate::camera_t camera;
-    boilerplate::camera_controller_t camera_controller;
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
     boilerplate::ambient_t ambient;
 
     struct

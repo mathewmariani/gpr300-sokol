@@ -1,6 +1,8 @@
 #define BOILERPLATE_IMPL
 #include "boilerplate.h"
 
+#include "batteries/camera.h"
+
 //
 // Work Session 1 -- Windwaker Ocean
 //
@@ -61,8 +63,8 @@ static struct
     glm::vec3 ambient_light;
   } scene;
 
-  boilerplate::camera_t camera;
-  boilerplate::camera_controller_t camera_controller;
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
 
   uint8_t file_buffer[boilerplate::megabytes(5)];
 } state = {

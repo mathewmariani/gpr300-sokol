@@ -5,6 +5,8 @@
 // Work Session 5 -- Transitions
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/transition.h"
 

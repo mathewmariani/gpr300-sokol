@@ -5,6 +5,8 @@
 // Work Session 3 -- Super Mario Sunshine Water
 //
 
+#include "batteries/camera.h"
+
 // shaders
 #include "shaders/mariosunshine_water.h"
 
@@ -50,8 +52,8 @@ static struct
     glm::vec3 ambient_light;
   } scene;
 
-  boilerplate::camera_t camera;
-  boilerplate::camera_controller_t camera_controller;
+  batteries::camera_t camera;
+  batteries::camera_controller_t camera_controller;
 } state = {
     .sidx = 0,
     .time = {
