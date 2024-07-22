@@ -5,7 +5,11 @@
 // Work Session 4 -- Toonshader
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/toon_shadowing.h"

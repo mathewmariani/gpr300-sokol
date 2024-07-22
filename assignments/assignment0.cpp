@@ -5,7 +5,11 @@
 // Assignment0 -- Blinn Phong
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/blinn_phong.h"
@@ -19,8 +23,8 @@ typedef struct
 
 typedef struct
 {
-  boilerplate::material_t material;
-  boilerplate::ambient_t ambient;
+  batteries::material_t material;
+  batteries::ambient_t ambient;
 } fs_blinnphong_params_t;
 
 // application state
@@ -37,13 +41,13 @@ static struct
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
-  boilerplate::ambient_t ambient;
+  batteries::ambient_t ambient;
 
   struct
   {
     float ry;
-    boilerplate::model_t suzanne;
-    boilerplate::material_t material;
+    batteries::model_t suzanne;
+    batteries::material_t material;
   } scene;
 } state = {
     .ambient = {
@@ -64,7 +68,7 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-  boilerplate::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
       .path = "assets/suzanne.obj",

@@ -5,7 +5,11 @@
 // Assignment0 -- Physically Based Rendering
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/pbr_pass.h"
@@ -46,7 +50,7 @@ static struct
     {
         float ry;
         glm::vec3 ambient_light;
-        boilerplate::model_t togezoshell;
+        batteries::model_t togezoshell;
         pbr_material_t material;
     } scene;
 
@@ -177,7 +181,7 @@ void create_pbr_pass(void)
 void load_togezoshell(void)
 {
     state.scene.togezoshell.mesh.vbuf = sg_alloc_buffer();
-    boilerplate::assets::load_obj({
+    batteries::load_obj({
         .buffer_id = state.scene.togezoshell.mesh.vbuf,
         .mesh = &state.scene.togezoshell.mesh,
         .path = "assets/objects/togezoshell/togezoshell.obj",
@@ -192,27 +196,27 @@ void load_togezoshell(void)
         .spc = sg_alloc_image(),
     };
 
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.material.ao,
         .path = "assets/materials/togezoshell/togezoshell_ao.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.material.col,
         .path = "assets/materials/togezoshell/togezoshell_col.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.material.mtl,
         .path = "assets/materials/togezoshell/togezoshell_mtl.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.material.rgh,
         .path = "assets/materials/togezoshell/togezoshell_rgh.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.material.spc,
         .path = "assets/materials/togezoshell/togezoshell_spc.png",
         .buffer = SG_RANGE(state.file_buffer),

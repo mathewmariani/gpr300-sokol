@@ -5,7 +5,11 @@
 // Assignment3 -- Deferred Rendering
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/geometry_pass.h"
@@ -31,9 +35,9 @@ typedef struct
 typedef struct
 {
     glm::vec3 eye;
-    boilerplate::ambient_t ambient;
-    boilerplate::material_t material;
-    boilerplate::pointlight_t lights[MAX_LIGHTS];
+    batteries::ambient_t ambient;
+    batteries::material_t material;
+    batteries::pointlight_t lights[MAX_LIGHTS];
     struct
     {
         float radius;
@@ -115,9 +119,9 @@ static struct
     int num_instances;
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
-    boilerplate::model_t suzanne;
-    boilerplate::material_t material;
-    boilerplate::ambient_t ambient;
+    batteries::model_t suzanne;
+    batteries::material_t material;
+    batteries::ambient_t ambient;
 
 } state = {
     .num_instances = 1,
@@ -137,12 +141,12 @@ static struct
 
 // instance data buffer;
 static glm::mat4 instance_data[MAX_INSTANCES];
-static boilerplate::pointlight_t instance_light_data[MAX_LIGHTS];
+static batteries::pointlight_t instance_light_data[MAX_LIGHTS];
 
 void load_suzanne(void)
 {
     state.suzanne.mesh.vbuf = sg_alloc_buffer();
-    boilerplate::assets::load_obj((boilerplate::assets::obj_request_t){
+    batteries::load_obj((batteries::obj_request_t){
         .buffer_id = state.suzanne.mesh.vbuf,
         .mesh = &state.suzanne.mesh,
         .path = "assets/suzanne.obj",
@@ -345,7 +349,7 @@ void create_geometry_pass(void)
                 [6] = {.format = SG_VERTEXFORMAT_FLOAT4, .buffer_index = 1},
             },
             .buffers = {
-                [0].stride = sizeof(boilerplate::vertex_t),
+                [0].stride = sizeof(batteries::vertex_t),
                 [1] = {
                     .stride = sizeof(glm::mat4),
                     .step_func = SG_VERTEXSTEP_PER_INSTANCE,

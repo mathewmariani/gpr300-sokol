@@ -1,11 +1,15 @@
 #define BOILERPLATE_IMPL
 #include "boilerplate.h"
 
-#include "batteries/camera.h"
-
 //
 // Work Session 1 -- Windwaker Ocean
 //
+
+#include "batteries/assets.h"
+#include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/windwaker_water.h"
@@ -36,7 +40,7 @@ static struct
     sg_bindings bind;
     sg_image img;
 
-    boilerplate::shape_t plane;
+    batteries::shape_t plane;
   } water;
 
   struct
@@ -193,7 +197,7 @@ void create_water_pass(void)
       },
   };
 
-  boilerplate::assets::load_img({
+  batteries::load_img({
       .image_id = state.water.img,
       .path = "assets/materials/water.png",
       .buffer = SG_RANGE(state.file_buffer),

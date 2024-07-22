@@ -5,7 +5,11 @@
 // Work Session 3 -- Super Mario Sunshine Water
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/mariosunshine_water.h"

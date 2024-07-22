@@ -5,7 +5,11 @@
 // Work Session 1 -- Landmass Generation
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/island_generator.h"
@@ -31,7 +35,7 @@ static struct
     sg_bindings bind;
     sg_image img;
 
-    boilerplate::shape_t plane;
+    batteries::shape_t plane;
   } landmass;
 
   struct
@@ -188,7 +192,7 @@ void create_water_pass(void)
       .index_buffer = sg_make_buffer(&ibuf_desc),
   };
 
-  boilerplate::assets::load_img({
+  batteries::load_img({
       .image_id = state.landmass.img,
       .path = "assets/materials/heightmap.png",
       .buffer = SG_RANGE(state.file_buffer),

@@ -5,7 +5,11 @@
 // Work Session 4 -- Toonshader
 //
 
+#include "batteries/assets.h"
 #include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/windwaker_object.h"
@@ -31,13 +35,13 @@ typedef struct
 
 typedef struct
 {
-  boilerplate::ambient_t ambient;
+  batteries::ambient_t ambient;
   palette_t palette;
 } fs_world_params_t;
 
 typedef struct
 {
-  boilerplate::ambient_t ambient;
+  batteries::ambient_t ambient;
   palette_t palette;
   water_properties_t water;
 } fs_water_params_t;
@@ -78,18 +82,18 @@ static struct
   struct
   {
     float ry;
-    boilerplate::ambient_t ambient;
+    batteries::ambient_t ambient;
     palette_t palette;
 
     struct
     {
-      boilerplate::model_t model;
+      batteries::model_t model;
       std::vector<sg_image> materials;
     } island;
 
     struct
     {
-      boilerplate::model_t model;
+      batteries::model_t model;
       std::vector<sg_image> materials;
     } water;
   } scene;
@@ -127,7 +131,7 @@ static struct
 void load_island(void)
 {
   state.scene.island.model.mesh.vbuf = sg_alloc_buffer();
-  boilerplate::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.island.model.mesh.vbuf,
       .mesh = &state.scene.island.model.mesh,
       .path = "assets/island/Island.obj",
@@ -135,7 +139,7 @@ void load_island(void)
   });
 
   state.scene.water.model.mesh.vbuf = sg_alloc_buffer();
-  boilerplate::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.water.model.mesh.vbuf,
       .mesh = &state.scene.water.model.mesh,
       .path = "assets/island/Sea.obj",
@@ -147,7 +151,7 @@ void load_island(void)
 
 #define LOAD_ISLAND_IMAGE(i, filepath)                                      \
   state.scene.island.materials[i] = sg_alloc_image();                       \
-  boilerplate::assets::load_img({.image_id = state.scene.island.materials[i], \
+  batteries::load_img({.image_id = state.scene.island.materials[i], \
                                .path = filepath,                            \
                                .buffer = SG_RANGE(state.file_buffer)})
   LOAD_ISLAND_IMAGE(0, "assets/island/OutsSS00.png");
@@ -161,7 +165,7 @@ void load_island(void)
 
 #define LOAD_SEA_IMAGE(i, filepath)                                        \
   state.scene.water.materials[i] = sg_alloc_image();                       \
-  boilerplate::assets::load_img({.image_id = state.scene.water.materials[i], \
+  batteries::load_img({.image_id = state.scene.water.materials[i], \
                                .path = filepath,                           \
                                .buffer = SG_RANGE(state.file_buffer)})
   LOAD_SEA_IMAGE(0, "assets/island/Sea.SS00.png");
