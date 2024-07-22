@@ -102,7 +102,7 @@ static struct
 void load_suzanne(void)
 {
     state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-    boilerplate::assets::load_obj({
+    batteries::load_obj({
         .buffer_id = state.scene.suzanne.mesh.vbuf,
         .mesh = &state.scene.suzanne.mesh,
         .path = "assets/suzanne.obj",

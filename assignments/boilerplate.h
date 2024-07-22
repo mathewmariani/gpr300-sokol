@@ -11,7 +11,6 @@
 
 // libs
 #include "imgui/imgui.h"
-#include "stb/stb_image.h"
 
 namespace boilerplate
 {
@@ -34,6 +33,9 @@ namespace boilerplate
 // sokol-imgui
 #define SOKOL_IMGUI_IMPL
 #include "sokol/sokol_imgui.h"
+
+// libs
+#include "stb/stb_image.h"
 
 namespace boilerplate
 {

@@ -2,6 +2,7 @@
 
 // sokol
 #include "sokol/sokol_gfx.h"
+#include "sokol/sokol_shape.h"
 
 // glm
 // FIXME: remove this

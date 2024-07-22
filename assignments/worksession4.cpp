@@ -28,7 +28,7 @@ typedef struct
 
 typedef struct
 {
-    boilerplate::ambient_t ambient;
+    batteries::ambient_t ambient;
     palette_t palette;
 } fs_display_params_t;
 
@@ -50,12 +50,12 @@ static struct
     struct
     {
         float ry;
-        boilerplate::ambient_t ambient;
+        batteries::ambient_t ambient;
         palette_t palette;
 
         struct
         {
-            boilerplate::model_t model;
+            batteries::model_t model;
             sg_image albedo;
             sg_image zatoon;
         } skull;
@@ -86,20 +86,20 @@ static struct
 void load_skull(void)
 {
     state.scene.skull.model.mesh.vbuf = sg_alloc_buffer();
-    boilerplate::assets::load_obj({
+    batteries::load_obj({
         .buffer_id = state.scene.skull.model.mesh.vbuf,
         .mesh = &state.scene.skull.model.mesh,
         .path = "assets/skull/skull.obj",
         .buffer = SG_RANGE(state.file_buffer),
     });
     state.scene.skull.albedo = sg_alloc_image();
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.skull.albedo,
         .path = "assets/skull/skull.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
     state.scene.skull.zatoon = sg_alloc_image();
-    boilerplate::assets::load_img({
+    batteries::load_img({
         .image_id = state.scene.skull.zatoon,
         .path = "assets/skull/ZAtoon.png",
         .buffer = SG_RANGE(state.file_buffer),
