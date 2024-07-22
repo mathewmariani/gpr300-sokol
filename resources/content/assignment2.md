@@ -1,4 +1,6 @@
-### Assignment 1 - Shadow Mapping
+# Assignment 2
+<p class="lead">Shadow Mapping</p>
+
 
 Checkout the [demo](demo/assignment2.html)
 

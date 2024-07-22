@@ -54,6 +54,7 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 2][] - Landmass Generation
 *   [worksession 4][] - Toon Shading
 *   [worksession 5][] - Transition Sequences
+*   [worksession 6][] - Complex Geometries
 
 <!-- Future Work Sessions:
 *   [worksession 3][] - Super Mario Sunshine Water
@@ -84,6 +85,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 3]: worksession3.html
 [worksession 4]: worksession4.html
 [worksession 5]: worksession5.html
+[worksession 6]: worksession6.html
 [development environment]: environment.html
 [FAQ]: faq.html
 [showcase]: showcase.html

@@ -13,10 +13,9 @@ The syllabus for this course was developed by Eric Winebrenner ([@ewinebrenner](
 
 *   `assignments/` – Assignment template and assets.
 *   `build/` - Intermediate files and other build output. 
-*   `course/` - Instructions for completing assignments.
 *   `extra/` - Files used during the build process.
 *   `libs/` - Required external libraries.
-*   `scripts/` – Scripts used for building the website.
+*   `resources/` – Scripts and resources used for building the website.
 
 
 ## Contributing

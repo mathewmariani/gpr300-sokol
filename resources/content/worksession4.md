@@ -1,4 +1,6 @@
-### Work Session 4 - Toon Shading
+# Work Session 4
+<p class="lead">Toon Shading</p>
+
 
 View [demo](demo/worksession4.html)
 

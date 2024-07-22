@@ -1,4 +1,6 @@
-### Assignment 5 - Skeletal Animations
+# Assignment 5
+<p class="lead">Skeletal Animations</p>
+
 
 View [demo](demo/assignment5.html)
 
