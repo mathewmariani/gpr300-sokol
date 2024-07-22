@@ -1,10 +1,6 @@
 #pragma once
 
-namespace glm
-{
-  class vec3;
-  class vec2;
-}
+#include "glm/glm.hpp"
 
 namespace batteries
 {
