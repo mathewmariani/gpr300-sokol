@@ -52,6 +52,12 @@ namespace batteries
     }
   };
 
+  struct shape_t
+  {
+    transform_t transform;
+    sshape_element_range_t draw;
+  };
+
   struct model_t
   {
     mesh_t mesh;

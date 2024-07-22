@@ -10,4 +10,11 @@ namespace batteries
     glm::vec3 color;
     glm::vec3 direction;
   };
+
+  struct pointlight_t
+  {
+    float radius;
+    glm::vec3 color;
+    glm::vec3 position;
+  };
 }
