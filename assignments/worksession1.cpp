@@ -8,6 +8,7 @@
 #include "batteries/assets.h"
 #include "batteries/camera.h"
 #include "batteries/model.h"
+#include "batteries/shape.h"
 #include "batteries/materials.h"
 #include "batteries/lights.h"
 

@@ -1,16 +1,16 @@
 #pragma once
 
+// sokol
+#include "sokol/sokol_shape.h"
+
 // batteries
 #include "transform.h"
-#include "vertex.h"
-
-#include <vector>
 
 namespace batteries
 {
-  struct model_t
+  struct shape_t
   {
-    mesh_t mesh;
     transform_t transform;
+    sshape_element_range_t draw;
   };
 }

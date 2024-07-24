@@ -1,6 +1,7 @@
 #pragma once
 
-#include "batteries/model.h"
+#include "mesh.h"
+#include "model.h"
 
 namespace batteries
 {

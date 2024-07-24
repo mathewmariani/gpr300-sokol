@@ -9,6 +9,7 @@
 #include "batteries/camera.h"
 #include "batteries/model.h"
 #include "batteries/materials.h"
+#include "batteries/shape.h"
 #include "batteries/lights.h"
 
 // shaders

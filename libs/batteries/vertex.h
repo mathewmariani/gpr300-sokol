@@ -1,17 +1,11 @@
 #pragma once
 
-namespace glm
-{
-  class vec3;
-  class vec2;
-}
-
 namespace batteries
 {
   struct vertex_t
   {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 texcoord;
+    float position[3];
+    float normal[3];
+    float texcoord[2];
   };
 }

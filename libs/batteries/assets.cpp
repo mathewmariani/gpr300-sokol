@@ -10,6 +10,7 @@
 
 #include "batteries/assets.h"
 #include "batteries/model.h"
+#include "batteries/mesh.h"
 
 #include <algorithm>
 #include <array>
