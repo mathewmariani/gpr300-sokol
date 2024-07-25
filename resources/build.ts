@@ -69,13 +69,14 @@ function _buildWebsite() {
     const name = path.parse(file).name;
     let demo_page = Mustache.render(demo, { name: name, script: `${name}.js` })
 
-    // render .html, and copy .js
+    // render .html, and copy .js .wasm
     fs.writeFile(`website/demo/${name}.html`, demo_page, (err) => { if (err) { console.error("Error writing file:", err); } });
-    fs.copyFile(file, `website/demo/${name}.js`, (err) => { if (err) { console.error("Error copying file:", err); } });
-    fs.copyFile(file, `website/demo/${name}.wasm`, (err) => { if (err) { console.error("Error copying file:", err); } });
+    fs.copyFile(`build/assignments/Release/${name}.js`, `website/demo/${name}.js`, (err) => { if (err) { console.error("Error copying file:", err); } });
+    fs.copyFile(`build/assignments/Release/${name}.wasm`, `website/demo/${name}.wasm`, (err) => { if (err) { console.error("Error copying file:", err); } });
   });
 
   // copy assets to output
+  _copyDirectory("resources/images", "website/images");
   _copyDirectory("resources/assets", "website/assets");
   _copyDirectory("assignments/assets", "website/demo/assets");
 }
