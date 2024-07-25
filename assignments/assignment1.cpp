@@ -1,9 +1,15 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment1 -- Post Processing
 //
+
+#include "batteries/assets.h"
+#include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/blinn_phong.h"
@@ -43,7 +49,7 @@ std::vector<std::string> post_processing_effects = {
 // application state
 static struct
 {
-  uint8_t file_buffer[batteries::megabytes(4)];
+  uint8_t file_buffer[boilerplate::megabytes(4)];
 
   struct
   {
@@ -99,7 +105,7 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
-  batteries::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
       .path = "assets/suzanne.obj",
@@ -283,7 +289,7 @@ void create_postprocess_pass()
 
 void init(void)
 {
-  batteries::setup();
+  boilerplate::setup();
   load_suzanne();
   create_framebuffer();
   create_blinnphong_pass();
@@ -344,7 +350,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-  batteries::frame();
+  boilerplate::frame();
   draw_ui();
 
   const auto t = (float)sapp_frame_duration();
@@ -396,27 +402,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  batteries::event(event);
+  boilerplate::event(event);
   state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-  batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-  (void)argc;
-  (void)argv;
-  return (sapp_desc){
-      .init_cb = init,
-      .frame_cb = frame,
-      .event_cb = event,
-      .cleanup_cb = cleanup,
-      .width = 800,
-      .height = 800,
-      .window_title = "gpr300-sokol",
-      .logger.func = slog_func,
-  };
+  boilerplate::shutdown();
 }

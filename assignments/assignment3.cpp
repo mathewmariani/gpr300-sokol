@@ -1,9 +1,15 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Assignment3 -- Deferred Rendering
 //
+
+#include "batteries/assets.h"
+#include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/geometry_pass.h"
@@ -108,7 +114,7 @@ static struct
         float instance_offset;
     } debug;
 
-    uint8_t file_buffer[batteries::megabytes(4)];
+    uint8_t file_buffer[boilerplate::megabytes(4)];
 
     int num_instances;
     batteries::camera_t camera;
@@ -140,7 +146,7 @@ static batteries::pointlight_t instance_light_data[MAX_LIGHTS];
 void load_suzanne(void)
 {
     state.suzanne.mesh.vbuf = sg_alloc_buffer();
-    batteries::assets::load_obj((batteries::assets::obj_request_t){
+    batteries::load_obj((batteries::obj_request_t){
         .buffer_id = state.suzanne.mesh.vbuf,
         .mesh = &state.suzanne.mesh,
         .path = "assets/suzanne.obj",
@@ -669,7 +675,7 @@ void create_display_pass()
 
 void init(void)
 {
-    batteries::setup();
+    boilerplate::setup();
 
     load_suzanne();
     init_instance_data();
@@ -716,7 +722,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-    batteries::frame();
+    boilerplate::frame();
 
     // math required by scene
     const float t = sapp_frame_duration();
@@ -800,27 +806,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-    batteries::event(event);
+    boilerplate::event(event);
     state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-    batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    return (sapp_desc){
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 800,
-        .window_title = "gpr300-sokol",
-        .logger.func = slog_func,
-    };
+    boilerplate::shutdown();
 }

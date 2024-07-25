@@ -1,9 +1,15 @@
-#define BATTERIES_IMPL
-#include "batteries.h"
+#define BOILERPLATE_IMPL
+#include "boilerplate.h"
 
 //
 // Work Session 4 -- Toonshader
 //
+
+#include "batteries/assets.h"
+#include "batteries/camera.h"
+#include "batteries/model.h"
+#include "batteries/materials.h"
+#include "batteries/lights.h"
 
 // shaders
 #include "shaders/windwaker_object.h"
@@ -43,7 +49,7 @@ typedef struct
 // application state
 static struct
 {
-  uint8_t file_buffer[batteries::megabytes(5)];
+  uint8_t file_buffer[boilerplate::megabytes(5)];
 
   palette_t pal[4];
 
@@ -125,7 +131,7 @@ static struct
 void load_island(void)
 {
   state.scene.island.model.mesh.vbuf = sg_alloc_buffer();
-  batteries::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.island.model.mesh.vbuf,
       .mesh = &state.scene.island.model.mesh,
       .path = "assets/island/Island.obj",
@@ -133,7 +139,7 @@ void load_island(void)
   });
 
   state.scene.water.model.mesh.vbuf = sg_alloc_buffer();
-  batteries::assets::load_obj({
+  batteries::load_obj({
       .buffer_id = state.scene.water.model.mesh.vbuf,
       .mesh = &state.scene.water.model.mesh,
       .path = "assets/island/Sea.obj",
@@ -145,7 +151,7 @@ void load_island(void)
 
 #define LOAD_ISLAND_IMAGE(i, filepath)                                      \
   state.scene.island.materials[i] = sg_alloc_image();                       \
-  batteries::assets::load_img({.image_id = state.scene.island.materials[i], \
+  batteries::load_img({.image_id = state.scene.island.materials[i], \
                                .path = filepath,                            \
                                .buffer = SG_RANGE(state.file_buffer)})
   LOAD_ISLAND_IMAGE(0, "assets/island/OutsSS00.png");
@@ -159,7 +165,7 @@ void load_island(void)
 
 #define LOAD_SEA_IMAGE(i, filepath)                                        \
   state.scene.water.materials[i] = sg_alloc_image();                       \
-  batteries::assets::load_img({.image_id = state.scene.water.materials[i], \
+  batteries::load_img({.image_id = state.scene.water.materials[i], \
                                .path = filepath,                           \
                                .buffer = SG_RANGE(state.file_buffer)})
   LOAD_SEA_IMAGE(0, "assets/island/Sea.SS00.png");
@@ -345,7 +351,7 @@ void create_water_pass(void)
 
 void init(void)
 {
-  batteries::setup();
+  boilerplate::setup();
 
   load_island();
   create_windwaker_pass();
@@ -389,7 +395,7 @@ void draw_ui(void)
 
 void frame(void)
 {
-  batteries::frame();
+  boilerplate::frame();
   draw_ui();
 
   const auto t = (float)sapp_frame_duration();
@@ -472,27 +478,11 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  batteries::event(event);
+  boilerplate::event(event);
   state.camera_controller.event(event);
 }
 
 void cleanup(void)
 {
-  batteries::shutdown();
-}
-
-sapp_desc sokol_main(int argc, char *argv[])
-{
-  (void)argc;
-  (void)argv;
-  return (sapp_desc){
-      .init_cb = init,
-      .frame_cb = frame,
-      .event_cb = event,
-      .cleanup_cb = cleanup,
-      .width = 800,
-      .height = 800,
-      .window_title = "gpr300-sokol",
-      .logger.func = slog_func,
-  };
+  boilerplate::shutdown();
 }
