@@ -64,7 +64,7 @@ function _buildWebsite() {
   });
 
   // glob all .wasm files
-  const wasm_glob = globSync("resources/content/*.wasm");
+  const wasm_glob = globSync("build/assignments/Release/*.wasm");
   wasm_glob.forEach((file: string) => {
     const name = path.parse(file).name;
     let demo_page = Mustache.render(demo, { name: name, script: `${name}.js` })
