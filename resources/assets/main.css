@@ -8,14 +8,8 @@
   background: var(--highlight-background);
 }
 
-.highlight {
-  height: 24px;
+pre {
+  border-radius: 8px;
+  overflow: hidden;
   position: relative;
-  top: -28px;
-  left: -10px;
-  width: calc(100% + 10px);
-  max-width: 100vw;
-  z-index: -1;
-  border-radius: 2px;
-  background-color: #576574;
 }
