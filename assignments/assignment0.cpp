@@ -16,15 +16,22 @@
 
 typedef struct
 {
+  float brightness;
+  glm::vec3 color;
+  glm::vec3 position;
+} light_t;
+
+typedef struct
+{
   glm::mat4 view_proj;
   glm::mat4 model;
-  glm::vec3 eye;
 } vs_blinnphong_params_t;
 
 typedef struct
 {
   batteries::material_t material;
-  batteries::ambient_t ambient;
+  light_t light;
+  glm::vec3 camera_position;
 } fs_blinnphong_params_t;
 
 // application state
@@ -41,7 +48,7 @@ static struct
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
-  batteries::ambient_t ambient;
+  light_t light;
 
   struct
   {
@@ -50,8 +57,8 @@ static struct
     batteries::material_t material;
   } scene;
 } state = {
-    .ambient = {
-        .intensity = 1.0f,
+    .light = {
+        .brightness = 1.0f,
         .color = glm::vec3(0.25f, 0.45f, 0.65f),
     },
     .scene = {
@@ -87,7 +94,6 @@ void create_blinnphong_pass(void)
               .uniforms = {
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                  [2] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -97,14 +103,14 @@ void create_blinnphong_pass(void)
               .layout = SG_UNIFORMLAYOUT_NATIVE,
               .size = sizeof(fs_blinnphong_params_t),
               .uniforms = {
-                  [0] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
-                  [1] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
-                  [2] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
-                  [3] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                  [4] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                  [5] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [6] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-
+                  [0] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT},
+                  [1] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT},
+                  [2] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT},
+                  [3] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
+                  [5] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [6] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [7] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -113,9 +119,9 @@ void create_blinnphong_pass(void)
   state.blinnphong.pass_action = (sg_pass_action){
       .colors[0] = {
           .clear_value = {
-              state.ambient.color.r * state.ambient.intensity,
-              state.ambient.color.g * state.ambient.intensity,
-              state.ambient.color.b * state.ambient.intensity,
+              state.light.color.r * state.light.brightness,
+              state.light.color.g * state.light.brightness,
+              state.light.color.b * state.light.brightness,
               1.0f,
           },
           .load_action = SG_LOADACTION_CLEAR,
@@ -157,9 +163,9 @@ void init(void)
 static void update_clear_color(void)
 {
   state.blinnphong.pass_action.colors[0].clear_value = {
-      state.ambient.color.r * state.ambient.intensity,
-      state.ambient.color.g * state.ambient.intensity,
-      state.ambient.color.b * state.ambient.intensity,
+      state.light.color.r * state.light.brightness,
+      state.light.color.g * state.light.brightness,
+      state.light.color.b * state.light.brightness,
       1.0f,
   };
 }
@@ -168,13 +174,13 @@ void draw_ui(void)
 {
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-  if (ImGui::CollapsingHeader("Ambient Light"))
+  if (ImGui::CollapsingHeader("Light"))
   {
-    if (ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f))
+    if (ImGui::SliderFloat("Brightness", &state.light.brightness, 0.0f, 1.0f))
     {
       update_clear_color();
     }
-    if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
+    if (ImGui::ColorEdit3("Color", &state.light.color[0]))
     {
       update_clear_color();
     }
@@ -198,13 +204,10 @@ void frame(void)
   state.camera_controller.update(&state.camera, t);
   state.scene.ry += 0.2f * t;
 
-  // sugar: rotate suzzane
-  state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
-
   // sugar: rotate light
   const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-  const auto light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
-  state.ambient.direction = glm::normalize(light_pos);
+  const auto light_pos = rym * glm::vec4(50.0f, 0.0f, 50.0f, 1.0f);
+  state.light.position = glm::normalize(light_pos);
 
   // graphics pass
   sg_begin_pass({.action = state.blinnphong.pass_action, .swapchain = sglue_swapchain()});
@@ -215,11 +218,11 @@ void frame(void)
   const vs_blinnphong_params_t vs_params = {
       .view_proj = state.camera.projection() * state.camera.view(),
       .model = state.scene.suzanne.transform.matrix(),
-      .eye = state.camera.position,
   };
   const fs_blinnphong_params_t fs_params = {
       .material = state.scene.material,
-      .ambient = state.ambient,
+      .light = state.light,
+      .camera_position = state.camera.position,
   };
 
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));

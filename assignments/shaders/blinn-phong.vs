@@ -1,21 +1,21 @@
 #version 300 es
 
 // attributes
-layout(location = 0) in vec3 vPos;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec3 vTexCoord;
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec3 in_texcoord;
 
 // uniforms
 uniform mat4 view_proj;
 uniform mat4 model;
 
 // send to fragment
-out vec3 WorldPos;
-out vec3 WorldNormal;
+out vec3 world_position;
+out vec3 world_normal;
 
 void main()
 {
-  WorldPos = vec3(model * vec4(vPos, 1.0));
-  WorldNormal = transpose(inverse(mat3(model))) * vNormal;
-  gl_Position = view_proj * model * vec4(vPos, 1.0);
+  world_position = vec3(model * vec4(in_position, 1.0));
+  world_normal = transpose(inverse(mat3(model))) * in_normal;
+  gl_Position = view_proj * model * vec4(in_position, 1.0);
 }

@@ -3,47 +3,56 @@
 precision mediump float;
 
 struct Material {
-  float Ka;
-  float Kd;
-  float Ks;
-  float Shininess;
+  float ambient;
+  float diffuse;
+  float specular;
+  float shininess;
 };
-struct Ambient {
-  float intensity;
+struct Light {
+  float brightness;
   vec3 color;
-  vec3 direction;
+  vec3 position;
 };
 
 out vec4 FragColor;
 
-in vec3 WorldPos;
-in vec3 WorldNormal;
+in vec3 world_position;
+in vec3 world_normal;
 
-uniform vec3 eye;
 uniform Material material;
-uniform Ambient ambient;
+uniform Light light;
+uniform vec3 camera_position;
 
 void main()
 {
   // Make sure fragment normal is still length 1 after interpolation.
-  vec3 normal = normalize(WorldNormal);
+  vec3 normal = normalize(world_normal);
 
-  // Light pointing straight down
-  float diffuseFactor = max(dot(normal, ambient.direction), 0.0);
+  // The angle the light ray touches the fragment.
+  vec3 light_direction = normalize(light.position - world_position);
 
-  // Direction towards eye
-  vec3 to_eye = normalize(eye - WorldPos);
+  // The angle of reflection of the light ray off the surface.
+  // vec3 reflect_direction = reflect(-light_direction, normal);
 
-  // Blinn-phong uses half angle
-  vec3 h = normalize(ambient.direction + to_eye);
-  float specularFactor = pow(max(dot(normal, h), 0.0), material.Shininess);
+  // The angle the looks at the fragment.
+  vec3 camera_direction = normalize(camera_position - world_position);
 
-  // Combination of specular and diffuse reflection
-  vec3 light_color = (material.Kd * diffuseFactor + material.Ks * specularFactor) * ambient.color * ambient.intensity;
+  // Exactly halfway between the camera direction and the light direction.
+  vec3 halfway_direction = normalize(light_direction + camera_direction);
 
-  // Add some ambient light
-  light_color += ambient.intensity * material.Ka * ambient.color;
+  // Calculate ambient lighting
+  float ambient = material.ambient * 0.1;
 
+  // Calculate diffuse lighting
+  float diffuse = material.diffuse * max(dot(normal, light_direction), 0.0);
+
+  // Calculate specular lighting
+  float specular = material.specular * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
+
+  // calculate final lighting color
+  vec3 light_color = (ambient + diffuse + specular) * light.color;
   vec3 object_color = vec3(normal * 0.5 + 0.5);
-  FragColor = vec4(object_color * light_color, 1.0);
+  vec3 result = object_color * light_color;
+
+  FragColor = vec4(result, 1.0);
 }

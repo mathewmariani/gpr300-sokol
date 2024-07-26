@@ -5,7 +5,7 @@
 <div class="row row-cols-1 row-cols-sm-2 g-4">
   <div class="col">
     <div class="card h-100">
-      <a href="demo/assignment0.html"><img src="images/placeholder.jpg" class="card-img-top" alt="..."></a>
+      <a href="demo/assignment0.html"><img src="images/assignment0.png" class="card-img-top" alt="..."></a>
       <div class="card-footer">
         <small class="text-body-secondary">Blinn-Phong Lighting Model</small>
       </div>
