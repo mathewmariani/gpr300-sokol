@@ -515,7 +515,7 @@ void frame(void)
   sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
   sg_end_pass();
 
-  // TODO: render light sources.
+  // render light sources.
   sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.gizmo.attachments});
   sg_apply_pipeline(state.gizmo.pip);
   sg_apply_bindings(&state.gizmo.bind);

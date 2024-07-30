@@ -16,6 +16,6 @@ out vec3 world_normal;
 void main()
 {
   world_position = vec3(model * vec4(in_position, 1.0));
-  world_normal = transpose(inverse(mat3(model))) * in_normal;
+  world_normal = mat3(transpose(inverse(model))) * in_normal;
   gl_Position = view_proj * model * vec4(in_position, 1.0);
 }
