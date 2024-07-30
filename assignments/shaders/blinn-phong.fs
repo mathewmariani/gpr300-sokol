@@ -3,9 +3,9 @@
 precision mediump float;
 
 struct Material {
-  float ambient;
-  float diffuse;
-  float specular;
+  vec3 ambient;
+  vec3 diffuse;
+  vec3 specular;
   float shininess;
 };
 struct Light {
@@ -31,9 +31,6 @@ void main()
   // The angle the light ray touches the fragment.
   vec3 light_direction = normalize(light.position - world_position);
 
-  // The angle of reflection of the light ray off the surface.
-  // vec3 reflect_direction = reflect(-light_direction, normal);
-
   // The angle the looks at the fragment.
   vec3 camera_direction = normalize(camera_position - world_position);
 
@@ -41,13 +38,13 @@ void main()
   vec3 halfway_direction = normalize(light_direction + camera_direction);
 
   // Calculate ambient lighting
-  float ambient = material.ambient * 0.1;
+  vec3 ambient = material.ambient;
 
   // Calculate diffuse lighting
-  float diffuse = material.diffuse * max(dot(normal, light_direction), 0.0);
+  vec3 diffuse = material.diffuse * max(dot(normal, light_direction), 0.0);
 
   // Calculate specular lighting
-  float specular = material.specular * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
+  vec3 specular = material.specular * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
 
   // calculate final lighting color
   vec3 light_color = (ambient + diffuse + specular) * light.color;

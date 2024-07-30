@@ -51,16 +51,6 @@ struct Light {
 };
 ```
 
-<!-- structure for a material -->
-```glsl
-struct Material {
-  float ambient;
-  float diffuse;
-  float specular;
-  float Shininess;
-};
-```
-
 <!-- necessary vectors -->
 ```glsl
 // The angle the light ray touches the fragment.
@@ -88,6 +78,21 @@ vec3 halfway_direction = normalize(light_direction + camera_direction);
 5. Ambient Lighting:
     * In the real world there is a lot of indirect or ambient light, where light bounces off the environment and onto surfaces from all angles. There are many ways to represent this, but the simplest is to just add some amount of constant light color to all parts of the surface.
 
+
+7. Material Properties:
+    * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    [material properties][]
+
+<!-- structure for a material -->
+```glsl
+struct Material {
+  float ambient;
+  float diffuse;
+  float specular;
+  float Shininess;
+};
+```
+
 <!-- lighting calculations -->
 ```glsl
 float ambient = material.ambient * 0.1;
@@ -95,15 +100,21 @@ float diffuse = material.diffuse * max(dot(normal, light_direction), 0.0);
 float specular = material.specular * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
 ```
 
+
 6. Display the Result:
     * Display the final result on the screen.
 
 
 ### Supplementary Reading
 
+*   [LearnOpenGL - Basic-Lighting][]
+*   [LearnOpenGL - Materials][]
 *   [LearnOpenGL - Advanced-Lighting][]
 
 
 [development environment]: environment.html
 [blinn-phong]: https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
+[LearnOpenGL - Basic-Lighting]: https://learnopengl.com/Lighting/Basic-Lighting
+[LearnOpenGL - Materials]: https://learnopengl.com/Lighting/Materials
 [LearnOpenGL - Advanced-Lighting]: https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
+[material properties]: http://devernay.free.fr/cours/opengl/materials.html
