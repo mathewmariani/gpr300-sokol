@@ -40,11 +40,14 @@ void main()
   // Calculate ambient lighting
   vec3 ambient = material.ambient;
 
+  // Calculate diffuse impact
+  float diff = max(dot(light_direction, normal), 0.0);
+
   // Calculate diffuse lighting
-  vec3 diffuse = material.diffuse * max(dot(normal, light_direction), 0.0);
+  vec3 diffuse = material.diffuse * diff;
 
   // Calculate specular lighting
-  vec3 specular = material.specular * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
+  vec3 specular = material.specular * diff * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
 
   // calculate final lighting color
   vec3 light_color = (ambient + diffuse + specular) * light.color;
