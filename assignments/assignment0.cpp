@@ -17,6 +17,8 @@
 // stl
 #include <unordered_map>
 
+static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 0.0f, 2.0f, 1.0f);
+
 typedef struct
 {
   float brightness;
@@ -106,7 +108,7 @@ static struct
 
   struct
   {
-    sg_attachments attachments; // FIXME: not needed
+    sg_attachments attachments;
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
@@ -114,7 +116,7 @@ static struct
 
   struct
   {
-    sg_attachments attachments; // FIXME: not needed
+    sg_attachments attachments;
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
@@ -134,7 +136,7 @@ static struct
 } state = {
     .light = {
         .brightness = 1.0f,
-        .color = glm::vec3(0.25f, 0.45f, 0.65f),
+        .color = glm::vec3(1.0f, 1.0f, 1.0f),
     },
     .scene = {
         .ry = 0.0f,
@@ -366,12 +368,7 @@ void create_blinnphong_pass(void)
 
   state.blinnphong.pass_action = (sg_pass_action){
       .colors[0] = {
-          .clear_value = {
-              state.light.color.r * state.light.brightness,
-              state.light.color.g * state.light.brightness,
-              state.light.color.b * state.light.brightness,
-              1.0f,
-          },
+          .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
       },
   };
@@ -422,30 +419,14 @@ void init(void)
   state.scene.material = material_map.at("emerald");
 }
 
-static void update_clear_color(void)
-{
-  state.blinnphong.pass_action.colors[0].clear_value = {
-      0.0f,
-      0.0f,
-      0.0f,
-      1.0f,
-  };
-}
-
 void draw_ui(void)
 {
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   if (ImGui::CollapsingHeader("Light"))
   {
-    if (ImGui::SliderFloat("Brightness", &state.light.brightness, 0.0f, 1.0f))
-    {
-      // update_clear_color();
-    }
-    if (ImGui::ColorEdit3("Color", &state.light.color[0]))
-    {
-      // update_clear_color();
-    }
+    ImGui::SliderFloat("Brightness", &state.light.brightness, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Color", &state.light.color[0]);
   }
 
   static int current_item = 0; // Index for currently selected item
@@ -484,7 +465,7 @@ void frame(void)
 
   // sugar: rotate light
   const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-  state.light.position = rym * glm::vec4(5.0f, 0.0f, 5.0f, 1.0f);
+  state.light.position = rym * light_orbit_radius;
 
   const auto view_proj = state.camera.projection() * state.camera.view();
 

@@ -37,20 +37,18 @@ void main()
   // Exactly halfway between the camera direction and the light direction.
   vec3 halfway_direction = normalize(light_direction + camera_direction);
 
-  // Calculate ambient lighting
-  vec3 ambient = material.ambient;
-
-  // Calculate diffuse impact
-  float diff = max(dot(light_direction, normal), 0.0);
-
   // Calculate diffuse lighting
-  vec3 diffuse = material.diffuse * diff;
+  float diffuse = max(dot(normal, light_direction), 0.0);;
 
   // Calculate specular lighting
-  vec3 specular = material.specular * diff * pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
+  float specular = 0.0;
+  if (diffuse != 0.0)
+  {
+    specular = pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
+  }
 
-  // calculate final lighting color
-  vec3 light_color = (ambient + diffuse + specular) * light.color;
+  // Calculate final lighting color
+  vec3 light_color = (material.ambient + (material.diffuse * diffuse) + (material.specular * specular)) * light.color;
   vec3 object_color = vec3(normal * 0.5 + 0.5);
   vec3 result = object_color * light_color;
 

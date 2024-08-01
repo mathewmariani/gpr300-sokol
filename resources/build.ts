@@ -6,6 +6,7 @@ import hljs from "highlight.js"
 import { globSync } from "glob";
 
 hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
+hljs.registerLanguage("glsl", require("highlight.js/lib/languages/glsl"));
 const md = Markdown({ html: true }).use(require('markdown-it-highlightjs'), { hljs })
 
 // mustache partials
