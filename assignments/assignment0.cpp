@@ -108,7 +108,6 @@ static struct
 
   struct
   {
-    sg_attachments attachments;
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
@@ -116,7 +115,6 @@ static struct
 
   struct
   {
-    sg_attachments attachments;
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
@@ -154,7 +152,6 @@ void load_suzanne(void)
   });
 }
 
-// NOTE: not required by the assignment
 void create_framebuffer(void)
 {
   const auto width = sapp_width();
@@ -281,12 +278,6 @@ void create_gizmo_pass(void)
       .depth.load_action = SG_LOADACTION_LOAD,
   };
 
-  state.gizmo.attachments = sg_make_attachments((sg_attachments_desc){
-      .colors[0].image = state.framebuffer.color,
-      .depth_stencil.image = state.framebuffer.depth,
-      .label = "gizmo-attachment",
-  });
-
   state.gizmo.pip = sg_make_pipeline({
       .shader = sg_make_shader(shader_desc),
       .layout = {
@@ -372,11 +363,6 @@ void create_blinnphong_pass(void)
           .load_action = SG_LOADACTION_CLEAR,
       },
   };
-
-  state.blinnphong.attachments = sg_make_attachments({
-      .colors[0].image = state.framebuffer.color,
-      .depth_stencil.image = state.framebuffer.depth,
-  });
 
   state.blinnphong.pip = sg_make_pipeline({
       .layout = {
@@ -488,7 +474,7 @@ void frame(void)
   };
 
   // NOTE: blinn-phong pass.
-  sg_begin_pass({.action = state.blinnphong.pass_action, .attachments = state.blinnphong.attachments});
+  sg_begin_pass({.action = state.blinnphong.pass_action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.blinnphong.pip);
   sg_apply_bindings(&state.blinnphong.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
@@ -497,7 +483,7 @@ void frame(void)
   sg_end_pass();
 
   // render light sources.
-  sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.gizmo.attachments});
+  sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.gizmo.pip);
   sg_apply_bindings(&state.gizmo.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
