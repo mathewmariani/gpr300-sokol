@@ -19,6 +19,7 @@
 #include "shaders/blur_post_process.h"
 #include "shaders/grayscale_post_process.h"
 #include "shaders/inverse_post_process.h"
+#include "shaders/shapes.h"
 
 #include <array>
 #include <string>
@@ -26,16 +27,42 @@
 
 typedef struct
 {
+  float brightness;
+  glm::vec3 color;
+  glm::vec3 position;
+} light_t;
+
+typedef struct
+{
+  glm::vec3 ambient;
+  glm::vec3 diffuse;
+  glm::vec3 specular;
+  float shininess;
+} material_t;
+
+typedef struct
+{
   glm::mat4 view_proj;
   glm::mat4 model;
-  glm::vec3 eye;
 } vs_blinnphong_params_t;
 
 typedef struct
 {
-  batteries::material_t material;
-  batteries::ambient_t ambient;
+  material_t material;
+  light_t light;
+  glm::vec3 camera_position;
 } fs_blinnphong_params_t;
+
+typedef struct
+{
+  glm::mat4 view_proj;
+  glm::mat4 model;
+} vs_gizmo_params_t;
+
+typedef struct
+{
+  glm::vec3 light_color;
+} fs_gizmo_light_params_t;
 
 std::vector<std::string> post_processing_effects = {
     "None",
@@ -53,6 +80,7 @@ static struct
 
   struct
   {
+    sg_attachments attachments;
     sg_image color;
     sg_image depth;
     sg_sampler sampler;
@@ -61,7 +89,6 @@ static struct
   struct
   {
     sg_pass_action pass_action;
-    sg_attachments attachments;
     sg_pipeline pip;
     sg_bindings bind;
   } blinnphong;
@@ -71,33 +98,41 @@ static struct
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
-  } postprocess;
+    sshape_element_range_t sphere;
+  } gizmo;
+
+  struct
+  {
+    sg_pass_action pass_action;
+    sg_pipeline pip;
+    sg_bindings bind;
+  } display;
 
   int effect_index;
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
-  batteries::ambient_t ambient;
+  light_t light;
 
   struct
   {
     float ry;
     batteries::model_t suzanne;
-    batteries::material_t material;
+    material_t material;
   } scene;
 } state = {
     .effect_index = 0,
-    .ambient = {
-        .intensity = 1.0f,
+    .light = {
+        .brightness = 1.0f,
         .color = glm::vec3(0.25f, 0.45f, 0.65f),
     },
     .scene = {
         .ry = 0.0f,
         .material = {
-            .Ka = 1.0f,
-            .Kd = 0.5f,
-            .Ks = 0.5f,
-            .Shininess = 128.0f,
+            .ambient = {0.5f, 0.5f, 0.5f},
+            .diffuse = {0.5f, 0.5f, 0.5f},
+            .specular = {0.5f, 0.5f, 0.5f},
+            .shininess = 128.0f,
         },
     },
 };
@@ -119,7 +154,7 @@ void create_framebuffer(void)
   const auto height = sapp_height();
 
   // color attachment
-  state.framebuffer.color = sg_make_image((sg_image_desc){
+  state.framebuffer.color = sg_make_image({
       .pixel_format = SG_PIXELFORMAT_RGBA8,
       .render_target = true,
       .width = width,
@@ -128,7 +163,7 @@ void create_framebuffer(void)
   });
 
   // depth attachment
-  state.framebuffer.depth = sg_make_image((sg_image_desc){
+  state.framebuffer.depth = sg_make_image({
       .pixel_format = SG_PIXELFORMAT_DEPTH,
       .render_target = true,
       .width = width,
@@ -143,6 +178,12 @@ void create_framebuffer(void)
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
   });
+
+  state.framebuffer.attachments = sg_make_attachments({
+    .colors[0].image = state.framebuffer.color,
+    .depth_stencil.image = state.framebuffer.depth,
+    .label = "framebuffer-attachment",
+  });
 }
 
 void create_blinnphong_pass(void)
@@ -156,7 +197,6 @@ void create_blinnphong_pass(void)
               .uniforms = {
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                  [2] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -166,13 +206,14 @@ void create_blinnphong_pass(void)
               .layout = SG_UNIFORMLAYOUT_NATIVE,
               .size = sizeof(fs_blinnphong_params_t),
               .uniforms = {
-                  [0] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
-                  [1] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
-                  [2] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
-                  [3] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                  [4] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                  [5] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                  [6] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [0] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [1] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [2] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [3] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                  [4] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
+                  [5] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [6] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
+                  [7] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
               },
           },
       },
@@ -180,15 +221,10 @@ void create_blinnphong_pass(void)
 
   state.blinnphong.pass_action = (sg_pass_action){
       .colors[0] = {
-          .clear_value = {state.ambient.color.r, state.ambient.color.g, state.ambient.color.b, 1.0f},
+          .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
           .load_action = SG_LOADACTION_CLEAR,
       },
   };
-
-  state.blinnphong.attachments = sg_make_attachments((sg_attachments_desc){
-      .colors[0].image = state.framebuffer.color,
-      .depth_stencil.image = state.framebuffer.depth,
-  });
 
   state.blinnphong.pip = sg_make_pipeline({
       .layout = {
@@ -202,12 +238,15 @@ void create_blinnphong_pass(void)
       .index_type = SG_INDEXTYPE_NONE,
       .face_winding = SG_FACEWINDING_CCW,
       .cull_mode = SG_CULLMODE_BACK,
+      .colors = {
+          [0].pixel_format = SG_PIXELFORMAT_RGBA8,
+      },
       .depth = {
           .pixel_format = SG_PIXELFORMAT_DEPTH,
           .compare = SG_COMPAREFUNC_LESS_EQUAL,
           .write_enabled = true,
       },
-      .label = "display-pipeline",
+      .label = "blinnphong-pipeline",
   });
 
   state.blinnphong.bind = (sg_bindings){
@@ -215,7 +254,84 @@ void create_blinnphong_pass(void)
   };
 }
 
-void create_postprocess_pass()
+void create_gizmo_pass(void)
+{
+  auto shader_desc = (sg_shader_desc){
+      .vs = {
+          .source = shapes_vs,
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(vs_gizmo_params_t),
+              .uniforms = {
+                  [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                  [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+              },
+          },
+      },
+      .fs = {
+          .source = shapes_fs,
+          .uniform_blocks[0] = {
+              .layout = SG_UNIFORMLAYOUT_NATIVE,
+              .size = sizeof(fs_gizmo_light_params_t),
+              .uniforms = {
+                  [0] = {.name = "light_color", .type = SG_UNIFORMTYPE_FLOAT3},
+              },
+          },
+      },
+  };
+
+  state.gizmo.pass_action = (sg_pass_action){
+      .colors[0].load_action = SG_LOADACTION_LOAD,
+      .depth.load_action = SG_LOADACTION_LOAD,
+  };
+
+  state.gizmo.pip = sg_make_pipeline({
+      .shader = sg_make_shader(shader_desc),
+      .layout = {
+          .buffers[0] = sshape_vertex_buffer_layout_state(),
+          .attrs = {
+              [0] = sshape_position_vertex_attr_state(),
+              [1] = sshape_normal_vertex_attr_state(),
+              [2] = sshape_texcoord_vertex_attr_state(),
+              [3] = sshape_color_vertex_attr_state(),
+          },
+      },
+      .index_type = SG_INDEXTYPE_UINT16,
+      .cull_mode = SG_CULLMODE_NONE,
+      .depth = {
+          .pixel_format = SG_PIXELFORMAT_DEPTH,
+          .compare = SG_COMPAREFUNC_LESS_EQUAL,
+          .write_enabled = true,
+      },
+      .label = "gizmo-pipeline",
+  });
+
+  // generate shape geometries
+  sshape_vertex_t vertices[30] = {0}; // (slices + 1) * (stacks + 1);
+  uint16_t indices[90] = {0};         // ((2 * slices * stacks) - (2 * slices)) * 3;
+  sshape_buffer_t buf = {
+      .vertices.buffer = SSHAPE_RANGE(vertices),
+      .indices.buffer = SSHAPE_RANGE(indices),
+  };
+  const sshape_sphere_t sphere = {
+      .radius = 0.125f,
+      .slices = 5,
+      .stacks = 4,
+  };
+  buf = sshape_build_sphere(&buf, &sphere);
+  assert(buf.valid);
+
+  // one vertex/index-buffer-pair for all shapes
+  state.gizmo.sphere = sshape_element_range(&buf);
+  const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
+  const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
+  state.gizmo.bind = (sg_bindings){
+      .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
+      .index_buffer = sg_make_buffer(&ibuf_desc),
+  };
+}
+
+void create_display_pass()
 {
   static std::vector<std::array<std::string, 2>> shader_stage = {
       {no_post_process_vs, no_post_process_fs},
@@ -260,13 +376,13 @@ void create_postprocess_pass()
       },
   };
 
-  state.postprocess.pass_action = (sg_pass_action){
+  state.display.pass_action = (sg_pass_action){
       .colors[0].load_action = SG_LOADACTION_CLEAR,
       .depth.load_action = SG_LOADACTION_DONTCARE,
       .stencil.load_action = SG_LOADACTION_DONTCARE,
   };
 
-  state.postprocess.pip = sg_make_pipeline({
+  state.display.pip = sg_make_pipeline({
       .layout = {
           .attrs = {
               [0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -278,7 +394,7 @@ void create_postprocess_pass()
   });
 
   // apply bindings
-  state.postprocess.bind = (sg_bindings){
+  state.display.bind = (sg_bindings){
       .vertex_buffers[0] = quad_buffer,
       .fs = {
           .images[0] = state.framebuffer.color,
@@ -293,17 +409,8 @@ void init(void)
   load_suzanne();
   create_framebuffer();
   create_blinnphong_pass();
-  create_postprocess_pass();
-}
-
-static void update_clear_color(void)
-{
-  state.blinnphong.pass_action.colors[0].clear_value = {
-      state.ambient.color.r * state.ambient.intensity,
-      state.ambient.color.g * state.ambient.intensity,
-      state.ambient.color.b * state.ambient.intensity,
-      1.0f,
-  };
+  create_gizmo_pass();
+  create_display_pass();
 }
 
 void draw_ui(void)
@@ -318,7 +425,7 @@ void draw_ui(void)
       if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
       {
         state.effect_index = n;
-        create_postprocess_pass();
+        create_display_pass();
       }
       if (is_selected)
       {
@@ -326,24 +433,6 @@ void draw_ui(void)
       }
     }
     ImGui::EndCombo();
-  }
-  if (ImGui::CollapsingHeader("Ambient Light"))
-  {
-    if (ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f))
-    {
-      update_clear_color();
-    }
-    if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
-    {
-      update_clear_color();
-    }
-  }
-  if (ImGui::CollapsingHeader("Material"))
-  {
-    ImGui::SliderFloat("Ambient", &state.scene.material.Ka, 0.0f, 1.0f);
-    ImGui::SliderFloat("Diffuse", &state.scene.material.Kd, 0.0f, 1.0f);
-    ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
-    ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
   }
   ImGui::End();
 }
@@ -357,40 +446,52 @@ void frame(void)
   state.camera_controller.update(&state.camera, t);
   state.scene.ry += 0.2f * t;
 
-  // math required by the scene
-  // sugar: rotate suzzane
-  state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
-
   // sugar: rotate light
   const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-  const auto light_pos = rym * glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
-  state.ambient.direction = glm::normalize(light_pos);
+  state.light.position = rym * glm::vec4(5.0f, 0.0f, 5.0f, 1.0f);
 
-  // offscreen pass
-  sg_begin_pass({.action = state.blinnphong.pass_action, .attachments = state.blinnphong.attachments});
-  sg_apply_pipeline(state.blinnphong.pip);
-  sg_apply_bindings(&state.blinnphong.bind);
+  const auto view_proj = state.camera.projection() * state.camera.view();
 
   // initialize uniform data
   const vs_blinnphong_params_t vs_params = {
-      .view_proj = state.camera.projection() * state.camera.view(),
+      .view_proj = view_proj,
       .model = state.scene.suzanne.transform.matrix(),
-      .eye = state.camera.position,
   };
   const fs_blinnphong_params_t fs_params = {
       .material = state.scene.material,
-      .ambient = state.ambient,
+      .light = state.light,
+      .camera_position = state.camera.position,
+  };
+  const vs_gizmo_params_t vs_gizmo = {
+      .view_proj = view_proj,
+      .model = glm::translate(glm::mat4(1.0f), state.light.position),
+  };
+  const fs_gizmo_light_params_t fs_gizmo_light = {
+      .light_color = state.light.color,
   };
 
+  // blinn-phong pass
+  sg_begin_pass({.action = state.blinnphong.pass_action, .attachments = state.framebuffer.attachments});
+  sg_apply_pipeline(state.blinnphong.pip);
+  sg_apply_bindings(&state.blinnphong.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
   sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
   sg_end_pass();
 
-  // draws the fullscreen quad
-  sg_begin_pass({.action = state.postprocess.pass_action, .swapchain = sglue_swapchain()});
-  sg_apply_pipeline(state.postprocess.pip);
-  sg_apply_bindings(&state.postprocess.bind);
+  // render light sources.
+  sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.framebuffer.attachments});
+  sg_apply_pipeline(state.gizmo.pip);
+  sg_apply_bindings(&state.gizmo.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo));
+  sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light));
+  sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+  sg_end_pass();
+
+  // display pass
+  sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
+  sg_apply_pipeline(state.display.pip);
+  sg_apply_bindings(&state.display.bind);
   sg_draw(0, 6, 1);
 
   // draw ui
