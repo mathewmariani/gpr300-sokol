@@ -4,10 +4,10 @@ precision highp float;
 precision highp sampler2DShadow;
 
 struct Material {
-  float Ka;
-  float Kd;
-  float Ks;
-  float Shininess;
+  vec3 ambient;
+  vec3 diffuse;
+  vec3 specular;
+  float shininess;
 };
 struct Ambient {
   float intensity;
@@ -72,12 +72,12 @@ void main()
     // specular
     vec3 to_eye = normalize(eye_pos - WorldPos);
     vec3 h = normalize(light_dir + to_eye);
-    float spec = pow(max(dot(normal, h), 0.0), material.Shininess);
+    float spec = pow(max(dot(normal, h), 0.0), material.shininess);
     vec3 specular = spec * ambient.color;
 
     // calculate shadow
     float shadow = ShadowCalculation(light_proj_pos);
-    vec3 light_color = (ambient.color * ambient.intensity * material.Ka) + (1.0 - shadow) * (material.Kd * diffuse + material.Ks * specular);
+    vec3 light_color = (ambient.color * ambient.intensity * material.ambient) + (1.0 - shadow) * (material.diffuse * diffuse + material.specular * specular);
     vec3 object_color = vec3(normal * 0.5 + 0.5);   
     
     FragColor = vec4(light_color * object_color, 1.0);

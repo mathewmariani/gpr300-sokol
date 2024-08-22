@@ -35,6 +35,14 @@ typedef struct
 
 typedef struct
 {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess;
+} material_t;
+
+typedef struct
+{
     glm::mat4 model;
     glm::mat4 view_proj;
 } vs_depth_params_t;
@@ -50,7 +58,7 @@ typedef struct
 {
     glm::vec3 light_pos;
     glm::vec3 eye_pos;
-    batteries::material_t material;
+    material_t material;
     batteries::ambient_t ambient;
 } fs_shadow_params_t;
 
@@ -124,7 +132,7 @@ static struct
     {
         float ry;
         batteries::model_t suzanne;
-        batteries::material_t material;
+        material_t material;
         sg_buffer plane_vbuf;
         sg_bindings plane_bind;
     } scene;
@@ -141,10 +149,10 @@ static struct
     .scene = {
         .ry = 0.0f,
         .material = {
-            .Ka = 1.0f,
-            .Kd = 0.5f,
-            .Ks = 0.5f,
-            .Shininess = 128.0f,
+            .ambient = {0.5f, 0.5f, 0.5f},
+            .diffuse = {0.5f, 0.5f, 0.5f},
+            .specular = {0.5f, 0.5f, 0.5f},
+            .shininess = 128.0f,
         },
     },
 };
@@ -362,10 +370,10 @@ void create_shadow_pass(void)
                 .uniforms = {
                     [0] = {.name = "light_pos", .type = SG_UNIFORMTYPE_FLOAT3},
                     [1] = {.name = "eye_pos", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [2] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
-                    [3] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
-                    [4] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
-                    [5] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                    [2] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [3] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [4] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [5] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
                     [6] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
                     [7] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
                     [8] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
@@ -579,10 +587,10 @@ void draw_ui(void)
     }
     if (ImGui::CollapsingHeader("Material"))
     {
-        ImGui::SliderFloat("Ambient", &state.scene.material.Ka, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse", &state.scene.material.Kd, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
-        ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
+        ImGui::SliderFloat3("Ambient", &state.scene.material.ambient[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Diffuse", &state.scene.material.diffuse[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Specular", &state.scene.material.specular[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Shininess", &state.scene.material.shininess, 2.0f, 1024.0f);
     }
     ImGui::End();
 
