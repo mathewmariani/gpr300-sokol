@@ -7,6 +7,8 @@ set(BATTERIES_FILES
     camera.h
     framebuffer.cpp
     framebuffer.h
+    geometry.cpp
+    geometry.h
     gizmo.cpp
     gizmo.h
     lights.h
