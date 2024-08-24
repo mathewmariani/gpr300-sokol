@@ -13,7 +13,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/island_generator.h"
+#include "batteries/shaders/island_generator.h"
 
 typedef struct
 {

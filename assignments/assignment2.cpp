@@ -15,8 +15,8 @@
 #include "batteries/gizmo.h"
 
 // shaders
-#include "shaders/shadow_depth.h"
-#include "shaders/shadow_map.h"
+#include "batteries/shaders/shadow_depth.h"
+#include "batteries/shaders/shadow_map.h"
 
 #include <string>
 

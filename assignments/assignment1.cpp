@@ -14,12 +14,12 @@
 #include "batteries/gizmo.h"
 
 // shaders
-#include "shaders/no_post_process.h"
-#include "shaders/chromatic_aberration.h"
-#include "shaders/crt_post_process.h"
-#include "shaders/blur_post_process.h"
-#include "shaders/grayscale_post_process.h"
-#include "shaders/inverse_post_process.h"
+#include "batteries/shaders/no_post_process.h"
+#include "batteries/shaders/chromatic_aberration.h"
+#include "batteries/shaders/crt_post_process.h"
+#include "batteries/shaders/blur_post_process.h"
+#include "batteries/shaders/grayscale_post_process.h"
+#include "batteries/shaders/inverse_post_process.h"
 
 #include <array>
 #include <string>

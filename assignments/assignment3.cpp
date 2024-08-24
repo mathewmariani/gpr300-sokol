@@ -16,8 +16,7 @@
 #include "batteries/gizmo.h"
 
 // shaders
-#include "shaders/geometry_pass.h"
-#include "shaders/lighting_pass.h"
+#include "batteries/shaders/lighting_pass.h"
 
 #include <string>
 

@@ -1,3 +1,5 @@
+process_shaders()
+
 set(BATTERIES_FILES
     assets.cpp
     assets.h
