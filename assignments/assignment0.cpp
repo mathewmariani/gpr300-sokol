@@ -9,6 +9,9 @@
 #include "batteries/camera.h"
 #include "batteries/model.h"
 
+#include "batteries/framebuffer.h"
+#include "batteries/blinnphong.h"
+
 // shaders
 #include "shaders/blinn_phong.h"
 #include "shaders/no_post_process.h"
@@ -18,34 +21,6 @@
 #include <unordered_map>
 
 static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 0.0f, 2.0f, 1.0f);
-
-typedef struct
-{
-  float brightness;
-  glm::vec3 color;
-  glm::vec3 position;
-} light_t;
-
-typedef struct
-{
-  glm::vec3 ambient;
-  glm::vec3 diffuse;
-  glm::vec3 specular;
-  float shininess;
-} material_t;
-
-typedef struct
-{
-  glm::mat4 view_proj;
-  glm::mat4 model;
-} vs_blinnphong_params_t;
-
-typedef struct
-{
-  material_t material;
-  light_t light;
-  glm::vec3 camera_position;
-} fs_blinnphong_params_t;
 
 typedef struct
 {
@@ -59,7 +34,7 @@ typedef struct
 } fs_gizmo_light_params_t;
 
 // http://devernay.free.fr/cours/opengl/materials.html
-static std::unordered_map<std::string, material_t> material_map = {
+static std::unordered_map<std::string, batteries::material_t> material_map = {
     {"emerald", {{0.0215f, 0.1745f, 0.0215f}, {0.07568f, 0.61424f, 0.07568f}, {0.633f, 0.727811f, 0.633f}, 0.6f}},
     {"jade", {{0.135f, 0.2225f, 0.1575f}, {0.54f, 0.89f, 0.63f}, {0.316228f, 0.316228f, 0.316228f}, 0.1}},
     {"obsidian", {{0.05375f, 0.05f, 0.06625f}, {0.18275f, 0.17f, 0.22525f}, {0.332741f, 0.328634f, 0.346435f}, 0.3f}},
@@ -91,13 +66,7 @@ static struct
 {
   uint8_t file_buffer[boilerplate::megabytes(5)];
 
-  struct
-  {
-    sg_attachments attachments;
-    sg_image color;
-    sg_image depth;
-    sg_sampler sampler;
-  } framebuffer;
+  batteries::framebuffer_t framebuffer;
 
   struct
   {
@@ -123,13 +92,13 @@ static struct
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
-  light_t light;
+  batteries::light_t light;
 
   struct
   {
     float ry;
     batteries::model_t suzanne;
-    material_t material;
+    batteries::material_t material;
   } scene;
 } state = {
     .light = {
@@ -150,101 +119,6 @@ void load_suzanne(void)
       .path = "assets/suzanne.obj",
       .buffer = SG_RANGE(state.file_buffer),
   });
-}
-
-void create_framebuffer(void)
-{
-  const auto width = sapp_width();
-  const auto height = sapp_height();
-
-  // color attachment
-  state.framebuffer.color = sg_make_image({
-      .pixel_format = SG_PIXELFORMAT_RGBA8,
-      .render_target = true,
-      .width = width,
-      .height = height,
-      .label = "color-image",
-  });
-
-  // depth attachment
-  state.framebuffer.depth = sg_make_image({
-      .pixel_format = SG_PIXELFORMAT_DEPTH,
-      .render_target = true,
-      .width = width,
-      .height = height,
-      .label = "depth-image",
-  });
-
-  // image sampler
-  state.framebuffer.sampler = sg_make_sampler({
-      .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-      .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-      .min_filter = SG_FILTER_LINEAR,
-      .mag_filter = SG_FILTER_LINEAR,
-  });
-}
-
-void create_display_pass()
-{
-  // clang-format off
-  float quad_vertices[] = {
-     -1.0f, 1.0f, 0.0f, 1.0f,
-     -1.0f, -1.0f, 0.0f, 0.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-
-     -1.0f, 1.0f, 0.0f, 1.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-      1.0f, 1.0f, 1.0f, 1.0f
-  };
-  // clang-format on
-
-  auto quad_buffer = sg_make_buffer({
-      .data = SG_RANGE(quad_vertices),
-      .label = "quad-vertices",
-  });
-
-  auto display_shader_desc = (sg_shader_desc){
-      .vs = {
-          .source = no_post_process_vs,
-      },
-      .fs = {
-          .source = no_post_process_fs,
-          .images[0].used = true,
-          .samplers[0].used = true,
-          .image_sampler_pairs[0] = {
-              .glsl_name = "screen",
-              .image_slot = 0,
-              .sampler_slot = 0,
-              .used = true,
-          },
-      },
-  };
-
-  state.display.pass_action = (sg_pass_action){
-      .colors[0].load_action = SG_LOADACTION_CLEAR,
-      .depth.load_action = SG_LOADACTION_DONTCARE,
-      .stencil.load_action = SG_LOADACTION_DONTCARE,
-  };
-
-  state.display.pip = sg_make_pipeline({
-      .layout = {
-          .attrs = {
-              [0].format = SG_VERTEXFORMAT_FLOAT2,
-              [1].format = SG_VERTEXFORMAT_FLOAT2,
-          },
-      },
-      .shader = sg_make_shader(display_shader_desc),
-      .label = "display-pipeline",
-  });
-
-  // apply bindings
-  state.display.bind = (sg_bindings){
-      .vertex_buffers[0] = quad_buffer,
-      .fs = {
-          .images[0] = state.framebuffer.color,
-          .samplers[0] = state.framebuffer.sampler,
-      },
-  };
 }
 
 void create_gizmo_pass(void)
@@ -331,7 +205,7 @@ void create_blinnphong_pass(void)
           .source = blinn_phong_vs,
           .uniform_blocks[0] = {
               .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(vs_blinnphong_params_t),
+              .size = sizeof(batteries::vs_blinnphong_params_t),
               .uniforms = {
                   [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                   [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
@@ -342,7 +216,7 @@ void create_blinnphong_pass(void)
           .source = blinn_phong_fs,
           .uniform_blocks[0] = {
               .layout = SG_UNIFORMLAYOUT_NATIVE,
-              .size = sizeof(fs_blinnphong_params_t),
+              .size = sizeof(batteries::fs_blinnphong_params_t),
               .uniforms = {
                   [0] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
                   [1] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
@@ -394,11 +268,13 @@ void create_blinnphong_pass(void)
 
 void init(void)
 {
+  const auto width = sapp_width();
+  const auto height = sapp_height();
+
   boilerplate::setup();
+  batteries::create_framebuffer(&state.framebuffer, width, height);
 
   load_suzanne();
-  create_framebuffer();
-  create_display_pass();
   create_gizmo_pass();
   create_blinnphong_pass();
 
@@ -456,11 +332,11 @@ void frame(void)
   const auto view_proj = state.camera.projection() * state.camera.view();
 
   // initialize uniform data
-  const vs_blinnphong_params_t vs_params = {
+  const batteries::vs_blinnphong_params_t vs_params = {
       .view_proj = view_proj,
       .model = state.scene.suzanne.transform.matrix(),
   };
-  const fs_blinnphong_params_t fs_params = {
+  const batteries::fs_blinnphong_params_t fs_params = {
       .material = state.scene.material,
       .light = state.light,
       .camera_position = state.camera.position,
@@ -473,7 +349,7 @@ void frame(void)
       .light_color = state.light.color,
   };
 
-  // NOTE: blinn-phong pass.
+  // blinn-phong pass
   sg_begin_pass({.action = state.blinnphong.pass_action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.blinnphong.pip);
   sg_apply_bindings(&state.blinnphong.bind);
@@ -482,7 +358,7 @@ void frame(void)
   sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
   sg_end_pass();
 
-  // render light sources.
+  // render light sources
   sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.gizmo.pip);
   sg_apply_bindings(&state.gizmo.bind);
@@ -492,9 +368,9 @@ void frame(void)
   sg_end_pass();
 
   // display pass
-  sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
-  sg_apply_pipeline(state.display.pip);
-  sg_apply_bindings(&state.display.bind);
+  sg_begin_pass({.action = state.framebuffer.pass_action, .swapchain = sglue_swapchain()});
+  sg_apply_pipeline(state.framebuffer.pip);
+  sg_apply_bindings(&state.framebuffer.bind);
   sg_draw(0, 6, 1);
 
   // draw ui

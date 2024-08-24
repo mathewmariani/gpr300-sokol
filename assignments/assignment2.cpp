@@ -7,9 +7,11 @@
 
 #include "batteries/assets.h"
 #include "batteries/camera.h"
-#include "batteries/model.h"
-#include "batteries/materials.h"
 #include "batteries/lights.h"
+#include "batteries/materials.h"
+#include "batteries/model.h"
+
+#include "batteries/framebuffer.h"
 
 // shaders
 #include "shaders/shadow_depth.h"
@@ -28,21 +30,6 @@ enum
 
 typedef struct
 {
-    float brightness;
-    glm::vec3 color;
-    glm::vec3 position;
-} light_t;
-
-typedef struct
-{
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    float shininess;
-} material_t;
-
-typedef struct
-{
     glm::mat4 model;
     glm::mat4 view_proj;
 } vs_depth_params_t;
@@ -58,7 +45,7 @@ typedef struct
 {
     glm::vec3 light_pos;
     glm::vec3 eye_pos;
-    material_t material;
+    batteries::material_t material;
     batteries::ambient_t ambient;
 } fs_shadow_params_t;
 
@@ -76,20 +63,7 @@ typedef struct
 // application state
 static struct
 {
-    struct
-    {
-        sg_attachments attachments;
-        sg_image color;
-        sg_image depth;
-        sg_sampler sampler;
-    } framebuffer;
-
-    struct
-    {
-        sg_pass_action pass_action;
-        sg_pipeline pip;
-        sg_bindings bind;
-    } display;
+    batteries::framebuffer_t framebuffer;
 
     struct
     {
@@ -126,13 +100,13 @@ static struct
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
     batteries::ambient_t ambient;
-    light_t light;
+    batteries::light_t light;
 
     struct
     {
         float ry;
         batteries::model_t suzanne;
-        material_t material;
+        batteries::material_t material;
         sg_buffer plane_vbuf;
         sg_bindings plane_bind;
     } scene;
@@ -166,107 +140,6 @@ void load_suzanne(void)
         .path = "assets/suzanne.obj",
         .buffer = SG_RANGE(state.file_buffer),
     });
-}
-
-void create_framebuffer(void)
-{
-    const auto width = sapp_width();
-    const auto height = sapp_height();
-
-    // color attachment
-    state.framebuffer.color = sg_make_image({
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .render_target = true,
-        .width = width,
-        .height = height,
-        .label = "framebuffer-color-image",
-    });
-
-    // depth attachment
-    state.framebuffer.depth = sg_make_image({
-        .pixel_format = SG_PIXELFORMAT_DEPTH,
-        .render_target = true,
-        .width = width,
-        .height = height,
-        .label = "framebuffer-depth-image",
-    });
-
-    // create an image sampler
-    state.framebuffer.sampler = sg_make_sampler({
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .min_filter = SG_FILTER_LINEAR,
-        .mag_filter = SG_FILTER_LINEAR,
-    });
-
-    state.framebuffer.attachments = sg_make_attachments({
-        .colors[0].image = state.framebuffer.color,
-        .depth_stencil.image = state.framebuffer.depth,
-        .label = "framebuffer-attachment",
-    });
-}
-
-void create_display_pass()
-{
-    // clang-format off
-  float quad_vertices[] = {
-     -1.0f, 1.0f, 0.0f, 1.0f,
-     -1.0f, -1.0f, 0.0f, 0.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-
-     -1.0f, 1.0f, 0.0f, 1.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-      1.0f, 1.0f, 1.0f, 1.0f
-  };
-    // clang-format on
-
-    auto quad_buffer = sg_make_buffer({
-        .data = SG_RANGE(quad_vertices),
-        .label = "quad-vertices",
-    });
-
-    auto display_shader_desc = (sg_shader_desc){
-        .vs = {
-            .source = no_post_process_vs,
-        },
-        .fs = {
-            .source = no_post_process_fs,
-            .images[0].used = true,
-            .samplers[0].used = true,
-            .image_sampler_pairs[0] = {
-                .glsl_name = "screen",
-                .image_slot = 0,
-                .sampler_slot = 0,
-                .used = true,
-            },
-        },
-    };
-
-    state.display.pass_action = (sg_pass_action){
-        .colors[0].load_action = SG_LOADACTION_CLEAR,
-        .depth.load_action = SG_LOADACTION_DONTCARE,
-        .stencil.load_action = SG_LOADACTION_DONTCARE,
-    };
-
-    state.display.pip = sg_make_pipeline({
-        .layout = {
-            .attrs = {
-                [0].format = SG_VERTEXFORMAT_FLOAT2,
-                [1].format = SG_VERTEXFORMAT_FLOAT2,
-            },
-        },
-        .shader = sg_make_shader(display_shader_desc),
-        .label = "display-pipeline",
-    });
-
-    // apply bindings
-    state.display.bind = (sg_bindings){
-        .vertex_buffers[0] = quad_buffer,
-        .fs = {
-            .images[0] = state.framebuffer.color,
-            .samplers[0] = state.framebuffer.sampler,
-        },
-    };
 }
 
 void create_depth_pass(void)
@@ -502,11 +375,12 @@ void create_gizmo_pass(void)
 
 void init(void)
 {
+    const auto width = sapp_width();
+    const auto height = sapp_height();
     boilerplate::setup();
+    batteries::create_framebuffer(&state.framebuffer, width, height);
 
     load_suzanne();
-    create_framebuffer();
-    create_display_pass();
     create_depth_pass();
     create_shadow_pass();
     create_gizmo_pass();
@@ -691,9 +565,9 @@ void frame(void)
     sg_end_pass();
 
     // display pass
-    sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
-    sg_apply_pipeline(state.display.pip);
-    sg_apply_bindings(&state.display.bind);
+    sg_begin_pass({.action = state.framebuffer.pass_action, .swapchain = sglue_swapchain()});
+    sg_apply_pipeline(state.framebuffer.pip);
+    sg_apply_bindings(&state.framebuffer.bind);
     sg_draw(0, 6, 1);
 
     // draw ui
