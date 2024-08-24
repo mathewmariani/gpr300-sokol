@@ -25,17 +25,6 @@
 #include <string>
 #include <vector>
 
-typedef struct
-{
-    glm::mat4 view_proj;
-    glm::mat4 model;
-} vs_gizmo_params_t;
-
-typedef struct
-{
-    glm::vec3 light_color;
-} fs_gizmo_light_params_t;
-
 std::vector<std::string> post_processing_effects = {
     "None",
     "Grayscale",
