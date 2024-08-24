@@ -12,12 +12,11 @@
 #include "batteries/model.h"
 
 #include "batteries/framebuffer.h"
+#include "batteries/gizmo.h"
 
 // shaders
 #include "shaders/shadow_depth.h"
 #include "shaders/shadow_map.h"
-#include "shaders/no_post_process.h"
-#include "shaders/shapes.h"
 
 #include <string>
 
@@ -49,25 +48,15 @@ typedef struct
     batteries::ambient_t ambient;
 } fs_shadow_params_t;
 
-typedef struct
-{
-    glm::mat4 view_proj;
-    glm::mat4 model;
-} vs_gizmo_params_t;
-
-typedef struct
-{
-    glm::vec3 light_color;
-} fs_gizmo_light_params_t;
-
 // application state
 static struct
 {
     batteries::framebuffer_t framebuffer;
+    batteries::gizmo_t gizmo;
 
     struct
     {
-        sg_pass_action pass_action;
+        sg_pass_action action;
         sg_attachments attachments;
         sg_pipeline pip;
         sg_bindings bind;
@@ -77,18 +66,10 @@ static struct
 
     struct
     {
-        sg_pass_action pass_action;
+        sg_pass_action action;
         sg_pipeline pip;
         sg_bindings bind;
     } shadow;
-
-    struct
-    {
-        sg_pass_action pass_action;
-        sg_pipeline pip;
-        sg_bindings bind;
-        sshape_element_range_t sphere;
-    } gizmo;
 
     struct
     {
@@ -186,7 +167,7 @@ void create_depth_pass(void)
         },
     };
 
-    state.depth.pass_action = (sg_pass_action){
+    state.depth.action = (sg_pass_action){
         .depth = {
             .load_action = SG_LOADACTION_CLEAR,
             .store_action = SG_STOREACTION_STORE,
@@ -262,7 +243,7 @@ void create_shadow_pass(void)
             },
         },
     };
-    state.shadow.pass_action = (sg_pass_action){
+    state.shadow.action = (sg_pass_action){
         .colors[0] = {
             .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
             .load_action = SG_LOADACTION_CLEAR,
@@ -296,94 +277,17 @@ void create_shadow_pass(void)
     };
 }
 
-void create_gizmo_pass(void)
-{
-    auto shader_desc = (sg_shader_desc){
-        .vs = {
-            .source = shapes_vs,
-            .uniform_blocks[0] = {
-                .layout = SG_UNIFORMLAYOUT_NATIVE,
-                .size = sizeof(vs_gizmo_params_t),
-                .uniforms = {
-                    [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                    [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                },
-            },
-        },
-        .fs = {
-            .source = shapes_fs,
-            .uniform_blocks[0] = {
-                .layout = SG_UNIFORMLAYOUT_NATIVE,
-                .size = sizeof(fs_gizmo_light_params_t),
-                .uniforms = {
-                    [0] = {.name = "light_color", .type = SG_UNIFORMTYPE_FLOAT3},
-                },
-            },
-        },
-    };
-
-    state.gizmo.pass_action = (sg_pass_action){
-        .colors[0].load_action = SG_LOADACTION_LOAD,
-        .depth.load_action = SG_LOADACTION_LOAD,
-    };
-
-    state.gizmo.pip = sg_make_pipeline({
-        .shader = sg_make_shader(shader_desc),
-        .layout = {
-            .buffers[0] = sshape_vertex_buffer_layout_state(),
-            .attrs = {
-                [0] = sshape_position_vertex_attr_state(),
-                [1] = sshape_normal_vertex_attr_state(),
-                [2] = sshape_texcoord_vertex_attr_state(),
-                [3] = sshape_color_vertex_attr_state(),
-            },
-        },
-        .index_type = SG_INDEXTYPE_UINT16,
-        .cull_mode = SG_CULLMODE_NONE,
-        .depth = {
-            .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            .write_enabled = true,
-        },
-        .label = "gizmo-pipeline",
-    });
-
-    // generate shape geometries
-    sshape_vertex_t vertices[30] = {0}; // (slices + 1) * (stacks + 1);
-    uint16_t indices[90] = {0};         // ((2 * slices * stacks) - (2 * slices)) * 3;
-    sshape_buffer_t buf = {
-        .vertices.buffer = SSHAPE_RANGE(vertices),
-        .indices.buffer = SSHAPE_RANGE(indices),
-    };
-    const sshape_sphere_t sphere = {
-        .radius = 0.125f,
-        .slices = 5,
-        .stacks = 4,
-    };
-    buf = sshape_build_sphere(&buf, &sphere);
-    assert(buf.valid);
-
-    // one vertex/index-buffer-pair for all shapes
-    state.gizmo.sphere = sshape_element_range(&buf);
-    const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
-    const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
-    state.gizmo.bind = (sg_bindings){
-        .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
-        .index_buffer = sg_make_buffer(&ibuf_desc),
-    };
-}
-
 void init(void)
 {
     const auto width = sapp_width();
     const auto height = sapp_height();
     boilerplate::setup();
     batteries::create_framebuffer(&state.framebuffer, width, height);
+    batteries::create_gizmo_pass(&state.gizmo);
 
     load_suzanne();
     create_depth_pass();
     create_shadow_pass();
-    create_gizmo_pass();
 
     // create an sokol-imgui wrapper for the shadow map
     auto ui_smp = sg_make_sampler((sg_sampler_desc){
@@ -435,7 +339,7 @@ void draw_ui(void)
     {
         if (ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f))
         {
-            state.shadow.pass_action.colors[0].clear_value = {
+            state.shadow.action.colors[0].clear_value = {
                 state.ambient.color.r * state.ambient.intensity,
                 state.ambient.color.g * state.ambient.intensity,
                 state.ambient.color.b * state.ambient.intensity,
@@ -445,7 +349,7 @@ void draw_ui(void)
         ImGui::DragFloat3("Direction", &state.ambient.direction[0], 0.01f, -1.0f, 1.0f);
         if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
         {
-            state.shadow.pass_action.colors[0].clear_value = {
+            state.shadow.action.colors[0].clear_value = {
                 state.ambient.color.r * state.ambient.intensity,
                 state.ambient.color.g * state.ambient.intensity,
                 state.ambient.color.b * state.ambient.intensity,
@@ -520,17 +424,17 @@ void frame(void)
         .view_proj = view_proj,
         .light_view_proj = light_view_proj,
     };
-    const vs_gizmo_params_t vs_gizmo_params = {
+    const batteries::vs_gizmo_params_t vs_gizmo_params = {
         .view_proj = view_proj,
         .model = glm::translate(glm::mat4(1.0f), state.light.position),
     };
-    const fs_gizmo_light_params_t fs_gizmo_light_params = {
+    const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
         .light_color = state.light.color,
     };
 
     // step 1:
     // render depth of scene to texture (from light's perspective).
-    sg_begin_pass({.action = state.depth.pass_action, .attachments = state.depth.attachments});
+    sg_begin_pass({.action = state.depth.action, .attachments = state.depth.attachments});
     sg_apply_pipeline(state.depth.pip);
     sg_apply_bindings(&state.depth.bind);
 
@@ -540,7 +444,7 @@ void frame(void)
 
     // step 2:
     // render scene as normal using the generated depth map.
-    sg_begin_pass({.action = state.shadow.pass_action, .attachments = state.framebuffer.attachments});
+    sg_begin_pass({.action = state.shadow.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.shadow.pip);
     sg_apply_bindings(&state.shadow.bind);
 
@@ -556,7 +460,7 @@ void frame(void)
     sg_end_pass();
 
     // render light sources.
-    sg_begin_pass({.action = state.gizmo.pass_action, .attachments = state.framebuffer.attachments});
+    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
@@ -565,7 +469,7 @@ void frame(void)
     sg_end_pass();
 
     // display pass
-    sg_begin_pass({.action = state.framebuffer.pass_action, .swapchain = sglue_swapchain()});
+    sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.framebuffer.pip);
     sg_apply_bindings(&state.framebuffer.bind);
     sg_draw(0, 6, 1);

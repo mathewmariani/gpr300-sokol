@@ -1,11 +1,14 @@
 set(BATTERIES_FILES
     assets.cpp
     assets.h
+    blinnphong.cpp
     blinnphong.h
     camera.cpp
     camera.h
     framebuffer.cpp
     framebuffer.h
+    gizmo.cpp
+    gizmo.h
     lights.h
     materials.h
     mesh.h

@@ -4,6 +4,9 @@
 #include "lights.h"
 #include "materials.h"
 
+// sokol
+#include "sokol/sokol_gfx.h"
+
 namespace batteries
 {
   struct vs_blinnphong_params_t
@@ -18,4 +21,13 @@ namespace batteries
     light_t light;
     glm::vec3 camera_position;
   };
+
+  struct blinnphong_t
+  {
+    sg_pass_action action;
+    sg_pipeline pip;
+    sg_bindings bind;
+  };
+
+  void create_blinnphong_pass(blinnphong_t *pass);
 }
