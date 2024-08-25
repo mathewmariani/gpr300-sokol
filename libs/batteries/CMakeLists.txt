@@ -13,6 +13,8 @@ set(BATTERIES_FILES
     geometry.h
     gizmo.cpp
     gizmo.h
+    lighting.cpp
+    lighting.h
     lights.h
     materials.h
     mesh.h

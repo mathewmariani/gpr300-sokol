@@ -15,18 +15,6 @@ namespace batteries
     glm::mat4 view_proj;
   };
 
-  struct fs_lighting_params_t
-  {
-    glm::vec3 eye;
-    batteries::ambient_t ambient;
-    batteries::material_t material;
-    batteries::pointlight_t lights[64];
-    struct
-    {
-      float radius;
-    } imgui;
-  };
-
   struct geometry_t
   {
     sg_pass_action action;

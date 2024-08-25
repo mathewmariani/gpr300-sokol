@@ -13,6 +13,7 @@
 
 #include "batteries/framebuffer.h"
 #include "batteries/geometry.h"
+#include "batteries/lighting.h"
 #include "batteries/gizmo.h"
 
 // shaders
@@ -28,18 +29,6 @@ enum
     MAX_LIGHTS = 64,
 };
 
-typedef struct
-{
-    glm::vec3 eye;
-    batteries::ambient_t ambient;
-    batteries::material_t material;
-    batteries::pointlight_t lights[MAX_LIGHTS];
-    struct
-    {
-        float radius;
-    } imgui;
-} fs_lighting_params_t;
-
 // application state
 static struct
 {
@@ -48,15 +37,7 @@ static struct
     batteries::framebuffer_t framebuffer;
     batteries::geometry_t geometry;
     batteries::gizmo_t gizmo;
-
-    struct
-    {
-        sg_pass_action action;
-        sg_attachments attachments;
-        sg_pass pass;
-        sg_pipeline pip;
-        sg_bindings bind;
-    } lighting;
+    batteries::lighting_t lighting;
 
     struct
     {
@@ -78,7 +59,7 @@ static struct
 } state = {
     .num_instances = 1,
     .ambient = {
-        .color = glm::vec3(0.25f, 0.45f, 0.65f),
+        .color = {0.25f, 0.45f, 0.65f},
     },
     .material = {
         .ambient = {0.5f, 0.5f, 0.5f},
@@ -184,119 +165,6 @@ static void init_instance_data(void)
     }
 }
 
-void create_lighting_pass(void)
-{
-    // clang-format off
-  float quad_vertices[] = {
-     -1.0f, 1.0f, 0.0f, 1.0f,
-     -1.0f, -1.0f, 0.0f, 0.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-
-     -1.0f, 1.0f, 0.0f, 1.0f,
-      1.0f, -1.0f, 1.0f, 0.0f,
-      1.0f, 1.0f, 1.0f, 1.0f
-  };
-    // clang-format on
-
-    state.lighting.action = (sg_pass_action){
-        .colors[0].load_action = SG_LOADACTION_CLEAR,
-    };
-
-    state.lighting.attachments = sg_make_attachments((sg_attachments_desc){
-        .colors[0].image = state.framebuffer.color,
-        .depth_stencil.image = state.framebuffer.depth,
-    });
-
-    auto quad_buffer = sg_make_buffer({
-        .data = SG_RANGE(quad_vertices),
-        .label = "quad-vertices",
-    });
-
-    auto lighting_shader_desc = (sg_shader_desc){
-        .vs = {
-            .source = lighting_pass_vs,
-        },
-        .fs = {
-            .source = lighting_pass_fs,
-            .uniform_blocks[0] = {
-                .layout = SG_UNIFORMLAYOUT_NATIVE,
-                .size = sizeof(fs_lighting_params_t),
-                .uniforms = {
-                    [0] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [1] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                    [2] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [3] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [4] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [5] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [6] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [7] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                    [8] = {.name = "light.radius", .type = SG_UNIFORMTYPE_FLOAT, .array_count = MAX_LIGHTS},
-                    [9] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
-                    [10] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3, .array_count = MAX_LIGHTS},
-                    [11] = {.name = "imgui.radius", .type = SG_UNIFORMTYPE_FLOAT},
-                },
-            },
-            .images = {[0].used = true, [1].used = true, [2].used = true},
-            .samplers = {[0].used = true},
-            .image_sampler_pairs = {
-                [0] = {
-                    .glsl_name = "g_position",
-                    .image_slot = 0,
-                    .sampler_slot = 0,
-                    .used = true,
-                },
-                [1] = {
-                    .glsl_name = "g_normal",
-                    .image_slot = 1,
-                    .sampler_slot = 0,
-                    .used = true,
-                },
-                [2] = {
-                    .glsl_name = "g_albedo",
-                    .image_slot = 2,
-                    .sampler_slot = 0,
-                    .used = true,
-                },
-            },
-        },
-    };
-
-    state.lighting.pip = sg_make_pipeline({
-        .layout = {
-            .attrs = {
-                [0].format = SG_VERTEXFORMAT_FLOAT2,
-                [1].format = SG_VERTEXFORMAT_FLOAT2,
-            },
-        },
-        .shader = sg_make_shader(lighting_shader_desc),
-        .depth = {
-            .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            .write_enabled = false,
-        },
-        .label = "lighting-pipeline",
-    });
-
-    // create an image sampler
-    auto color_smplr = sg_make_sampler({
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .min_filter = SG_FILTER_LINEAR,
-        .mag_filter = SG_FILTER_LINEAR,
-    });
-
-    // apply bindings
-    state.lighting.bind = (sg_bindings){
-        .vertex_buffers[0] = quad_buffer,
-        .fs.images = {
-            [0] = state.geometry.position_img,
-            [1] = state.geometry.normal_img,
-            [2] = state.geometry.color_img,
-        },
-        .fs.samplers[0] = color_smplr,
-    };
-}
-
 void init(void)
 {
     const auto width = sapp_width();
@@ -305,12 +173,11 @@ void init(void)
     boilerplate::setup();
     batteries::create_framebuffer(&state.framebuffer, width, height);
     batteries::create_geometry_pass(&state.geometry, width, height);
+    batteries::create_lighting_pass(&state.lighting, &state.geometry);
     batteries::create_gizmo_pass(&state.gizmo);
 
     load_suzanne();
     init_instance_data();
-
-    create_lighting_pass();
 
     state.geometry.bind = (sg_bindings){
         .vertex_buffers = {
@@ -406,7 +273,7 @@ void frame(void)
     };
 
     // parameters for the lighting pass
-    const fs_lighting_params_t fs_lighting_params = {
+    const batteries::fs_lighting_params_t fs_lighting_params = {
         .eye = state.camera.position,
         .ambient = state.ambient,
         .material = state.material,
@@ -425,7 +292,7 @@ void frame(void)
     sg_end_pass();
 
     // render the lighting pass
-    sg_begin_pass({.action = state.lighting.action, .attachments = state.lighting.attachments});
+    sg_begin_pass({.action = state.lighting.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.lighting.pip);
     sg_apply_bindings(&state.lighting.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lighting_params));
