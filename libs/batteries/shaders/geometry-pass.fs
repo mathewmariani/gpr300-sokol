@@ -13,6 +13,6 @@ in vec3 vs_normal;
 void main()
 {
   frag_position = vec4(vs_position, 1.0);
-  frag_normal = vec4(normalize(vs_normal), 0.0);
+  frag_normal = vec4(normalize(vs_normal), 1.0);
   frag_albedo = vec4(vs_normal.rgb * 0.5 + 0.5, 1.0);
 }

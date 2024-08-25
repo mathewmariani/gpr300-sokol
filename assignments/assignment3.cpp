@@ -39,6 +39,8 @@ static struct
     batteries::gizmo_t gizmo;
     batteries::lighting_t lighting;
 
+    sg_attachments gizmo_attachments;
+
     struct
     {
         simgui_image_t color_img;
@@ -53,33 +55,18 @@ static struct
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
     batteries::model_t suzanne;
-    batteries::material_t material;
-    batteries::ambient_t ambient;
-
 } state = {
     .num_instances = 1,
-    .ambient = {
-        .color = {0.25f, 0.45f, 0.65f},
-    },
-    .material = {
-        .ambient = {0.5f, 0.5f, 0.5f},
-        .diffuse = {0.5f, 0.5f, 0.5f},
-        .specular = {0.5f, 0.5f, 0.5f},
-        .shininess = 128.0f,
-    },
-    .debug = {
-        .radius = 1.0f,
-    },
 };
 
 // instance data buffer;
 static glm::mat4 instance_data[MAX_INSTANCES];
-static batteries::pointlight_t instance_light_data[MAX_LIGHTS];
+static batteries::my_light_t instance_light_data;
 
 void load_suzanne(void)
 {
     state.suzanne.mesh.vbuf = sg_alloc_buffer();
-    batteries::load_obj((batteries::obj_request_t){
+    batteries::load_obj({
         .buffer_id = state.suzanne.mesh.vbuf,
         .mesh = &state.suzanne.mesh,
         .path = "assets/suzanne.obj",
@@ -87,7 +74,7 @@ void load_suzanne(void)
     });
 }
 
-static glm::vec3 generateRandomPointOnUnitSphere()
+static glm::vec4 generateRandomPointOnUnitSphere()
 {
     double u = static_cast<double>(rand()) / RAND_MAX;
     double v = static_cast<double>(rand()) / RAND_MAX;
@@ -99,7 +86,7 @@ static glm::vec3 generateRandomPointOnUnitSphere()
     double y = sin(theta) * sin(phi);
     double z = cos(theta);
 
-    return glm::vec3(x, y, z);
+    return glm::vec4(x, y, z, 1.0);
 }
 
 static void init_instance_data(void)
@@ -117,15 +104,10 @@ static void init_instance_data(void)
         const auto g = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
         const auto b = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
 
-        const auto pos = glm::vec3(x, 0.0f, y) * offset;
-        const auto offset = generateRandomPointOnUnitSphere() * radius;
+        const auto pos = glm::vec4(x, 0.0f, y, 1.0f) * offset;
 
-        instance_light_data[i] = {
-            .color = glm::vec3(r, g, b),
-            .position = pos + offset,
-            .radius = 10.0f,
-        };
-
+        instance_light_data.color[i] = {r, g, b, 1.0f};
+        instance_light_data.position[i] = pos + generateRandomPointOnUnitSphere() * radius;
         // at a corner?
         if (abs(x) == abs(y))
         {
@@ -189,6 +171,12 @@ void init(void)
         },
     };
 
+    state.gizmo_attachments = sg_make_attachments({
+        .colors[0].image = state.framebuffer.color,
+        .depth_stencil.image = state.geometry.depth_img,
+        .label = "gizmo-attachment",
+    });
+
     // create an sokol-imgui wrapper geometry render targets
     auto dbg_smp = sg_make_sampler({
         .min_filter = SG_FILTER_NEAREST,
@@ -220,23 +208,8 @@ void draw_ui(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
     ImGui::SliderInt("Num Instances", &state.num_instances, 1, MAX_INSTANCES);
     ImGui::SliderFloat("Instance Spacing", &state.debug.instance_offset, 3.0f, 10.0f);
-
-    ImGui::SliderFloat("Ambient", &state.debug.radius, 0.0f, 10.0f);
-
-    if (ImGui::ColorEdit3("Ambient Light", &state.ambient.color[0]))
-    {
-        // state.display.pass_action.colors[0].clear_value = {state.scene.ambient_light.r, state.scene.ambient_light.g, state.scene.ambient_light.b, 1.0f};
-    }
-    // if (ImGui::CollapsingHeader("Material"))
-    // {
-    //     ImGui::SliderFloat("Ambient", &state.material.Ka, 0.0f, 1.0f);
-    //     ImGui::SliderFloat("Diffuse", &state.material.Kd, 0.0f, 1.0f);
-    //     ImGui::SliderFloat("Specular", &state.material.Ks, 0.0f, 1.0f);
-    //     ImGui::SliderFloat("Shininess", &state.material.Shininess, 2.0f, 1024.0f);
-    // }
     ImGui::End();
 
     ImGui::Begin("Offscreen Render");
@@ -254,33 +227,20 @@ void frame(void)
 {
     boilerplate::frame();
 
-    // math required by scene
-    const float t = sapp_frame_duration();
-
-    // update the camera controller
+    const auto t = (float)sapp_frame_duration();
     state.camera_controller.update(&state.camera, t);
 
-    // rotate suzanne
-    // state.suzanne.transform.rotation = glm::rotate(state.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
-
-    // display pass matrices
-    glm::vec3 light_pos = glm::vec4(50.0f, 50.0f, -50.0f, 1.0f);
-    state.ambient.direction = glm::normalize(light_pos);
+    const auto view_proj = state.camera.projection() * state.camera.view();
 
     // parameters for the geometry pass
     const batteries::vs_geometry_params_t vs_geometry_params = {
-        .view_proj = state.camera.projection() * state.camera.view(),
+        .view_proj = view_proj,
     };
 
     // parameters for the lighting pass
     const batteries::fs_lighting_params_t fs_lighting_params = {
         .eye = state.camera.position,
-        .ambient = state.ambient,
-        .material = state.material,
-        .lights = *instance_light_data,
-        .imgui = {
-            .radius = state.debug.radius,
-        },
+        .lights = instance_light_data,
     };
 
     // render the geometry pass
@@ -300,19 +260,19 @@ void frame(void)
     sg_end_pass();
 
     // render the gizmo pass
-    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
+    sg_begin_pass({.action = state.gizmo.action, .attachments = state.gizmo_attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
     for (auto i = 0; i < MAX_LIGHTS; i++)
     {
         // parameters for the gizmo pass
         const batteries::vs_gizmo_params_t vs_gizmo_params = {
-            .view_proj = state.camera.projection() * state.camera.view(),
-            .model = glm::translate(glm::mat4(1.0f), instance_light_data[i].position),
+            .view_proj = view_proj,
+            .model = glm::translate(glm::mat4(1.0f), glm::vec3(instance_light_data.position[i])),
         };
         // parameters for the gizmo pass
         const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
-            .light_color = instance_light_data[i].color,
+            .light_color = instance_light_data.color[i],
         };
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));

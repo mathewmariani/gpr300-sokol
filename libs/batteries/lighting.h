@@ -14,16 +14,16 @@
 
 namespace batteries
 {
+  struct my_light_t
+  {
+    glm::vec4 position[64];
+    glm::vec4 color[64];
+  };
+
   struct fs_lighting_params_t
   {
     glm::vec3 eye;
-    batteries::ambient_t ambient;
-    batteries::material_t material;
-    batteries::pointlight_t lights[64];
-    struct
-    {
-      float radius;
-    } imgui;
+    batteries::my_light_t lights;
   };
 
   struct lighting_t
