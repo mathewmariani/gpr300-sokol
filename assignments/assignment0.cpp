@@ -117,10 +117,10 @@ void draw_ui(void)
   }
 
   static int current_item = 0; // Index for currently selected item
-  int item_index = 0;          // Used to track the index of the current item in the loop
-  std::string selected_material_name;
+  static int item_index = 0;   // Used to track the index of the current item in the loop
+  static std::string selected_material_name;
 
-  if (ImGui::BeginCombo("Material", material_map.begin()->first.c_str()))
+  if (ImGui::BeginCombo("Material", selected_material_name.c_str()))
   {
     for (const auto &pair : material_map)
     {
@@ -128,6 +128,7 @@ void draw_ui(void)
       if (ImGui::Selectable(pair.first.c_str(), is_selected))
       {
         current_item = item_index;
+        selected_material_name = pair.first;
         state.scene.material = pair.second;
       }
       if (is_selected)

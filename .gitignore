@@ -21,6 +21,7 @@ emsdk/
 
 # generated shader headers
 assignments/shaders/*.h
+libs/batteries/shaders/*.h
 
 # macOS
 .DS_Store

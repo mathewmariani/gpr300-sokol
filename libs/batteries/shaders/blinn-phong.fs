@@ -49,8 +49,7 @@ void main()
 
   // Calculate final lighting color
   vec3 light_color = (material.ambient + (material.diffuse * diffuse) + (material.specular * specular)) * light.color;
-  vec3 object_color = vec3(normal * 0.5 + 0.5);
-  vec3 result = object_color * light_color;
+  vec3 result = light_color;
 
   FragColor = vec4(result, 1.0);
 }
