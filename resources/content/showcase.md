@@ -2,7 +2,7 @@
 
 #### Assignments
 
-<div class="row row-cols-1 row-cols-sm-2 g-4">
+<div class="row row-cols-1 row-cols-sm-4 g-4">
   <div class="col">
     <div class="card h-100">
       <a href="demo/assignment0.html"><img src="images/placeholder.png" class="card-img-top" alt="..."></a>
@@ -39,7 +39,7 @@
 
 #### Work Sessions
 
-<div class="row row-cols-1 row-cols-sm-2 g-4">
+<div class="row row-cols-1 row-cols-sm-4 g-4">
   <div class="col">
     <div class="card h-100">
       <a href="demo/worksession0.html"><img src="images/placeholder.png" class="card-img-top" alt="..."></a>
