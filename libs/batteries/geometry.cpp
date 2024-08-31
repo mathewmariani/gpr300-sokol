@@ -26,7 +26,7 @@ namespace batteries
         pass->depth_img = sg_make_image(&img_desc);
 
         // create an image sampler
-        auto color_smplr = sg_make_sampler((sg_sampler_desc){
+        auto color_smplr = sg_make_sampler({
             .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
             .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
             .min_filter = SG_FILTER_LINEAR,
@@ -107,7 +107,7 @@ namespace batteries
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "display-pipeline",
+            .label = "gbuffer-pipeline",
         });
     }
 }

@@ -21,11 +21,6 @@ namespace batteries
             .colors[0].load_action = SG_LOADACTION_CLEAR,
         };
 
-        auto quad_buffer = sg_make_buffer({
-            .data = SG_RANGE(quad_vertices),
-            .label = "quad-vertices",
-        });
-
         auto lighting_shader_desc = (sg_shader_desc){
             .vs = {
                 .source = lighting_pass_vs,
@@ -36,9 +31,9 @@ namespace batteries
                     .layout = SG_UNIFORMLAYOUT_NATIVE,
                     .size = sizeof(fs_lighting_params_t),
                     .uniforms = {
-                        [0] = {.name = "eye", .type = SG_UNIFORMTYPE_FLOAT3},
-                        [1] = {.name = "lights.color", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 64},
-                        [2] = {.name = "lights.position", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = 64},
+                        [0] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
+                        [1] = {.name = "lights.color", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
+                        [2] = {.name = "lights.position", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
                     },
                 },
                 .images = {[0].used = true, [1].used = true, [2].used = true},
@@ -92,7 +87,10 @@ namespace batteries
 
         // apply bindings
         pass->bind = (sg_bindings){
-            .vertex_buffers[0] = quad_buffer,
+            .vertex_buffers[0] = sg_make_buffer({
+                .data = SG_RANGE(quad_vertices),
+                .label = "quad-vertices",
+            }),
             .fs.images = {
                 [0] = geometry->position_img,
                 [1] = geometry->normal_img,

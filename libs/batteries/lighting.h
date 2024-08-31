@@ -12,17 +12,19 @@
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_shape.h"
 
+#define MAX_LIGHTS 64
+
 namespace batteries
 {
   struct my_light_t
   {
-    glm::vec4 position[64];
-    glm::vec4 color[64];
+    glm::vec4 color[MAX_LIGHTS];
+    glm::vec4 position[MAX_LIGHTS];
   };
 
   struct fs_lighting_params_t
   {
-    glm::vec3 eye;
+    glm::vec3 camera_position;
     batteries::my_light_t lights;
   };
 

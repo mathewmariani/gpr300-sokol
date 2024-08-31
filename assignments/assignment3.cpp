@@ -26,7 +26,6 @@ enum
     OFFSCREEN_WIDTH = 1024,
     OFFSCREEN_HEIGHT = 1024,
     MAX_INSTANCES = 64,
-    MAX_LIGHTS = 64,
 };
 
 // application state
@@ -56,7 +55,7 @@ static struct
     batteries::camera_controller_t camera_controller;
     batteries::model_t suzanne;
 } state = {
-    .num_instances = 1,
+    .num_instances = 9,
 };
 
 // instance data buffer;
@@ -92,22 +91,26 @@ static glm::vec4 generateRandomPointOnUnitSphere()
 static void init_instance_data(void)
 {
     const auto offset = 5.0f;
-    const auto radius = 2.0f;
+    const auto radius = 3.0f;
     for (int i = 0, x = 0, y = 0, dx = 0, dy = 0; i < MAX_INSTANCES; i++, x += dx, y += dy)
     {
+        // transform
+        const auto position = glm::vec3(x, 0.0f, y) * offset;
+
+        // random color
+        const auto r = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+        const auto g = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+        const auto b = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+
         // suzanne
         glm::mat4 *inst = &instance_data[i];
-        *inst = glm::translate(glm::vec3(x, 0.0f, y) * offset);
+        *inst = glm::translate(position);
 
         // lights
-        const auto r = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
-        const auto g = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
-        const auto b = static_cast<float>(((rand() % 100) / 200.0f) + 0.5);
-
-        const auto pos = glm::vec4(x, 0.0f, y, 1.0f) * offset;
-
+        const auto orbit = generateRandomPointOnUnitSphere() * radius;
         instance_light_data.color[i] = {r, g, b, 1.0f};
-        instance_light_data.position[i] = pos + generateRandomPointOnUnitSphere() * radius;
+        instance_light_data.position[i] = glm::vec4(position, 1.0f) + orbit;
+
         // at a corner?
         if (abs(x) == abs(y))
         {
@@ -239,7 +242,7 @@ void frame(void)
 
     // parameters for the lighting pass
     const batteries::fs_lighting_params_t fs_lighting_params = {
-        .eye = state.camera.position,
+        .camera_position = state.camera.position,
         .lights = instance_light_data,
     };
 
@@ -263,7 +266,7 @@ void frame(void)
     sg_begin_pass({.action = state.gizmo.action, .attachments = state.gizmo_attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
-    for (auto i = 0; i < MAX_LIGHTS; i++)
+    for (auto i = 0; i < 9; i++)
     {
         // parameters for the gizmo pass
         const batteries::vs_gizmo_params_t vs_gizmo_params = {
