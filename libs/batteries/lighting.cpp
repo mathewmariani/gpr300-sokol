@@ -34,6 +34,7 @@ namespace batteries
                         [0] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                         [1] = {.name = "lights.color", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
                         [2] = {.name = "lights.position", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
+                        [3] = {.name = "num_instances", .type = SG_UNIFORMTYPE_INT},
                     },
                 },
                 .images = {[0].used = true, [1].used = true, [2].used = true},

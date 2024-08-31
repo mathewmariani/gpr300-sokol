@@ -13,10 +13,10 @@ namespace batteries
             .sample_count = 1,
         };
 
-        img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+        img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
         pass->position_img = sg_make_image(&img_desc);
 
-        img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+        img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
         pass->normal_img = sg_make_image(&img_desc);
 
         img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
@@ -98,8 +98,8 @@ namespace batteries
             .sample_count = 1,
             .color_count = 3,
             .colors = {
-                [0].pixel_format = SG_PIXELFORMAT_RGBA8,
-                [1].pixel_format = SG_PIXELFORMAT_RGBA8,
+                [0].pixel_format = SG_PIXELFORMAT_RGBA16F,
+                [1].pixel_format = SG_PIXELFORMAT_RGBA16F,
                 [2].pixel_format = SG_PIXELFORMAT_RGBA8,
             },
             .depth = {

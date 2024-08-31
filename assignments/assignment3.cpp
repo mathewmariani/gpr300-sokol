@@ -244,6 +244,7 @@ void frame(void)
     const batteries::fs_lighting_params_t fs_lighting_params = {
         .camera_position = state.camera.position,
         .lights = instance_light_data,
+        .num_instances = state.num_instances,
     };
 
     // render the geometry pass
@@ -266,7 +267,7 @@ void frame(void)
     sg_begin_pass({.action = state.gizmo.action, .attachments = state.gizmo_attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
-    for (auto i = 0; i < 9; i++)
+    for (auto i = 0; i < state.num_instances; i++)
     {
         // parameters for the gizmo pass
         const batteries::vs_gizmo_params_t vs_gizmo_params = {

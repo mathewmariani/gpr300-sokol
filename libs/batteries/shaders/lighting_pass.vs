@@ -1,13 +1,18 @@
 #version 300 es
 
 // attributes
-layout(location = 0) in vec2 vPosition;
-layout(location = 1) in vec2 vTexCoord;
+layout(location = 0) in vec2 in_position;
+layout(location = 1) in vec2 in_texcoord;
 
-out vec2 TexCoords;
+// uniforms
+uniform mat4 view_proj;
+uniform mat4 model;
+
+// varyings
+out vec2 vs_texcoord;
 
 void main()
 {
-  TexCoords = vTexCoord;
-  gl_Position = vec4(vPosition.xy, 0.0, 1.0);
+  vs_texcoord = in_texcoord;
+  gl_Position = vec4(in_position.xy, 0.0, 1.0);
 }

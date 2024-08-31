@@ -14,7 +14,7 @@ in vec2 vs_texcoord;
 
 void main()
 {
-  frag_position = vec4(vs_position, 1.0);
-  frag_normal = normalize(vec4(vs_normal, 1.0));
+  frag_position = vec4(vs_position.xyz, 1.0);
+  frag_normal = vec4(vs_normal.xyz, 1.0);
   frag_albedo = vec4(vs_normal.rgb * 0.5 + 0.5, 1.0);
 }
