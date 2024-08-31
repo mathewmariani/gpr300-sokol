@@ -16,40 +16,40 @@ struct Light {
 
 out vec4 FragColor;
 
-in vec3 world_position;
-in vec3 world_normal;
+// varyings
+in vec3 vs_position;
+in vec3 vs_normal;
+in vec2 vs_texcoord;
 
+// uniforms
 uniform Material material;
 uniform Light light;
 uniform vec3 camera_position;
 
+vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
+{
+  vec3 view_dir = normalize(camera_position - frag_pos);
+  vec3 light_dir = normalize(light_pos - frag_pos);
+  vec3 halfway_dir = normalize(light_dir + view_dir);  
+
+  // diffuse
+  float diff = max(dot(light_dir, normal), 0.0);
+  vec3 diffuse = diff * light_color;
+
+  // specular
+  float spec = pow(max(dot(normal, halfway_dir), 0.0), 64.0);
+  vec3 specular = spec * light_color;    
+
+  return diffuse + specular;
+}
+
 void main()
 {
-  // Make sure fragment normal is still length 1 after interpolation.
-  vec3 normal = normalize(world_normal);
+  vec3 normal = normalize(vs_normal);
+  vec3 color = vs_normal * 0.5 + 0.5;
 
-  // The angle the light ray touches the fragment.
-  vec3 light_direction = normalize(light.position - world_position);
+  vec3 lighting = blinnPhong(normal, vs_position, light.position, light.color);
+  color *= lighting;
 
-  // The angle the looks at the fragment.
-  vec3 camera_direction = normalize(camera_position - world_position);
-
-  // Exactly halfway between the camera direction and the light direction.
-  vec3 halfway_direction = normalize(light_direction + camera_direction);
-
-  // Calculate diffuse lighting
-  float diffuse = max(dot(normal, light_direction), 0.0);;
-
-  // Calculate specular lighting
-  float specular = 0.0;
-  if (diffuse != 0.0)
-  {
-    specular = pow(max(dot(normal, halfway_direction), 0.0), material.shininess);
-  }
-
-  // Calculate final lighting color
-  vec3 light_color = (material.ambient + (material.diffuse * diffuse) + (material.specular * specular)) * light.color;
-  vec3 result = light_color;
-
-  FragColor = vec4(result, 1.0);
+  FragColor = vec4(color, 1.0);
 }
