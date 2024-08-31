@@ -12,7 +12,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/mariosunshine_water.h"
+#include "batteries/shaders/mariosunshine_water.h"
 
 typedef struct
 {

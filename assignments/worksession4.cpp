@@ -12,7 +12,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/toon_shadowing.h"
+#include "batteries/shaders/toon_shadowing.h"
 
 typedef struct
 {

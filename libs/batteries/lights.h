@@ -18,4 +18,11 @@ namespace batteries
     glm::vec3 color;
     glm::vec3 position;
   };
+
+  struct light_t
+  {
+    float brightness;
+    glm::vec3 color;
+    glm::vec3 position;
+  };
 }

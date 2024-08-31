@@ -12,8 +12,10 @@ layout(location = 6) in vec4 inst_wwww;
 // uniforms
 uniform mat4 view_proj;
 
+// varyings
 out vec3 vs_position;
 out vec3 vs_normal;
+out vec2 vs_texcoord;
 
 void main()
 {
@@ -21,6 +23,8 @@ void main()
   vec4 position = model * vec4(in_position, 1.0);
 
   vs_position = position.xyz;
-  vs_normal = transpose(inverse(mat3(model))) * in_normal;
+  // vs_normal = transpose(inverse(mat3(model))) * in_normal;
+  vs_normal = in_normal;
+  vs_texcoord = in_texcoord;
   gl_Position = view_proj * position;
 }

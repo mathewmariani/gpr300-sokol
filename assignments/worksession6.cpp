@@ -12,8 +12,8 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/windwaker_object.h"
-#include "shaders/windwaker_sea.h"
+#include "batteries/shaders/windwaker_object.h"
+#include "batteries/shaders/windwaker_sea.h"
 
 typedef struct
 {
@@ -149,11 +149,11 @@ void load_island(void)
   state.scene.island.materials.reserve(8);
   state.scene.water.materials.reserve(8);
 
-#define LOAD_ISLAND_IMAGE(i, filepath)                                      \
-  state.scene.island.materials[i] = sg_alloc_image();                       \
+#define LOAD_ISLAND_IMAGE(i, filepath)                              \
+  state.scene.island.materials[i] = sg_alloc_image();               \
   batteries::load_img({.image_id = state.scene.island.materials[i], \
-                               .path = filepath,                            \
-                               .buffer = SG_RANGE(state.file_buffer)})
+                       .path = filepath,                            \
+                       .buffer = SG_RANGE(state.file_buffer)})
   LOAD_ISLAND_IMAGE(0, "assets/island/OutsSS00.png");
   LOAD_ISLAND_IMAGE(1, "assets/island/OutsMM03.png");
   LOAD_ISLAND_IMAGE(2, "assets/island/OutsMM02.png");
@@ -163,11 +163,11 @@ void load_island(void)
   LOAD_ISLAND_IMAGE(6, "assets/island/OutsSS07.png");
   LOAD_ISLAND_IMAGE(7, "assets/island/OutsSS06.png");
 
-#define LOAD_SEA_IMAGE(i, filepath)                                        \
-  state.scene.water.materials[i] = sg_alloc_image();                       \
+#define LOAD_SEA_IMAGE(i, filepath)                                \
+  state.scene.water.materials[i] = sg_alloc_image();               \
   batteries::load_img({.image_id = state.scene.water.materials[i], \
-                               .path = filepath,                           \
-                               .buffer = SG_RANGE(state.file_buffer)})
+                       .path = filepath,                           \
+                       .buffer = SG_RANGE(state.file_buffer)})
   LOAD_SEA_IMAGE(0, "assets/island/Sea.SS00.png");
   LOAD_SEA_IMAGE(1, "assets/island/Sea.SS01.png");
   LOAD_SEA_IMAGE(2, "assets/island/Sea.SS02.png");

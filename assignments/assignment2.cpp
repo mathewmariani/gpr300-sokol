@@ -7,15 +7,20 @@
 
 #include "batteries/assets.h"
 #include "batteries/camera.h"
-#include "batteries/model.h"
-#include "batteries/materials.h"
 #include "batteries/lights.h"
+#include "batteries/materials.h"
+#include "batteries/model.h"
+
+#include "batteries/framebuffer.h"
+#include "batteries/gizmo.h"
 
 // shaders
-#include "shaders/shadow_depth.h"
-#include "shaders/shadow_map.h"
+#include "batteries/shaders/shadow_depth.h"
+#include "batteries/shaders/shadow_map.h"
 
 #include <string>
+
+static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 2.0f, -2.0f, 1.0f);
 
 enum
 {
@@ -46,9 +51,12 @@ typedef struct
 // application state
 static struct
 {
+    batteries::framebuffer_t framebuffer;
+    batteries::gizmo_t gizmo;
+
     struct
     {
-        sg_pass_action pass_action;
+        sg_pass_action action;
         sg_attachments attachments;
         sg_pipeline pip;
         sg_bindings bind;
@@ -58,7 +66,7 @@ static struct
 
     struct
     {
-        sg_pass_action pass_action;
+        sg_pass_action action;
         sg_pipeline pip;
         sg_bindings bind;
     } shadow;
@@ -73,6 +81,7 @@ static struct
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
     batteries::ambient_t ambient;
+    batteries::light_t light;
 
     struct
     {
@@ -83,18 +92,22 @@ static struct
         sg_bindings plane_bind;
     } scene;
 } state = {
+    .light = {
+        .brightness = 1.0f,
+        .color = glm::vec3(1.0f, 1.0f, 1.0f),
+    },
     .ambient = {
         .intensity = 0.3f,
-        .color = glm::vec3(0.25f, 0.45f, 0.65f),
-        .direction = glm::vec3(0.0f, 0.0f, 0.0f),
+        .color = {0.25f, 0.45f, 0.65f},
+        .direction = {0.0f, 0.0f, 0.0f},
     },
     .scene = {
         .ry = 0.0f,
         .material = {
-            .Ka = 1.0f,
-            .Kd = 0.5f,
-            .Ks = 0.5f,
-            .Shininess = 128.0f,
+            .ambient = {0.5f, 0.5f, 0.5f},
+            .diffuse = {0.5f, 0.5f, 0.5f},
+            .specular = {0.5f, 0.5f, 0.5f},
+            .shininess = 128.0f,
         },
     },
 };
@@ -113,7 +126,7 @@ void load_suzanne(void)
 void create_depth_pass(void)
 {
     // create a texture with only a depth attachment
-    state.depth.img = sg_make_image((sg_image_desc){
+    state.depth.img = sg_make_image({
         .render_target = true,
         .width = DEPTH_MAP_SIZE,
         .height = DEPTH_MAP_SIZE,
@@ -123,7 +136,7 @@ void create_depth_pass(void)
     });
 
     // create an image sampler
-    state.depth.smp = sg_make_sampler((sg_sampler_desc){
+    state.depth.smp = sg_make_sampler({
         .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
         .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
         .min_filter = SG_FILTER_NEAREST,
@@ -132,7 +145,7 @@ void create_depth_pass(void)
         .label = "shadow-sampler",
     });
 
-    state.depth.attachments = sg_make_attachments((sg_attachments_desc){
+    state.depth.attachments = sg_make_attachments({
         .depth_stencil.image = state.depth.img,
         .label = "shadow-pass",
     });
@@ -154,7 +167,7 @@ void create_depth_pass(void)
         },
     };
 
-    state.depth.pass_action = (sg_pass_action){
+    state.depth.action = (sg_pass_action){
         .depth = {
             .load_action = SG_LOADACTION_CLEAR,
             .store_action = SG_STOREACTION_STORE,
@@ -162,7 +175,7 @@ void create_depth_pass(void)
         },
     };
 
-    state.depth.pip = sg_make_pipeline((sg_pipeline_desc){
+    state.depth.pip = sg_make_pipeline({
         .layout = {
             // need to provide vertex stride, because normal and texcoords components are skipped in shadow pass
             .buffers[0].stride = 8 * sizeof(float),
@@ -190,12 +203,6 @@ void create_depth_pass(void)
 
 void create_shadow_pass(void)
 {
-    state.shadow.pass_action = (sg_pass_action){
-        .colors[0] = {
-            .clear_value = {state.ambient.color.r, state.ambient.color.g, state.ambient.color.b, 1.0f},
-            .load_action = SG_LOADACTION_CLEAR,
-        },
-    };
     auto shader_desc = (sg_shader_desc){
         .vs = {
             .source = shadow_map_vs,
@@ -217,10 +224,10 @@ void create_shadow_pass(void)
                 .uniforms = {
                     [0] = {.name = "light_pos", .type = SG_UNIFORMTYPE_FLOAT3},
                     [1] = {.name = "eye_pos", .type = SG_UNIFORMTYPE_FLOAT3},
-                    [2] = {.name = "material.Ka", .type = SG_UNIFORMTYPE_FLOAT},
-                    [3] = {.name = "material.Kd", .type = SG_UNIFORMTYPE_FLOAT},
-                    [4] = {.name = "material.Ks", .type = SG_UNIFORMTYPE_FLOAT},
-                    [5] = {.name = "material.Shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                    [2] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [3] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [4] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
+                    [5] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
                     [6] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
                     [7] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
                     [8] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
@@ -236,6 +243,12 @@ void create_shadow_pass(void)
             },
         },
     };
+    state.shadow.action = (sg_pass_action){
+        .colors[0] = {
+            .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+            .load_action = SG_LOADACTION_CLEAR,
+        },
+    };
     state.shadow.pip = sg_make_pipeline({
         .layout = {
             .attrs = {
@@ -249,12 +262,12 @@ void create_shadow_pass(void)
         .face_winding = SG_FACEWINDING_CCW,
         .cull_mode = SG_CULLMODE_BACK,
         .depth = {
+            .pixel_format = SG_PIXELFORMAT_DEPTH,
             .compare = SG_COMPAREFUNC_LESS_EQUAL,
             .write_enabled = true,
         },
         .label = "display-pipeline",
     });
-
     state.shadow.bind = (sg_bindings){
         .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
         .fs = {
@@ -266,7 +279,11 @@ void create_shadow_pass(void)
 
 void init(void)
 {
+    const auto width = sapp_width();
+    const auto height = sapp_height();
     boilerplate::setup();
+    batteries::create_framebuffer(&state.framebuffer, width, height);
+    batteries::create_gizmo_pass(&state.gizmo);
 
     load_suzanne();
     create_depth_pass();
@@ -297,7 +314,7 @@ void init(void)
     };
     // clang-format on
 
-    state.scene.plane_vbuf = sg_make_buffer((sg_buffer_desc){
+    state.scene.plane_vbuf = sg_make_buffer({
         .data = SG_RANGE(plane_vertices),
         .label = "plane-vertices",
     });
@@ -322,7 +339,7 @@ void draw_ui(void)
     {
         if (ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f))
         {
-            state.shadow.pass_action.colors[0].clear_value = {
+            state.shadow.action.colors[0].clear_value = {
                 state.ambient.color.r * state.ambient.intensity,
                 state.ambient.color.g * state.ambient.intensity,
                 state.ambient.color.b * state.ambient.intensity,
@@ -332,7 +349,7 @@ void draw_ui(void)
         ImGui::DragFloat3("Direction", &state.ambient.direction[0], 0.01f, -1.0f, 1.0f);
         if (ImGui::ColorEdit3("Color", &state.ambient.color[0]))
         {
-            state.shadow.pass_action.colors[0].clear_value = {
+            state.shadow.action.colors[0].clear_value = {
                 state.ambient.color.r * state.ambient.intensity,
                 state.ambient.color.g * state.ambient.intensity,
                 state.ambient.color.b * state.ambient.intensity,
@@ -348,10 +365,10 @@ void draw_ui(void)
     }
     if (ImGui::CollapsingHeader("Material"))
     {
-        ImGui::SliderFloat("Ambient", &state.scene.material.Ka, 0.0f, 1.0f);
-        ImGui::SliderFloat("Diffuse", &state.scene.material.Kd, 0.0f, 1.0f);
-        ImGui::SliderFloat("Specular", &state.scene.material.Ks, 0.0f, 1.0f);
-        ImGui::SliderFloat("Shininess", &state.scene.material.Shininess, 2.0f, 1024.0f);
+        ImGui::SliderFloat3("Ambient", &state.scene.material.ambient[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Diffuse", &state.scene.material.diffuse[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Specular", &state.scene.material.specular[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Shininess", &state.scene.material.shininess, 2.0f, 1024.0f);
     }
     ImGui::End();
 
@@ -365,41 +382,61 @@ void draw_ui(void)
 void frame(void)
 {
     boilerplate::frame();
-
     draw_ui();
 
-    const float t = (float)(sapp_frame_duration() * 60.0);
-    state.scene.ry += 0.2f * sapp_frame_duration();
-
-    const auto width = sapp_width();
-    const auto height = sapp_height();
+    const auto t = (float)sapp_frame_duration();
+    state.camera_controller.update(&state.camera, t);
+    state.scene.ry += 0.2f * t;
 
     // update the camera controller
     state.camera_controller.update(&state.camera, sapp_frame_duration());
 
-    // rotate suzanne
-    // state.scene.suzanne.transform.rotation = glm::rotate(state.scene.suzanne.transform.rotation, (float)sapp_frame_duration(), glm::vec3(0.0, 1.0, 0.0));
-    const glm::mat4 rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    // sugar: rotate light
+    const auto rym = glm::rotate(state.scene.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    state.light.position = rym * light_orbit_radius;
 
     // depth pass matrices
-    const glm::mat4 light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
-    const glm::vec3 light_pos = rym * glm::vec4(10.0f, 10.0f, -10.0f, 1.0f);
-    const glm::mat4 light_view = glm::lookAt(light_pos, state.ambient.direction, glm::vec3(0.0f, 1.0f, 0.0f));
-    const glm::mat4 light_view_proj = light_proj * light_view;
+    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
+    const auto light_view = glm::lookAt(state.light.position, {0.0f, 0.0f, 0.0f}, glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto light_view_proj = light_proj * light_view;
 
     // shadow pass matrices
-    const glm::mat4 view_proj = state.camera.projection() * state.camera.view();
+    const auto view_proj = state.camera.projection() * state.camera.view();
 
-    // step 1:
-    // render depth of scene to texture (from light's perspective).
-    sg_begin_pass({.action = state.depth.pass_action, .attachments = state.depth.attachments});
-    sg_apply_pipeline(state.depth.pip);
-    sg_apply_bindings(&state.depth.bind);
-
+    // initialize uniform data
     const vs_depth_params_t vs_shadow_params = {
         .model = state.scene.suzanne.transform.matrix(),
         .view_proj = light_view_proj,
     };
+    const vs_shadow_params_t suzanne_vs_display_params = {
+        .model = state.scene.suzanne.transform.matrix(),
+        .view_proj = view_proj,
+        .light_view_proj = light_view_proj,
+    };
+    const fs_shadow_params_t fs_display_params = {
+        .light_pos = state.light.position,
+        .eye_pos = state.camera.position,
+        .material = state.scene.material,
+        .ambient = state.ambient,
+    };
+    const vs_shadow_params_t plane_vs_display_params = {
+        .model = glm::mat4(1.0f),
+        .view_proj = view_proj,
+        .light_view_proj = light_view_proj,
+    };
+    const batteries::vs_gizmo_params_t vs_gizmo_params = {
+        .view_proj = view_proj,
+        .model = glm::translate(glm::mat4(1.0f), state.light.position),
+    };
+    const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
+        .light_color = state.light.color,
+    };
+
+    // step 1:
+    // render depth of scene to texture (from light's perspective).
+    sg_begin_pass({.action = state.depth.action, .attachments = state.depth.attachments});
+    sg_apply_pipeline(state.depth.pip);
+    sg_apply_bindings(&state.depth.bind);
 
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
     sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
@@ -407,36 +444,34 @@ void frame(void)
 
     // step 2:
     // render scene as normal using the generated depth map.
-    sg_begin_pass({.action = state.shadow.pass_action, .swapchain = sglue_swapchain()});
+    sg_begin_pass({.action = state.shadow.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.shadow.pip);
     sg_apply_bindings(&state.shadow.bind);
-
-    const vs_shadow_params_t suzanne_vs_display_params = {
-        .model = state.scene.suzanne.transform.matrix(),
-        .view_proj = view_proj,
-        .light_view_proj = light_view_proj,
-    };
-    const fs_shadow_params_t fs_display_params = {
-        .light_pos = light_pos,
-        .eye_pos = state.camera.position,
-        .material = state.scene.material,
-        .ambient = state.ambient,
-    };
 
     // render suzanne
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_display_params));
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(suzanne_vs_display_params));
     sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
 
-    const vs_shadow_params_t plane_vs_display_params = {
-        .model = glm::mat4(1.0f),
-        .view_proj = view_proj,
-        .light_view_proj = light_view_proj,
-    };
-
     // render plane
     sg_apply_bindings(&state.scene.plane_bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(plane_vs_display_params));
+    sg_draw(0, 6, 1);
+    sg_end_pass();
+
+    // render light sources.
+    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
+    sg_apply_pipeline(state.gizmo.pip);
+    sg_apply_bindings(&state.gizmo.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
+    sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+    sg_end_pass();
+
+    // display pass
+    sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
+    sg_apply_pipeline(state.framebuffer.pip);
+    sg_apply_bindings(&state.framebuffer.bind);
     sg_draw(0, 6, 1);
 
     // draw ui

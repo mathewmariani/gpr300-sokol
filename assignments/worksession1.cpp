@@ -13,7 +13,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/windwaker_water.h"
+#include "batteries/shaders/windwaker_water.h"
 
 typedef struct
 {

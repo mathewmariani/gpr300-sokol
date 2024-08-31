@@ -12,7 +12,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/transition.h"
+#include "batteries/shaders/transition.h"
 
 typedef struct
 {

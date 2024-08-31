@@ -12,7 +12,7 @@
 #include "batteries/lights.h"
 
 // shaders
-#include "shaders/pbr_pass.h"
+#include "batteries/shaders/pbr_pass.h"
 
 typedef struct
 {

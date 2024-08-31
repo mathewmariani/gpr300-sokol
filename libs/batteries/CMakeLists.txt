@@ -1,8 +1,20 @@
+process_shaders()
+
 set(BATTERIES_FILES
     assets.cpp
     assets.h
+    blinnphong.cpp
+    blinnphong.h
     camera.cpp
     camera.h
+    framebuffer.cpp
+    framebuffer.h
+    geometry.cpp
+    geometry.h
+    gizmo.cpp
+    gizmo.h
+    lighting.cpp
+    lighting.h
     lights.h
     materials.h
     mesh.h
