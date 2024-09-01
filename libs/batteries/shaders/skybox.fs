@@ -5,11 +5,13 @@ precision mediump samplerCube;
 
 out vec4 FragColor;
 
-in vec3 TexCoords;
-
+// uniforms
 uniform samplerCube skybox;
+
+// varyings
+in vec3 vs_texcoord;
 
 void main()
 {
-  FragColor = texture(skybox, TexCoords);
+  FragColor = texture(skybox, vs_texcoord);
 }
