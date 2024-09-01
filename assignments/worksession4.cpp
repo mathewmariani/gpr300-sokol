@@ -16,7 +16,7 @@
 // shaders
 #include "batteries/shaders/toon_shadowing.h"
 
-static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 0.0f, 2.0f, 1.0f);
+static constexpr glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
 typedef struct
 {
@@ -37,10 +37,10 @@ typedef struct
 } fs_display_params_t;
 
 static palette_t pal[]{
-    {.highlight = glm::vec3(1.00f, 1.00f, 1.00f), .shadow = glm::vec3(0.60f, 0.54f, 0.52f)},
-    {.highlight = glm::vec3(0.47f, 0.58f, 0.68f), .shadow = glm::vec3(0.32f, 0.39f, 0.57f)},
-    {.highlight = glm::vec3(0.62f, 0.69f, 0.67f), .shadow = glm::vec3(0.50f, 0.55f, 0.50f)},
-    {.highlight = glm::vec3(0.24f, 0.36f, 0.54f), .shadow = glm::vec3(0.25f, 0.31f, 0.31f)},
+    {.highlight = {1.00f, 1.00f, 1.00f}, .shadow = {0.60f, 0.54f, 0.52f}},
+    {.highlight = {0.47f, 0.58f, 0.68f}, .shadow = {0.32f, 0.39f, 0.57f}},
+    {.highlight = {0.62f, 0.69f, 0.67f}, .shadow = {0.50f, 0.55f, 0.50f}},
+    {.highlight = {0.24f, 0.36f, 0.54f}, .shadow = {0.25f, 0.31f, 0.31f}},
 };
 
 // application state

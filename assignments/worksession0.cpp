@@ -17,7 +17,7 @@
 // shaders
 #include "batteries/shaders/pbr_pass.h"
 
-static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 2.0f, -2.0f, 1.0f);
+static constexpr glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
 typedef struct
 {

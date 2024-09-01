@@ -102,13 +102,13 @@ static struct
   batteries::camera_controller_t camera_controller;
 } state = {
     .pal = {
-        {.highlight = glm::vec3(1.00f, 1.00f, 1.00f), .shadow = glm::vec3(0.60f, 0.54f, 0.52f)},
-        {.highlight = glm::vec3(0.47f, 0.58f, 0.68f), .shadow = glm::vec3(0.32f, 0.39f, 0.57f)},
-        {.highlight = glm::vec3(0.62f, 0.69f, 0.67f), .shadow = glm::vec3(0.50f, 0.55f, 0.50f)},
-        {.highlight = glm::vec3(0.24f, 0.36f, 0.54f), .shadow = glm::vec3(0.25f, 0.31f, 0.31f)},
+        {.highlight = {1.00f, 1.00f, 1.00f}, .shadow = {0.60f, 0.54f, 0.52f}},
+        {.highlight = {0.47f, 0.58f, 0.68f}, .shadow = {0.32f, 0.39f, 0.57f}},
+        {.highlight = {0.62f, 0.69f, 0.67f}, .shadow = {0.50f, 0.55f, 0.50f}},
+        {.highlight = {0.24f, 0.36f, 0.54f}, .shadow = {0.25f, 0.31f, 0.31f}},
     },
     .camera = {
-        .position = glm::vec3(115.0f, 75.0f, 850.0f),
+        .position = {115.0f, 75.0f, 850.0f},
     },
     .time = {
         .frame = 0.0,
@@ -119,11 +119,11 @@ static struct
     .scene = {
         .ry = 0.0f,
         .ambient = {
-            .color = glm::vec3(0.25f, 0.45f, 0.65f),
+            .color = {0.25f, 0.45f, 0.65f},
         },
         .palette = {
-            .highlight = glm::vec3(1.00f, 1.00f, 1.00f),
-            .shadow = glm::vec3(0.60f, 0.54f, 0.52f),
+            .highlight = {1.00f, 1.00f, 1.00f},
+            .shadow = {0.60f, 0.54f, 0.52f},
         },
     },
 };
@@ -452,7 +452,8 @@ void frame(void)
       .water = {
           .time = (float)state.time.absolute,
           .color = glm::vec3(0.00f, 0.31f, 0.85f),
-      }};
+      },
+  };
 
   // water pipeline
   sg_apply_pipeline(state.water_pass.pip);

@@ -40,11 +40,9 @@ static struct
   transition_t transition;
   gradient_t gradient;
 
-  sg_pass_action pass_action;
-
   struct
   {
-    sg_pass_action pass_action;
+    sg_pass_action action;
     sg_pipeline pip;
     sg_bindings bind;
   } display;
@@ -59,6 +57,16 @@ static struct
 
 void load_gradients(void)
 {
+#define LOAD_GRADIENT(i, filepath)                        \
+  state.gradient.img[i] = sg_alloc_image();               \
+  batteries::load_img({.image_id = state.gradient.img[i], \
+                       .path = filepath,                  \
+                       .buffer = SG_RANGE(state.file_buffer)})
+
+  LOAD_GRADIENT(0, "assets/transitions/gradient1.png");
+  LOAD_GRADIENT(1, "assets/transitions/gradient2.png");
+  LOAD_GRADIENT(2, "assets/transitions/gradient3.png");
+
   // create an image sampler
   state.gradient.smp = sg_make_sampler({
       .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
@@ -66,24 +74,8 @@ void load_gradients(void)
       .min_filter = SG_FILTER_LINEAR,
       .mag_filter = SG_FILTER_LINEAR,
   });
-  state.gradient.img[0] = sg_alloc_image();
-  batteries::load_img({
-      .image_id = state.gradient.img[0],
-      .path = "assets/transitions/gradient1.png",
-      .buffer = SG_RANGE(state.file_buffer),
-  });
-  state.gradient.img[1] = sg_alloc_image();
-  batteries::load_img({
-      .image_id = state.gradient.img[1],
-      .path = "assets/transitions/gradient2.png",
-      .buffer = SG_RANGE(state.file_buffer),
-  });
-  state.gradient.img[2] = sg_alloc_image();
-  batteries::load_img({
-      .image_id = state.gradient.img[2],
-      .path = "assets/transitions/gradient3.png",
-      .buffer = SG_RANGE(state.file_buffer),
-  });
+
+#undef LOAD_GRADIENT
 }
 
 void create_display_pass(void)
@@ -99,11 +91,6 @@ void create_display_pass(void)
       1.0f, 1.0f, 1.0f, 1.0f
   };
   // clang-format on
-
-  auto quad_buffer = sg_make_buffer({
-      .data = SG_RANGE(quad_vertices),
-      .label = "quad-vertices",
-  });
 
   auto display_shader_desc = (sg_shader_desc){
       .vs = {
@@ -130,7 +117,7 @@ void create_display_pass(void)
       },
   };
 
-  state.display.pass_action = (sg_pass_action){
+  state.display.action = (sg_pass_action){
       .colors[0].load_action = SG_LOADACTION_DONTCARE,
       .depth.load_action = SG_LOADACTION_DONTCARE,
       .stencil.load_action = SG_LOADACTION_DONTCARE,
@@ -149,11 +136,10 @@ void create_display_pass(void)
 
   // apply bindings
   state.display.bind = (sg_bindings){
-      .vertex_buffers[0] = quad_buffer,
-      .fs = {
-          .images[0] = state.gradient.img[0],
-          .samplers[0] = state.gradient.smp,
-      },
+      .vertex_buffers[0] = sg_make_buffer({
+          .data = SG_RANGE(quad_vertices),
+          .label = "quad-vertices",
+      }),
   };
 }
 
@@ -162,6 +148,12 @@ void init(void)
   boilerplate::setup();
   load_gradients();
   create_display_pass();
+
+  // apply bindings
+  state.display.bind.fs = {
+      .images[0] = state.gradient.img[0],
+      .samplers[0] = state.gradient.smp,
+  };
 }
 
 void draw_ui(void)
@@ -216,7 +208,7 @@ void frame(void)
   sg_end_pass();
 
   // transition layer
-  sg_begin_pass({.action = state.display.pass_action, .swapchain = sglue_swapchain()});
+  sg_begin_pass({.action = state.display.action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.display.pip);
   sg_apply_bindings(&state.display.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
