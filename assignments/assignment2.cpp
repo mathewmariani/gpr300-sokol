@@ -13,6 +13,7 @@
 
 #include "batteries/framebuffer.h"
 #include "batteries/gizmo.h"
+#include "batteries/skybox.h"
 
 // shaders
 #include "batteries/shaders/shadow_depth.h"
@@ -20,7 +21,7 @@
 
 #include <string>
 
-static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 2.0f, -2.0f, 1.0f);
+static constexpr glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
 enum
 {
@@ -51,8 +52,14 @@ typedef struct
 // application state
 static struct
 {
+    uint8_t file_buffer[boilerplate::megabytes(4)];
+
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
+
     batteries::framebuffer_t framebuffer;
     batteries::gizmo_t gizmo;
+    batteries::skybox_t skybox;
 
     struct
     {
@@ -76,10 +83,6 @@ static struct
         simgui_image_t shadow_map;
     } ui;
 
-    uint8_t file_buffer[boilerplate::megabytes(4)];
-
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
     batteries::ambient_t ambient;
     batteries::light_t light;
 
@@ -94,7 +97,7 @@ static struct
 } state = {
     .light = {
         .brightness = 1.0f,
-        .color = glm::vec3(1.0f, 1.0f, 1.0f),
+        .color = {1.0f, 1.0f, 1.0f},
     },
     .ambient = {
         .intensity = 0.3f,
@@ -281,9 +284,11 @@ void init(void)
 {
     const auto width = sapp_width();
     const auto height = sapp_height();
+
     boilerplate::setup();
     batteries::create_framebuffer(&state.framebuffer, width, height);
     batteries::create_gizmo_pass(&state.gizmo);
+    batteries::create_skybox_pass(&state.skybox);
 
     load_suzanne();
     create_depth_pass();
@@ -314,13 +319,11 @@ void init(void)
     };
     // clang-format on
 
-    state.scene.plane_vbuf = sg_make_buffer({
-        .data = SG_RANGE(plane_vertices),
-        .label = "plane-vertices",
-    });
-
     state.scene.plane_bind = (sg_bindings){
-        .vertex_buffers[0] = state.scene.plane_vbuf,
+        .vertex_buffers[0] = sg_make_buffer({
+            .data = SG_RANGE(plane_vertices),
+            .label = "plane-vertices",
+        }),
         .fs = {
             .images[0] = state.depth.img,
             .samplers[0] = state.depth.smp,
@@ -431,24 +434,26 @@ void frame(void)
     const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
         .light_color = state.light.color,
     };
+    const batteries::vs_skybox_params_t vs_skybox_params = {
+        .view_proj = state.camera.projection() * glm::mat4(glm::mat3(state.camera.view())),
+    };
 
     // step 1:
     // render depth of scene to texture (from light's perspective).
     sg_begin_pass({.action = state.depth.action, .attachments = state.depth.attachments});
     sg_apply_pipeline(state.depth.pip);
     sg_apply_bindings(&state.depth.bind);
-
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
     sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
     sg_end_pass();
 
     // step 2:
     // render scene as normal using the generated depth map.
-    sg_begin_pass({.action = state.shadow.action, .attachments = state.framebuffer.attachments});
-    sg_apply_pipeline(state.shadow.pip);
-    sg_apply_bindings(&state.shadow.bind);
+    sg_begin_pass(&state.framebuffer.pass);
 
     // render suzanne
+    sg_apply_pipeline(state.shadow.pip);
+    sg_apply_bindings(&state.shadow.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_display_params));
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(suzanne_vs_display_params));
     sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
@@ -457,18 +462,23 @@ void frame(void)
     sg_apply_bindings(&state.scene.plane_bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(plane_vs_display_params));
     sg_draw(0, 6, 1);
-    sg_end_pass();
 
-    // render light sources.
-    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
+    // render light sources
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
     sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+
+    // render skybox
+    sg_apply_pipeline(state.skybox.pip);
+    sg_apply_bindings(&state.skybox.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_skybox_params));
+    sg_draw(0, 36, 1);
+
     sg_end_pass();
 
-    // display pass
+    // render framebuffer
     sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.framebuffer.pip);
     sg_apply_bindings(&state.framebuffer.bind);

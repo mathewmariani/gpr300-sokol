@@ -3,7 +3,7 @@
 
 namespace batteries
 {
-    void create_geometry_pass(geometry_t *pass, int width, int height)
+    void create_geometry_pass(geometry_t *geometry, int width, int height)
     {
         // create 3 render target textures with different formats
         sg_image_desc img_desc = {
@@ -14,16 +14,16 @@ namespace batteries
         };
 
         img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
-        pass->position_img = sg_make_image(&img_desc);
+        geometry->position_img = sg_make_image(&img_desc);
 
         img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
-        pass->normal_img = sg_make_image(&img_desc);
+        geometry->normal_img = sg_make_image(&img_desc);
 
         img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-        pass->color_img = sg_make_image(&img_desc);
+        geometry->color_img = sg_make_image(&img_desc);
 
         img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
-        pass->depth_img = sg_make_image(&img_desc);
+        geometry->depth_img = sg_make_image(&img_desc);
 
         // create an image sampler
         auto color_smplr = sg_make_sampler({
@@ -33,28 +33,29 @@ namespace batteries
             .mag_filter = SG_FILTER_LINEAR,
         });
 
-        pass->action = (sg_pass_action){
-            .colors = {
-                [0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
-                [1] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
-                [2] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
+        geometry->pass = (sg_pass){
+            .action = (sg_pass_action){
+                .colors = {
+                    [0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
+                    [1] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
+                    [2] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 0.0f}},
+                },
+                .depth = {
+                    .load_action = SG_LOADACTION_CLEAR,
+                    .store_action = SG_STOREACTION_STORE,
+                    .clear_value = 1.0f,
+                },
             },
-            .depth = {
-                .load_action = SG_LOADACTION_CLEAR,
-                .store_action = SG_STOREACTION_STORE,
-                .clear_value = 1.0f,
-            },
+            .attachments = sg_make_attachments({
+                .colors = {
+                    [0].image = geometry->position_img,
+                    [1].image = geometry->normal_img,
+                    [2].image = geometry->color_img,
+                },
+                .depth_stencil.image = geometry->depth_img,
+                .label = "geometry-pass",
+            }),
         };
-
-        pass->attachments = sg_make_attachments({
-            .colors = {
-                [0].image = pass->position_img,
-                [1].image = pass->normal_img,
-                [2].image = pass->color_img,
-            },
-            .depth_stencil.image = pass->depth_img,
-            .label = "geometry-pass",
-        });
 
         auto shader_desc = (sg_shader_desc){
             .vs = {
@@ -72,7 +73,7 @@ namespace batteries
             },
         };
 
-        pass->pip = sg_make_pipeline({
+        geometry->pip = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
