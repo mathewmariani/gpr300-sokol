@@ -16,15 +16,10 @@
 #include "batteries/lighting.h"
 #include "batteries/gizmo.h"
 
-// shaders
-#include "batteries/shaders/lighting_pass.h"
-
 #include <string>
 
 enum
 {
-    OFFSCREEN_WIDTH = 1024,
-    OFFSCREEN_HEIGHT = 1024,
     MAX_INSTANCES = 64,
 };
 
@@ -65,6 +60,16 @@ static batteries::my_light_t instance_light_data;
 void load_suzanne(void)
 {
     state.suzanne.mesh.vbuf = sg_alloc_buffer();
+    state.suzanne.mesh.bindings = (sg_bindings){
+        .vertex_buffers = {
+            [0] = state.suzanne.mesh.vbuf,
+            [1] = sg_make_buffer({
+                .type = SG_BUFFERTYPE_VERTEXBUFFER,
+                .data = SG_RANGE(instance_data),
+            }),
+        },
+    };
+
     batteries::load_obj({
         .buffer_id = state.suzanne.mesh.vbuf,
         .mesh = &state.suzanne.mesh,
@@ -75,15 +80,15 @@ void load_suzanne(void)
 
 static glm::vec4 generateRandomPointOnUnitSphere()
 {
-    double u = static_cast<double>(rand()) / RAND_MAX;
-    double v = static_cast<double>(rand()) / RAND_MAX;
+    auto u = static_cast<double>(rand()) / RAND_MAX;
+    auto v = static_cast<double>(rand()) / RAND_MAX;
 
-    double phi = 2.0 * M_PI * u;
-    double theta = acos(2.0 * v - 1.0);
+    auto phi = 2.0 * M_PI * u;
+    auto theta = acos(2.0 * v - 1.0);
 
-    double x = sin(theta) * cos(phi);
-    double y = sin(theta) * sin(phi);
-    double z = cos(theta);
+    auto x = sin(theta) * cos(phi);
+    auto y = sin(theta) * sin(phi);
+    auto z = cos(theta);
 
     return glm::vec4(x, y, z, 1.0);
 }
@@ -161,18 +166,10 @@ void init(void)
     batteries::create_lighting_pass(&state.lighting, &state.geometry);
     batteries::create_gizmo_pass(&state.gizmo);
 
-    load_suzanne();
     init_instance_data();
+    load_suzanne();
 
-    state.geometry.bind = (sg_bindings){
-        .vertex_buffers = {
-            [0] = state.suzanne.mesh.vbuf,
-            [1] = sg_make_buffer({
-                .type = SG_BUFFERTYPE_VERTEXBUFFER,
-                .data = SG_RANGE(instance_data),
-            }),
-        },
-    };
+    state.geometry.bind = state.suzanne.mesh.bindings;
 
     state.gizmo_attachments = sg_make_attachments({
         .colors[0].image = state.framebuffer.color,
@@ -229,18 +226,17 @@ void draw_ui(void)
 void frame(void)
 {
     boilerplate::frame();
+    draw_ui();
 
     const auto t = (float)sapp_frame_duration();
     state.camera_controller.update(&state.camera, t);
 
     const auto view_proj = state.camera.projection() * state.camera.view();
 
-    // parameters for the geometry pass
+    // initialize uniform data
     const batteries::vs_geometry_params_t vs_geometry_params = {
         .view_proj = view_proj,
     };
-
-    // parameters for the lighting pass
     const batteries::fs_lighting_params_t fs_lighting_params = {
         .camera_position = state.camera.position,
         .lights = instance_light_data,
@@ -248,7 +244,7 @@ void frame(void)
     };
 
     // render the geometry pass
-    sg_begin_pass({.action = state.geometry.action, .attachments = state.geometry.attachments});
+    sg_begin_pass(&state.geometry.pass);
     sg_apply_pipeline(state.geometry.pip);
     sg_apply_bindings(&state.geometry.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
@@ -256,7 +252,7 @@ void frame(void)
     sg_end_pass();
 
     // render the lighting pass
-    sg_begin_pass({.action = state.lighting.action, .attachments = state.framebuffer.attachments});
+    sg_begin_pass(&state.framebuffer.pass);
     sg_apply_pipeline(state.lighting.pip);
     sg_apply_bindings(&state.lighting.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lighting_params));
@@ -284,14 +280,12 @@ void frame(void)
     }
     sg_end_pass();
 
-    // display pass
+    // render framebuffer
     sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.framebuffer.pip);
     sg_apply_bindings(&state.framebuffer.bind);
     sg_draw(0, 6, 1);
 
-    // draw ui
-    draw_ui();
     simgui_render();
 
     sg_end_pass();

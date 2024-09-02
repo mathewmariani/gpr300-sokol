@@ -11,34 +11,39 @@ struct Palette {
   vec3 highlight;
   vec3 shadow;
 };
-struct Ambient {
-  float intensity;
-  vec3 direction;
+struct Light {
+  float brightness;
   vec3 color;
+  vec3 position;
 };
 
 out vec4 FragColor;
 
-in vec3 world_position;
-in vec3 world_normal;
-in vec2 texcoords;
+in vec3 vs_position;
+in vec3 vs_normal;
+in vec2 vs_texcoords;
 
 uniform ToonMaterial material;
 uniform Palette palette;
-uniform Ambient ambient;
+uniform Light light;
 
-void main()
+vec3 toon_lighting(vec3 normal, vec3 frag_pos, vec3 light_pos)
 {
-  // calculate the diffuse lighting
-  vec3 normal = normalize(world_normal); 
-  float diff = (dot(normal, ambient.direction) + 1.0) / 2.0;
+  vec3 light_dir = normalize(light_pos - frag_pos);
+  float diff = (dot(normal, light_dir) + 1.0) / 2.0;
   float zatoon = texture(material.zatoon, vec2(diff)).r;
 
   // apply color palette by mixing between the shadow and highlights
   vec3 light_color = mix(palette.shadow, palette.highlight, zatoon);
 
-  // use the albedo to as the base color
-  vec3 object_color = texture(material.albedo, texcoords).rgb;
+  return light_color;
+}
+
+void main()
+{
+  vec3 normal = normalize(vs_normal);
+  vec3 light_color = toon_lighting(normal, vs_position, light.position);
+  vec3 object_color = texture(material.albedo, vs_texcoords).rgb;
 
   FragColor = vec4(object_color * light_color, 1.0);
 }

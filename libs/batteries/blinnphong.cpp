@@ -30,16 +30,12 @@ namespace batteries
                         [4] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
                         [5] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
                         [6] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
-                        [7] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
+                        [7] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                        [8] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                        [9] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                        [10] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                     },
                 },
-            },
-        };
-
-        pass->action = (sg_pass_action){
-            .colors[0] = {
-                .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-                .load_action = SG_LOADACTION_CLEAR,
             },
         };
 

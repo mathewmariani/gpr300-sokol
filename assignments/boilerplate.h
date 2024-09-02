@@ -63,7 +63,7 @@ namespace boilerplate
         .logger.func = slog_func,
     });
 
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
   }
 
   void shutdown(void)

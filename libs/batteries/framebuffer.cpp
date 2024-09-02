@@ -55,11 +55,21 @@ namespace batteries
             .mag_filter = SG_FILTER_LINEAR,
         });
 
-        framebuffer->attachments = sg_make_attachments({
-            .colors[0].image = framebuffer->color,
-            .depth_stencil.image = framebuffer->depth,
-            .label = "framebuffer-attachments",
-        });
+        framebuffer->action = (sg_pass_action){
+            .colors[0] = {
+                .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+                .load_action = SG_LOADACTION_CLEAR,
+            },
+        };
+
+        framebuffer->pass = (sg_pass){
+            .action = framebuffer->action,
+            .attachments = sg_make_attachments({
+                .colors[0].image = framebuffer->color,
+                .depth_stencil.image = framebuffer->depth,
+                .label = "framebuffer-attachments",
+            }),
+        };
 
         auto display_shader_desc = (sg_shader_desc){
             .vs = {
@@ -78,12 +88,6 @@ namespace batteries
             },
         };
 
-        framebuffer->action = (sg_pass_action){
-            .colors[0].load_action = SG_LOADACTION_CLEAR,
-            .depth.load_action = SG_LOADACTION_DONTCARE,
-            .stencil.load_action = SG_LOADACTION_DONTCARE,
-        };
-
         framebuffer->pip = sg_make_pipeline({
             .layout = {
                 .attrs = {
@@ -96,15 +100,15 @@ namespace batteries
         });
 
         // clang-format off
-    float quad_vertices[] = {
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 1.0f, 0.0f,
+        float quad_vertices[] = {
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
 
-        -1.0f, 1.0f, 0.0f, 1.0f,
-         1.0f, -1.0f, 1.0f, 0.0f,
-         1.0f, 1.0f, 1.0f, 1.0f,
-    };
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+        };
         // clang-format on
 
         // apply bindings

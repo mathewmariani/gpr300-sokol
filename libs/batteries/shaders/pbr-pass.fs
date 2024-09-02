@@ -9,18 +9,23 @@ struct PBRMaterial {
   sampler2D occlusion;
   sampler2D specular;
 };
+struct Light {
+  float brightness;
+  vec3 color;
+  vec3 position;
+};
 
 out vec4 FragColor;
 
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 WorldNormal;
+// varyings
+in vec3 vs_position;
+in vec3 vs_normal;
+in vec2 vs_texcoord;
 
 // uniforms
 uniform PBRMaterial material;
-uniform vec3 cameraPos;
-uniform vec3 lightPos;
-uniform vec3 ambient;
+uniform Light light;
+uniform vec3 camera_position;
 
 // constants
 const vec3 lightColor = vec3(1.0);
@@ -121,15 +126,15 @@ vec3 PBR()
 void main()
 {
   // pre-sample all textures
-  alb = texture(material.albedo, TexCoords).rgb;
-  mtl = texture(material.metallic, TexCoords).r;
-  rgh = texture(material.roughness, TexCoords).r;
-  ao = texture(material.occlusion, TexCoords).r;
-  spec = texture(material.specular, TexCoords).r;
+  alb = texture(material.albedo, vs_texcoord).rgb;
+  mtl = texture(material.metallic, vs_texcoord).r;
+  rgh = texture(material.roughness, vs_texcoord).r;
+  ao = texture(material.occlusion, vs_texcoord).r;
+  spec = texture(material.specular, vs_texcoord).r;
   
-  vec3 N = normalize(WorldNormal);
-  vec3 V = normalize(cameraPos);
-  vec3 L = normalize(lightPos);
+  vec3 N = normalize(vs_normal);
+  vec3 V = normalize(camera_position);
+  vec3 L = normalize(light.position);
   vec3 H = normalize(V + L);
 
   // pre-compute all dot products
@@ -146,7 +151,7 @@ void main()
   float specAmount = pow(max(dot(V, reflectionDir), 0.0f), 32.0);
   vec3 specular = spec * specAmount * lightColor;
 
-  vec3 finalColor = (ambient * alb * ao) + PBR() + specular;
+  vec3 finalColor = (light.color * alb * ao) + PBR() + specular;
 
   // HDR and gamma correction
   // finalColor = finalColor / (finalColor + vec3(1.0));

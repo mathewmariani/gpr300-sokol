@@ -17,8 +17,7 @@ namespace batteries
 
   struct geometry_t
   {
-    sg_pass_action action;
-    sg_attachments attachments;
+    sg_pass pass;
     sg_pipeline pip;
     sg_bindings bind;
 

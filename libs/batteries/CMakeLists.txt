@@ -20,6 +20,8 @@ set(BATTERIES_FILES
     mesh.h
     model.h
     shape.h
+    skybox.cpp
+    skybox.h
     transform.h
     vertex.h)
 

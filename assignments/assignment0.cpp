@@ -12,11 +12,12 @@
 #include "batteries/framebuffer.h"
 #include "batteries/blinnphong.h"
 #include "batteries/gizmo.h"
+#include "batteries/skybox.h"
 
 // stl
 #include <unordered_map>
 
-static constexpr glm::vec4 light_orbit_radius = glm::vec4(2.0f, 0.0f, 2.0f, 1.0f);
+static constexpr glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
 // http://devernay.free.fr/cours/opengl/materials.html
 static std::unordered_map<std::string, batteries::material_t> material_map = {
@@ -54,9 +55,12 @@ static struct
   batteries::framebuffer_t framebuffer;
   batteries::blinnphong_t blinnphong;
   batteries::gizmo_t gizmo;
+  batteries::skybox_t skybox;
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
+
+  batteries::ambient_t ambient;
   batteries::light_t light;
 
   struct
@@ -66,6 +70,10 @@ static struct
     batteries::material_t material;
   } scene;
 } state = {
+    .ambient = {
+        .intensity = 1.0f,
+        .color = {0.5f, 0.5f, 0.5f},
+    },
     .light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
@@ -78,6 +86,10 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
+  state.scene.suzanne.mesh.bindings = (sg_bindings){
+      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
+  };
+
   batteries::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
@@ -93,15 +105,14 @@ void init(void)
 
   boilerplate::setup();
   batteries::create_framebuffer(&state.framebuffer, width, height);
+  batteries::create_skybox_pass(&state.skybox);
   batteries::create_blinnphong_pass(&state.blinnphong);
   batteries::create_gizmo_pass(&state.gizmo);
 
   load_suzanne();
 
   // apply bindings
-  state.blinnphong.bind = (sg_bindings){
-      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
-  };
+  state.blinnphong.bind = state.scene.suzanne.mesh.bindings;
 
   state.scene.material = material_map.at("emerald");
 }
@@ -110,6 +121,11 @@ void draw_ui(void)
 {
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  if (ImGui::CollapsingHeader("Ambient"))
+  {
+    ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Color", &state.ambient.color[0]);
+  }
   if (ImGui::CollapsingHeader("Light"))
   {
     ImGui::SliderFloat("Brightness", &state.light.brightness, 0.0f, 1.0f);
@@ -165,6 +181,7 @@ void frame(void)
   const batteries::fs_blinnphong_params_t fs_params = {
       .material = state.scene.material,
       .light = state.light,
+      .ambient = state.ambient,
       .camera_position = state.camera.position,
   };
   const batteries::vs_gizmo_params_t vs_gizmo_params = {
@@ -174,26 +191,35 @@ void frame(void)
   const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
       .light_color = state.light.color,
   };
+  const batteries::vs_skybox_params_t vs_skybox_params = {
+      .view_proj = state.camera.projection() * glm::mat4(glm::mat3(state.camera.view())),
+  };
+
+  sg_begin_pass(&state.framebuffer.pass);
 
   // blinn-phong pass
-  sg_begin_pass({.action = state.blinnphong.action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.blinnphong.pip);
   sg_apply_bindings(&state.blinnphong.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
   sg_draw(0, state.scene.suzanne.mesh.num_faces * 3, 1);
-  sg_end_pass();
 
   // render light sources
-  sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.gizmo.pip);
   sg_apply_bindings(&state.gizmo.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
   sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+
+  // render skybox
+  sg_apply_pipeline(state.skybox.pip);
+  sg_apply_bindings(&state.skybox.bind);
+  sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_skybox_params));
+  sg_draw(0, 36, 1);
+
   sg_end_pass();
 
-  // display pass
+  // render framebuffer
   sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
   sg_apply_pipeline(state.framebuffer.pip);
   sg_apply_bindings(&state.framebuffer.bind);

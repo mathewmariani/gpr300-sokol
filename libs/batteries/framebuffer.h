@@ -12,6 +12,7 @@ namespace batteries
     sg_image depth;
     sg_sampler sampler;
 
+    sg_pass pass;
     sg_pass_action action;
     sg_pipeline pip;
     sg_bindings bind;

@@ -17,6 +17,7 @@ namespace batteries
   // TODO: use vertex_t instead of float
   struct mesh_t
   {
+    sg_bindings bindings;
     sg_buffer vbuf;
     sg_buffer ibuf;
     fastObjMesh *obj;
