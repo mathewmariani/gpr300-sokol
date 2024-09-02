@@ -13,6 +13,7 @@
 
 #include "batteries/framebuffer.h"
 #include "batteries/gizmo.h"
+#include "batteries/skybox.h"
 
 // shaders
 #include "batteries/shaders/pbr_pass.h"
@@ -47,6 +48,7 @@ static struct
 
     batteries::framebuffer_t framebuffer;
     batteries::gizmo_t gizmo;
+    batteries::skybox_t skybox;
 
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
@@ -191,6 +193,7 @@ void load_togezoshell(void)
 
     // transform
     state.scene.togezoshell.transform.rotation = glm::rotate(90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    state.scene.togezoshell.transform.scale = glm::vec3(0.5f);
 
     state.scene.material = {
         .col = sg_alloc_image(),
@@ -198,6 +201,26 @@ void load_togezoshell(void)
         .rgh = sg_alloc_image(),
         .ao = sg_alloc_image(),
         .spc = sg_alloc_image(),
+    };
+
+    state.scene.togezoshell.mesh.bindings = (sg_bindings){
+        .vertex_buffers[0] = state.scene.togezoshell.mesh.vbuf,
+        .fs = {
+            .images = {
+                [0] = state.scene.material.col,
+                [1] = state.scene.material.mtl,
+                [2] = state.scene.material.rgh,
+                [3] = state.scene.material.ao,
+                [4] = state.scene.material.spc,
+            },
+            .samplers[0] = sg_make_sampler({
+                .min_filter = SG_FILTER_LINEAR,
+                .mag_filter = SG_FILTER_LINEAR,
+                .wrap_u = SG_WRAP_REPEAT,
+                .wrap_v = SG_WRAP_REPEAT,
+                .label = "model-sampler",
+            }),
+        },
     };
 
     batteries::load_img({
@@ -235,30 +258,13 @@ void init(void)
     boilerplate::setup();
     batteries::create_framebuffer(&state.framebuffer, width, height);
     batteries::create_gizmo_pass(&state.gizmo);
+    batteries::create_skybox_pass(&state.skybox);
 
     load_togezoshell();
     create_pbr_pass();
 
-    // create bindings
-    state.pbr.bind = (sg_bindings){
-        .vertex_buffers[0] = state.scene.togezoshell.mesh.vbuf,
-        .fs = {
-            .images = {
-                [0] = state.scene.material.col,
-                [1] = state.scene.material.mtl,
-                [2] = state.scene.material.rgh,
-                [3] = state.scene.material.ao,
-                [4] = state.scene.material.spc,
-            },
-            .samplers[0] = sg_make_sampler({
-                .min_filter = SG_FILTER_LINEAR,
-                .mag_filter = SG_FILTER_LINEAR,
-                .wrap_u = SG_WRAP_REPEAT,
-                .wrap_v = SG_WRAP_REPEAT,
-                .label = "model-sampler",
-            }),
-        },
-    };
+    // apply bindings
+    state.pbr.bind = state.scene.togezoshell.mesh.bindings;
 }
 
 void draw_ui(void)
@@ -278,10 +284,6 @@ void frame(void)
 
     // math required by the scene
     const auto camera_view_proj = state.camera.projection() * state.camera.view();
-
-    // sugar: rotate suzzane
-    // state.scene.togezoshell.transform.rotation = glm::rotate(state.scene.togezoshell.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
-    state.scene.togezoshell.transform.scale = glm::vec3(0.5f);
 
     // sugar: rotate light
     const auto rym = glm::rotate(state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -303,26 +305,35 @@ void frame(void)
     const batteries::fs_gizmo_light_params_t fs_gizmo_light_params = {
         .light_color = state.scene.light.color,
     };
+    const batteries::vs_skybox_params_t vs_skybox_params = {
+        .view_proj = state.camera.projection() * glm::mat4(glm::mat3(state.camera.view())),
+    };
+
+    sg_begin_pass(&state.framebuffer.pass);
 
     // physically based rendering pass
-    sg_begin_pass({.action = state.pbr.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.pbr.pip);
     sg_apply_bindings(&state.pbr.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
     sg_draw(0, state.scene.togezoshell.mesh.num_faces * 3, 1);
-    sg_end_pass();
 
     // render light sources
-    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
     sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+
+    // render skybox
+    sg_apply_pipeline(state.skybox.pip);
+    sg_apply_bindings(&state.skybox.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_skybox_params));
+    sg_draw(0, 36, 1);
+
     sg_end_pass();
 
-    // display pass
+    // render framebuffer
     sg_begin_pass({.action = state.framebuffer.action, .swapchain = sglue_swapchain()});
     sg_apply_pipeline(state.framebuffer.pip);
     sg_apply_bindings(&state.framebuffer.bind);

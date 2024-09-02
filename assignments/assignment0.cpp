@@ -86,6 +86,10 @@ static struct
 void load_suzanne(void)
 {
   state.scene.suzanne.mesh.vbuf = sg_alloc_buffer();
+  state.scene.suzanne.mesh.bindings = (sg_bindings){
+      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
+  };
+
   batteries::load_obj({
       .buffer_id = state.scene.suzanne.mesh.vbuf,
       .mesh = &state.scene.suzanne.mesh,
@@ -108,9 +112,7 @@ void init(void)
   load_suzanne();
 
   // apply bindings
-  state.blinnphong.bind = (sg_bindings){
-      .vertex_buffers[0] = state.scene.suzanne.mesh.vbuf,
-  };
+  state.blinnphong.bind = state.scene.suzanne.mesh.bindings;
 
   state.scene.material = material_map.at("emerald");
 }
