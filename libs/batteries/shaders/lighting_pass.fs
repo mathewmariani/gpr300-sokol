@@ -7,10 +7,14 @@ struct PointLights {
   vec4 color[64];
   vec4 position[64];
 };
-
 struct PointLight {
   vec3 color;
   vec3 position;
+};
+struct Ambient {
+  float intensity;
+  vec3 color;
+  vec3 direction;
 };
 
 in vec2 vs_texcoord;
@@ -23,6 +27,7 @@ uniform sampler2D g_albedo;
 uniform vec3 camera_position;
 uniform int num_instances;
 uniform PointLights lights;
+uniform Ambient ambient;
 
 PointLight get_light(int i)
 {
@@ -59,7 +64,7 @@ void main()
   vec3 normal = texture(g_normal, vs_texcoord).xyz;
   vec3 albedo = texture(g_albedo, vs_texcoord).rgb;
 
-  vec3 lighting = vec3(0.0);
+  vec3 lighting = ambient.intensity * ambient.color;
   for(int i = 0; i < num_instances; i++)
   {
     PointLight light = get_light(i);
