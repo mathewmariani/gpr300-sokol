@@ -26,6 +26,7 @@ namespace batteries
   {
     glm::vec3 camera_position;
     batteries::my_light_t lights;
+    batteries::ambient_t ambient;
     int num_instances;
   };
 

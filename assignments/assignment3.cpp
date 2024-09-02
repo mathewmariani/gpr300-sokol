@@ -15,6 +15,7 @@
 #include "batteries/geometry.h"
 #include "batteries/lighting.h"
 #include "batteries/gizmo.h"
+#include "batteries/skybox.h"
 
 #include <string>
 
@@ -28,12 +29,21 @@ static struct
 {
     uint8_t file_buffer[boilerplate::megabytes(4)];
 
+    batteries::camera_t camera;
+    batteries::camera_controller_t camera_controller;
+
     batteries::framebuffer_t framebuffer;
     batteries::geometry_t geometry;
     batteries::gizmo_t gizmo;
     batteries::lighting_t lighting;
+    batteries::skybox_t skybox;
+
+    batteries::model_t suzanne;
+    batteries::ambient_t ambient;
 
     sg_attachments gizmo_attachments;
+
+    int num_instances;
 
     struct
     {
@@ -44,12 +54,11 @@ static struct
         float radius;
         float instance_offset;
     } debug;
-
-    int num_instances;
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
-    batteries::model_t suzanne;
 } state = {
+    .ambient = {
+        .intensity = 1.0f,
+        .color = {0.5f, 0.5f, 0.5f},
+    },
     .num_instances = 9,
 };
 
@@ -165,6 +174,7 @@ void init(void)
     batteries::create_geometry_pass(&state.geometry, width, height);
     batteries::create_lighting_pass(&state.lighting, &state.geometry);
     batteries::create_gizmo_pass(&state.gizmo);
+    batteries::create_skybox_pass(&state.skybox);
 
     init_instance_data();
     load_suzanne();
@@ -240,7 +250,11 @@ void frame(void)
     const batteries::fs_lighting_params_t fs_lighting_params = {
         .camera_position = state.camera.position,
         .lights = instance_light_data,
+        .ambient = state.ambient,
         .num_instances = state.num_instances,
+    };
+    const batteries::vs_skybox_params_t vs_skybox_params = {
+        .view_proj = state.camera.projection() * glm::mat4(glm::mat3(state.camera.view())),
     };
 
     // render the geometry pass
@@ -253,10 +267,12 @@ void frame(void)
 
     // render the lighting pass
     sg_begin_pass(&state.framebuffer.pass);
+
     sg_apply_pipeline(state.lighting.pip);
     sg_apply_bindings(&state.lighting.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lighting_params));
     sg_draw(0, 6, 1);
+
     sg_end_pass();
 
     // render the gizmo pass
@@ -278,6 +294,13 @@ void frame(void)
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
         sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
     }
+
+    // render skybox
+    sg_apply_pipeline(state.skybox.pip);
+    sg_apply_bindings(&state.skybox.bind);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_skybox_params));
+    sg_draw(0, 36, 1);
+
     sg_end_pass();
 
     // render framebuffer
