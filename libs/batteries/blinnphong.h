@@ -19,6 +19,7 @@ namespace batteries
   {
     material_t material;
     light_t light;
+    ambient_t ambient;
     glm::vec3 camera_position;
   };
 

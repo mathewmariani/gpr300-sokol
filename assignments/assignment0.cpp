@@ -59,6 +59,8 @@ static struct
 
   batteries::camera_t camera;
   batteries::camera_controller_t camera_controller;
+
+  batteries::ambient_t ambient;
   batteries::light_t light;
 
   struct
@@ -68,6 +70,10 @@ static struct
     batteries::material_t material;
   } scene;
 } state = {
+    .ambient = {
+        .intensity = 1.0f,
+        .color = {0.5f, 0.5f, 0.5f},
+    },
     .light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
@@ -113,6 +119,11 @@ void draw_ui(void)
 {
   ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS", ImGui::GetIO().DeltaTime * 1000, 1.0f / ImGui::GetIO().DeltaTime, 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  if (ImGui::CollapsingHeader("Ambient"))
+  {
+    ImGui::SliderFloat("Intensity", &state.ambient.intensity, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Color", &state.ambient.color[0]);
+  }
   if (ImGui::CollapsingHeader("Light"))
   {
     ImGui::SliderFloat("Brightness", &state.light.brightness, 0.0f, 1.0f);
@@ -168,6 +179,7 @@ void frame(void)
   const batteries::fs_blinnphong_params_t fs_params = {
       .material = state.scene.material,
       .light = state.light,
+      .ambient = state.ambient,
       .camera_position = state.camera.position,
   };
   const batteries::vs_gizmo_params_t vs_gizmo_params = {
@@ -178,11 +190,12 @@ void frame(void)
       .light_color = state.light.color,
   };
   const batteries::vs_skybox_params_t vs_skybox_params = {
-      .view_proj = glm::mat4(glm::mat3(view_proj)),
+      .view_proj = state.camera.projection() * glm::mat4(glm::mat3(state.camera.view())),
   };
 
+  sg_begin_pass(&state.framebuffer.pass);
+
   // blinn-phong pass
-  sg_begin_pass({.action = state.blinnphong.action, .attachments = state.framebuffer.attachments});
   sg_apply_pipeline(state.blinnphong.pip);
   sg_apply_bindings(&state.blinnphong.bind);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));

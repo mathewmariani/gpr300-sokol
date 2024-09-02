@@ -8,6 +8,11 @@ struct Material {
   vec3 specular;
   float shininess;
 };
+struct Ambient {
+  float intensity;
+  vec3 color;
+  vec3 direction;
+};
 struct Light {
   float brightness;
   vec3 color;
@@ -23,6 +28,7 @@ in vec2 vs_texcoord;
 
 // uniforms
 uniform Material material;
+uniform Ambient ambient;
 uniform Light light;
 uniform vec3 camera_position;
 
@@ -49,6 +55,7 @@ void main()
   vec3 color = vs_normal * 0.5 + 0.5;
 
   vec3 lighting = blinnPhong(normal, vs_position, light.position, light.color);
+  lighting += ambient.intensity * ambient.color;
   color *= lighting;
 
   FragColor = vec4(color, 1.0);
