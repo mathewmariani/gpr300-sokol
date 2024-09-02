@@ -88,20 +88,43 @@ static struct
 
 void load_skull(void)
 {
+    // allocate resources
     state.scene.skull.model.mesh.vbuf = sg_alloc_buffer();
+    state.scene.skull.albedo = sg_alloc_image();
+    state.scene.skull.zatoon = sg_alloc_image();
+
+    // create bindings
+    state.scene.skull.model.mesh.bindings = (sg_bindings){
+        .vertex_buffers[0] = state.scene.skull.model.mesh.vbuf,
+        .fs = {
+            .images{
+                [0] = state.scene.skull.albedo,
+                [1] = state.scene.skull.zatoon,
+            },
+            .samplers[0] = sg_make_sampler({
+                .min_filter = SG_FILTER_LINEAR,
+                .mag_filter = SG_FILTER_LINEAR,
+                .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+                .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+                .label = "object-sampler",
+            }),
+        },
+    };
+
+    // transforms
+    state.scene.skull.model.transform.scale = glm::vec3(0.05f);
+
     batteries::load_obj({
         .buffer_id = state.scene.skull.model.mesh.vbuf,
         .mesh = &state.scene.skull.model.mesh,
         .path = "assets/skull/skull.obj",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    state.scene.skull.albedo = sg_alloc_image();
     batteries::load_img({
         .image_id = state.scene.skull.albedo,
         .path = "assets/skull/skull.png",
         .buffer = SG_RANGE(state.file_buffer),
     });
-    state.scene.skull.zatoon = sg_alloc_image();
     batteries::load_img({
         .image_id = state.scene.skull.zatoon,
         .path = "assets/skull/ZAtoon.png",
@@ -204,22 +227,7 @@ void init(void)
     create_object_pass();
 
     // create bindings
-    state.object_pass.bind = (sg_bindings){
-        .vertex_buffers[0] = state.scene.skull.model.mesh.vbuf,
-        .fs = {
-            .images{
-                [0] = state.scene.skull.albedo,
-                [1] = state.scene.skull.zatoon,
-            },
-            .samplers[0] = sg_make_sampler({
-                .min_filter = SG_FILTER_LINEAR,
-                .mag_filter = SG_FILTER_LINEAR,
-                .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-                .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-                .label = "object-sampler",
-            }),
-        },
-    };
+    state.object_pass.bind = state.scene.skull.model.mesh.bindings;
 }
 
 void draw_ui(void)
@@ -264,10 +272,6 @@ void frame(void)
     // math required by the scene
     const auto camera_view_proj = state.camera.projection() * state.camera.view();
 
-    // sugar: rotate and scale
-    // state.scene.skull.model.transform.rotation = glm::rotate(state.scene.skull.model.transform.rotation, t, glm::vec3(0.0, 1.0, 0.0));
-    state.scene.skull.model.transform.scale = glm::vec3(0.05f);
-
     // sugar: rotate light
     const auto rym = glm::rotate(state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
     state.scene.light.position = rym * light_orbit_radius;
@@ -289,22 +293,22 @@ void frame(void)
         .light_color = state.scene.palette.highlight,
     };
 
+    sg_begin_pass(&state.framebuffer.pass);
+
     // graphics pass
-    sg_begin_pass({.action = state.object_pass.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.object_pass.pip);
     sg_apply_bindings(&state.object_pass.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
     sg_draw(0, state.scene.skull.model.mesh.num_faces * 3, 1);
-    sg_end_pass();
 
     // render light sources
-    sg_begin_pass({.action = state.gizmo.action, .attachments = state.framebuffer.attachments});
     sg_apply_pipeline(state.gizmo.pip);
     sg_apply_bindings(&state.gizmo.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_light_params));
     sg_draw(state.gizmo.sphere.base_element, state.gizmo.sphere.num_elements, 1);
+
     sg_end_pass();
 
     // display pass
