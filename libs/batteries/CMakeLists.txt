@@ -19,6 +19,8 @@ set(BATTERIES_FILES
     materials.h
     mesh.h
     model.h
+    scene.cpp
+    scene.h
     shape.h
     skybox.cpp
     skybox.h

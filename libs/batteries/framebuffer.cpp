@@ -1,4 +1,5 @@
 #include "framebuffer.h"
+#include "sokol/sokol_glue.h"
 
 namespace
 {
@@ -63,12 +64,13 @@ namespace batteries
         };
 
         framebuffer->pass = (sg_pass){
-            .action = framebuffer->action,
-            .attachments = sg_make_attachments({
-                .colors[0].image = framebuffer->color,
-                .depth_stencil.image = framebuffer->depth,
-                .label = "framebuffer-attachments",
-            }),
+            .action = (sg_pass_action){
+                .colors[0] = {
+                    .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+                    .load_action = SG_LOADACTION_CLEAR,
+                },
+            },
+            .swapchain = sglue_swapchain(),
         };
 
         auto display_shader_desc = (sg_shader_desc){

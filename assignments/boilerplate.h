@@ -34,9 +34,6 @@ namespace boilerplate
 #define SOKOL_IMGUI_IMPL
 #include "sokol/sokol_imgui.h"
 
-// libs
-#include "stb/stb_image.h"
-
 namespace boilerplate
 {
   void setup(void)
@@ -62,8 +59,6 @@ namespace boilerplate
     simgui_setup((simgui_desc_t){
         .logger.func = slog_func,
     });
-
-    // stbi_set_flip_vertically_on_load(true);
   }
 
   void shutdown(void)

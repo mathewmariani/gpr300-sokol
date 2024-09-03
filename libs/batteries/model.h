@@ -3,8 +3,7 @@
 // batteries
 #include "transform.h"
 #include "vertex.h"
-
-#include <vector>
+#include "mesh.h"
 
 namespace batteries
 {

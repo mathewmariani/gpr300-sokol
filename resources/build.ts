@@ -65,15 +65,15 @@ function _buildWebsite() {
   });
 
   // glob all .wasm files
-  const wasm_glob = globSync("build/assignments/Release/*.wasm");
+  const wasm_glob = globSync("build/assignments/Debug/*.wasm");
   wasm_glob.forEach((file: string) => {
     const name = path.parse(file).name;
     let demo_page = Mustache.render(demo, { name: name, script: `${name}.js` })
 
     // render .html, and copy .js .wasm
     fs.writeFile(`website/demo/${name}.html`, demo_page, (err) => { if (err) { console.error("Error writing file:", err); } });
-    fs.copyFile(`build/assignments/Release/${name}.js`, `website/demo/${name}.js`, (err) => { if (err) { console.error("Error copying file:", err); } });
-    fs.copyFile(`build/assignments/Release/${name}.wasm`, `website/demo/${name}.wasm`, (err) => { if (err) { console.error("Error copying file:", err); } });
+    fs.copyFile(`build/assignments/Debug/${name}.js`, `website/demo/${name}.js`, (err) => { if (err) { console.error("Error copying file:", err); } });
+    fs.copyFile(`build/assignments/Debug/${name}.wasm`, `website/demo/${name}.wasm`, (err) => { if (err) { console.error("Error copying file:", err); } });
   });
 
   // copy assets to output

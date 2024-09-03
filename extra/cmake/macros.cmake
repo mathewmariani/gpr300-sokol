@@ -30,6 +30,20 @@ macro(add_assignment target file)
   emscripten(${target})
 endmacro()
 
+macro(add_assignment_ext target sources)
+  add_executable(${target} ${sources})
+
+  target_link_libraries(${target} PRIVATE batteries)
+  target_link_libraries(${target} PRIVATE fast_obj)
+  target_link_libraries(${target} PRIVATE glm)
+  target_link_libraries(${target} PRIVATE imgui)
+  target_link_libraries(${target} PRIVATE sokol)
+  target_link_libraries(${target} PRIVATE stb)
+  target_include_directories(${target} PUBLIC ../../libs)
+
+  emscripten(${target})
+endmacro()
+
 macro(process_shaders)
   # glob all *.{vs, fs} files
   file(GLOB_RECURSE SHADER_FILES
