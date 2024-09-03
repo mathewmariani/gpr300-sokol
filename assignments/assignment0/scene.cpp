@@ -2,11 +2,25 @@
 
 #include "batteries/assets.h"
 
-static constexpr glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 static uint8_t file_buffer[1024 * 1024 * 5];
 
 Scene::Scene()
 {
+    batteries::create_skybox_pass(&skybox);
+    batteries::create_blinnphong_pass(&blinnphong);
+    batteries::create_gizmo_pass(&gizmo);
+
+    ambient = (batteries::ambient_t){
+        .intensity = 1.0f,
+        .color = {0.5f, 0.5f, 0.5f},
+    };
+
+    light = (batteries::light_t){
+        .brightness = 1.0f,
+        .color = {1.0f, 1.0f, 1.0f},
+    };
+
     suzanne.mesh.vbuf = sg_alloc_buffer();
     suzanne.mesh.bindings = (sg_bindings){
         .vertex_buffers[0] = suzanne.mesh.vbuf,
@@ -62,9 +76,9 @@ void Scene::Render(void)
     // apply bindings
     blinnphong.bind = suzanne.mesh.bindings;
 
-    sg_begin_pass(&framebuffer.pass);
+    sg_begin_pass({.action = blinnphong.action, .attachments = framebuffer.attachments});
 
-    // blinn-phong pass
+    // render using blinn-phong pipeline
     sg_apply_pipeline(blinnphong.pip);
     sg_apply_bindings(&blinnphong.bind);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
