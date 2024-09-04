@@ -56,13 +56,6 @@ namespace batteries
             .mag_filter = SG_FILTER_LINEAR,
         });
 
-        framebuffer->action = (sg_pass_action){
-            .colors[0] = {
-                .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-                .load_action = SG_LOADACTION_CLEAR,
-            },
-        };
-
         framebuffer->pass = (sg_pass){
             .action = (sg_pass_action){
                 .colors[0] = {

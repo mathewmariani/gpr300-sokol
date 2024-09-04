@@ -3,8 +3,6 @@ process_shaders()
 set(BATTERIES_FILES
     assets.cpp
     assets.h
-    blinnphong.cpp
-    blinnphong.h
     camera.cpp
     camera.h
     framebuffer.cpp
@@ -20,6 +18,8 @@ set(BATTERIES_FILES
     mesh.h
     model.h
     pass.h
+    postprocess.cpp
+    postprocess.h
     scene.cpp
     scene.h
     shape.h
