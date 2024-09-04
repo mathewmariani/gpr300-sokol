@@ -21,7 +21,7 @@ namespace batteries
     sg_buffer vbuf;
     sg_buffer ibuf;
     fastObjMesh *obj;
-    int num_faces;
+    int num_faces = 0;
     std::vector<float> vertices;
     std::vector<uint16_t> indices;
   };

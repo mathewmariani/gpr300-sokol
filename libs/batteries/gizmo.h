@@ -3,30 +3,35 @@
 // glm
 #include "glm/glm.hpp"
 
+// batteries
+#include "pass.h"
+
 // sokol
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_shape.h"
 
 namespace batteries
 {
-  struct vs_gizmo_params_t
+  class Gizmo final : public Pass
   {
-    glm::mat4 view_proj;
-    glm::mat4 model;
-  };
+  public:
+    struct vs_params_t
+    {
+      glm::mat4 view_proj;
+      glm::mat4 model;
+    };
 
-  struct fs_gizmo_light_params_t
-  {
-    glm::vec3 light_color;
-  };
+    struct fs_params_t
+    {
+      glm::vec3 color;
+    };
 
-  struct gizmo_t
-  {
-    sg_pass_action action;
-    sg_pipeline pip;
-    sg_bindings bind;
+  public:
+    Gizmo();
+
+    void Render(const vs_params_t vs_params, const fs_params_t fs_params);
+
+  private:
     sshape_element_range_t sphere;
   };
-
-  void create_gizmo_pass(gizmo_t *pass);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "batteries/framebuffer.h"
-#include "batteries/blinnphong.h"
+#include "blinnphong.h"
+
 #include "batteries/gizmo.h"
 #include "batteries/skybox.h"
 #include "batteries/materials.h"
@@ -19,10 +19,10 @@ public:
   void Render();
 
 private:
-  batteries::blinnphong_t blinnphong;
-  batteries::gizmo_t gizmo;
-  batteries::skybox_t skybox;
+  BlinnPhong blinnphong;
 
+  batteries::Gizmo gizmo;
+  batteries::Skybox skybox;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::model_t suzanne;

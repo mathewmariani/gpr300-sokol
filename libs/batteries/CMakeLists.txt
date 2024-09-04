@@ -19,6 +19,7 @@ set(BATTERIES_FILES
     materials.h
     mesh.h
     model.h
+    pass.h
     scene.cpp
     scene.h
     shape.h

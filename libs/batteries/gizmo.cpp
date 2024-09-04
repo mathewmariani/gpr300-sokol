@@ -3,14 +3,14 @@
 
 namespace batteries
 {
-    void create_gizmo_pass(gizmo_t *pass)
+    Gizmo::Gizmo()
     {
         auto shader_desc = (sg_shader_desc){
             .vs = {
                 .source = shapes_vs,
                 .uniform_blocks[0] = {
                     .layout = SG_UNIFORMLAYOUT_NATIVE,
-                    .size = sizeof(vs_gizmo_params_t),
+                    .size = sizeof(vs_params_t),
                     .uniforms = {
                         [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                         [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
@@ -21,20 +21,15 @@ namespace batteries
                 .source = shapes_fs,
                 .uniform_blocks[0] = {
                     .layout = SG_UNIFORMLAYOUT_NATIVE,
-                    .size = sizeof(fs_gizmo_light_params_t),
+                    .size = sizeof(fs_params_t),
                     .uniforms = {
-                        [0] = {.name = "light_color", .type = SG_UNIFORMTYPE_FLOAT3},
+                        [0] = {.name = "color", .type = SG_UNIFORMTYPE_FLOAT3},
                     },
                 },
             },
         };
 
-        pass->action = (sg_pass_action){
-            .colors[0].load_action = SG_LOADACTION_LOAD,
-            .depth.load_action = SG_LOADACTION_LOAD,
-        };
-
-        pass->pip = sg_make_pipeline({
+        pip = sg_make_pipeline({
             .shader = sg_make_shader(shader_desc),
             .layout = {
                 .buffers[0] = sshape_vertex_buffer_layout_state(),
@@ -62,21 +57,30 @@ namespace batteries
             .vertices.buffer = SSHAPE_RANGE(vertices),
             .indices.buffer = SSHAPE_RANGE(indices),
         };
-        const sshape_sphere_t sphere = {
+        const sshape_sphere_t shape = {
             .radius = 0.125f,
             .slices = 5,
             .stacks = 4,
         };
-        buf = sshape_build_sphere(&buf, &sphere);
+        buf = sshape_build_sphere(&buf, &shape);
         assert(buf.valid);
 
         // one vertex/index-buffer-pair for all shapes
-        pass->sphere = sshape_element_range(&buf);
+        sphere = sshape_element_range(&buf);
         const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
         const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
-        pass->bind = (sg_bindings){
+        bind = (sg_bindings){
             .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
             .index_buffer = sg_make_buffer(&ibuf_desc),
         };
+    }
+
+    void Gizmo::Render(const vs_params_t vs_params, const fs_params_t fs_params)
+    {
+        sg_apply_pipeline(pip);
+        sg_apply_bindings(&bind);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
+        sg_draw(sphere.base_element, sphere.num_elements, 1);
     }
 }
