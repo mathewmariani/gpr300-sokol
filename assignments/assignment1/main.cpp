@@ -38,7 +38,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 }
 
 //
-// Assignment0 -- Blinn Phong
+// Assignment1 -- Post Processing Effects
 //
 
 #include "scene.h"

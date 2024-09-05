@@ -2,9 +2,15 @@ set(ASSIGNMENT1_FILES
     main.cpp
     blinnphong.cpp
     blinnphong.h
+    blur.cpp
+    blur.h
+    chromaticaberration.cpp
+    chromaticaberration.h
     grayscale.cpp
     grayscale.h
+    inverse.cpp
+    inverse.h
     scene.cpp
     scene.h)
 
-add_assignment_ext(assignmen1 "${ASSIGNMENT1_FILES}")
+add_assignment(assignmen1 "${ASSIGNMENT1_FILES}")

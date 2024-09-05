@@ -12,7 +12,6 @@ namespace batteries
     PostProcess();
     ~PostProcess() = default;
 
-  protected:
     sg_pipeline pip;
   };
 }

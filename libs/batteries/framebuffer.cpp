@@ -1,5 +1,7 @@
 #include "framebuffer.h"
+#include "sokol/sokol_app.h"
 #include "sokol/sokol_glue.h"
+#include "sokol/sokol_gfx.h"
 
 namespace
 {
@@ -28,35 +30,25 @@ namespace
 
 namespace batteries
 {
-    void create_framebuffer(framebuffer_t *framebuffer, int width, int height)
+    Framebuffer::Framebuffer()
     {
-        // color attachment
-        framebuffer->color = sg_make_image({
-            .pixel_format = SG_PIXELFORMAT_RGBA8,
+        sg_image_desc img_desc = {
             .render_target = true,
-            .width = width,
-            .height = height,
-            .label = "framebuffer-color-image",
-        });
+            .width = sapp_width(),
+            .height = sapp_height(),
+        };
+
+        // color attachment
+        img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+        img_desc.label = "framebuffer-color-image";
+        color = sg_make_image(img_desc);
 
         // depth attachment
-        framebuffer->depth = sg_make_image({
-            .pixel_format = SG_PIXELFORMAT_DEPTH,
-            .render_target = true,
-            .width = width,
-            .height = height,
-            .label = "framebuffer-depth-image",
-        });
+        img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
+        img_desc.label = "framebuffer-depth-image";
+        depth = sg_make_image(img_desc);
 
-        // image sampler
-        framebuffer->sampler = sg_make_sampler({
-            .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-            .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-            .min_filter = SG_FILTER_LINEAR,
-            .mag_filter = SG_FILTER_LINEAR,
-        });
-
-        framebuffer->pass = (sg_pass){
+        pass = (sg_pass){
             .action = (sg_pass_action){
                 .colors[0] = {
                     .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
@@ -66,9 +58,9 @@ namespace batteries
             .swapchain = sglue_swapchain(),
         };
 
-        framebuffer->attachments = sg_make_attachments({
-            .colors[0].image = framebuffer->color,
-            .depth_stencil.image = framebuffer->depth,
+        attachments = sg_make_attachments({
+            .colors[0].image = color,
+            .depth_stencil.image = depth,
             .label = "framebuffer-attachments",
         });
 
@@ -89,7 +81,7 @@ namespace batteries
             },
         };
 
-        framebuffer->pip = sg_make_pipeline({
+        pip = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -113,15 +105,36 @@ namespace batteries
         // clang-format on
 
         // apply bindings
-        framebuffer->bind = (sg_bindings){
+        bind = (sg_bindings){
             .vertex_buffers[0] = sg_make_buffer({
                 .data = SG_RANGE(quad_vertices),
                 .label = "quad-vertices",
             }),
             .fs = {
-                .images[0] = framebuffer->color,
-                .samplers[0] = framebuffer->sampler,
+                .images[0] = color,
+                .samplers[0] = sg_make_sampler({
+                    .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+                    .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+                    .min_filter = SG_FILTER_LINEAR,
+                    .mag_filter = SG_FILTER_LINEAR,
+                }),
             },
         };
+    }
+
+    void Framebuffer::Render()
+    {
+        sg_begin_pass(&pass);
+        sg_apply_pipeline(pip);
+        sg_apply_bindings(&bind);
+        sg_draw(0, 6, 1);
+    }
+
+    void Framebuffer::Render(const PostProcess *effect)
+    {
+        sg_begin_pass(&pass);
+        sg_apply_pipeline(effect->pip);
+        sg_apply_bindings(&bind);
+        sg_draw(0, 6, 1);
     }
 }

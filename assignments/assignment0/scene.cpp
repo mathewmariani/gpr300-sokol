@@ -108,11 +108,7 @@ void Scene::Render(void)
 
     sg_end_pass();
 
-    // render framebuffer
-    sg_begin_pass(&framebuffer.pass);
-    sg_apply_pipeline(framebuffer.pip);
-    sg_apply_bindings(&framebuffer.bind);
-    sg_draw(0, 6, 1);
+    framebuffer.Render();
 
     // sg_end_pass();
     // sg_commit();

@@ -20,6 +20,6 @@ namespace batteries
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
 
-    batteries::framebuffer_t framebuffer;
+    batteries::Framebuffer framebuffer;
   };
 }
