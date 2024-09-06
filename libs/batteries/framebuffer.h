@@ -8,15 +8,8 @@
 
 namespace batteries
 {
-  class Framebuffer
+  struct Framebuffer
   {
-  public:
-    Framebuffer();
-
-    void Render();
-    void Render(const PostProcess *effect);
-
-  public:
     sg_attachments attachments;
     sg_image color;
     sg_image depth;
@@ -25,5 +18,10 @@ namespace batteries
     sg_pass_action action;
     sg_pipeline pip;
     sg_bindings bind;
+
+    Framebuffer();
+
+    void Render();
+    void Render(const PostProcess *effect);
   };
 }

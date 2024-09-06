@@ -22,8 +22,8 @@ in vec3 WorldNormal;
 in vec4 light_proj_pos;
 
 // uniforms
-uniform vec3 light_pos;
-uniform vec3 eye_pos;
+uniform vec3 light_position;
+uniform vec3 camera_position;
 uniform Material material;
 uniform Ambient ambient;
 
@@ -41,7 +41,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 
     // check whether current frag pos is in shadow
     vec3 normal = normalize(WorldNormal);
-    vec3 light_dir = normalize(light_pos - WorldPos);
+    vec3 light_dir = normalize(light_position - WorldPos);
     float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
 
     // PCF
@@ -63,14 +63,14 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 void main()
 {
     vec3 normal = normalize(WorldNormal);
-    vec3 light_dir = normalize(light_pos - WorldPos);
+    vec3 light_dir = normalize(light_position - WorldPos);
 
     // diffuse
     float diff = max(dot(light_dir, normal), 0.0);
     vec3 diffuse = diff * ambient.color;
 
     // specular
-    vec3 to_eye = normalize(eye_pos - WorldPos);
+    vec3 to_eye = normalize(camera_position - WorldPos);
     vec3 h = normalize(light_dir + to_eye);
     float spec = pow(max(dot(normal, h), 0.0), material.shininess);
     vec3 specular = spec * ambient.color;

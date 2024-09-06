@@ -1,7 +1,7 @@
 #pragma once
 
-#include "blinnphong.h"
 #include "depth.h"
+#include "shadow.h"
 
 #include "batteries/depthbuffer.h"
 #include "batteries/gizmo.h"
@@ -21,8 +21,8 @@ public:
   void Render();
 
 private:
-  BlinnPhong blinnphong;
   Depth depth;
+  Shadow shadow;
 
   batteries::Depthbuffer depthbuffer;
   batteries::Gizmo gizmo;

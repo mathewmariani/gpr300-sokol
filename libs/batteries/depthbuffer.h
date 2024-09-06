@@ -5,14 +5,12 @@
 
 namespace batteries
 {
-  class Depthbuffer
+  struct Depthbuffer
   {
-  public:
-    Depthbuffer();
-
-  public:
     sg_pass pass;
     sg_attachments attachments;
     sg_image depth;
+
+    Depthbuffer();
   };
 }

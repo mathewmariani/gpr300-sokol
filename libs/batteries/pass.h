@@ -5,15 +5,13 @@
 
 namespace batteries
 {
-  class Pass
+  struct Pass
   {
-  public:
-    Pass() = default;
-    ~Pass() = default;
-
-  public:
     sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
+
+    Pass() = default;
+    ~Pass() = default;
   };
 }

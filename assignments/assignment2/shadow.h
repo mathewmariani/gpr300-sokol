@@ -6,25 +6,26 @@
 #include "batteries/model.h"
 #include "batteries/pass.h"
 
-class Shadow final : public batteries::Pass
+struct Shadow final : public batteries::Pass
 {
-public:
   struct vs_params_t
   {
-    glm::mat4 view_proj;
     glm::mat4 model;
+    glm::mat4 view_proj;
+    glm::mat4 light_view_proj;
   };
 
   struct fs_params_t
   {
     batteries::material_t material;
-    batteries::light_t light;
     batteries::ambient_t ambient;
     glm::vec3 camera_position;
+    glm::vec3 light_position;
   };
 
-public:
+  sg_sampler sampler;
+
   Shadow();
 
-  void Render(const vs_params_t vs_params, const fs_params_t fs_params, batteries::model_t model);
+  void Render(const vs_params_t vs_params, const fs_params_t fs_params, sg_image depth, batteries::model_t model);
 };
