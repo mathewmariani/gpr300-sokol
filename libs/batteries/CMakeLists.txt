@@ -5,6 +5,8 @@ set(BATTERIES_FILES
     assets.h
     camera.cpp
     camera.h
+    depthbuffer.cpp
+    depthbuffer.h
     framebuffer.cpp
     framebuffer.h
     geometry.cpp

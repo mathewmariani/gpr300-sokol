@@ -1,4 +1,4 @@
-set(ASSIGNMENT1_FILES
+set(ASSIGNMENT_FILES
     main.cpp
     blinnphong.cpp
     blinnphong.h
@@ -13,4 +13,4 @@ set(ASSIGNMENT1_FILES
     scene.cpp
     scene.h)
 
-add_assignment(assignmen1 "${ASSIGNMENT1_FILES}")
+add_assignment(assignmen1 "${ASSIGNMENT_FILES}")
