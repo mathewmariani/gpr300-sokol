@@ -48,6 +48,12 @@ namespace batteries
         img_desc.label = "framebuffer-depth-image";
         depth = sg_make_image(img_desc);
 
+        attachments = sg_make_attachments({
+            .colors[0].image = color,
+            .depth_stencil.image = depth,
+            .label = "framebuffer-attachments",
+        });
+
         pass = (sg_pass){
             .action = (sg_pass_action){
                 .colors[0] = {
@@ -57,12 +63,6 @@ namespace batteries
             },
             .swapchain = sglue_swapchain(),
         };
-
-        attachments = sg_make_attachments({
-            .colors[0].image = color,
-            .depth_stencil.image = depth,
-            .label = "framebuffer-attachments",
-        });
 
         auto display_shader_desc = (sg_shader_desc){
             .vs = {

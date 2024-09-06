@@ -11,8 +11,8 @@ namespace batteries
     Pass() = default;
     ~Pass() = default;
 
-  protected:
-    sg_pass_action action;
+  public:
+    sg_pass_action pass_action;
     sg_pipeline pip;
     sg_bindings bind;
   };

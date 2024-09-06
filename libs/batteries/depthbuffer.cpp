@@ -1,4 +1,7 @@
 #include "depthbuffer.h"
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_glue.h"
+#include "sokol/sokol_gfx.h"
 
 static constexpr int depth_map_size = 1024;
 
@@ -32,9 +35,18 @@ namespace batteries
             .label = "depth-image",
         });
 
-        attachments = sg_make_attachments({
-            .depth_stencil.image = depth,
-            .label = "depthbuffer-attachments",
-        });
+        pass = (sg_pass){
+            .action = (sg_pass_action){
+                .depth = {
+                    .load_action = SG_LOADACTION_CLEAR,
+                    .store_action = SG_STOREACTION_STORE,
+                    .clear_value = 1.0f,
+                },
+            },
+            .attachments = sg_make_attachments({
+                .depth_stencil.image = depth,
+                .label = "depthbuffer-attachments",
+            }),
+        };
     }
 }

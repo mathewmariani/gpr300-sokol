@@ -75,7 +75,7 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    sg_begin_pass({.action = pass_action, .attachments = depthbuffer.attachments});
+    sg_begin_pass(&depthbuffer.pass);
     depth.Render(vs_depth_params, suzanne);
     sg_end_pass();
 

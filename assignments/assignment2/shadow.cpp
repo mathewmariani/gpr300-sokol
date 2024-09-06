@@ -79,11 +79,8 @@ Shadow::Shadow()
 
 void Shadow::Render(const vs_params_t vs_params, const fs_params_t fs_params, batteries::model_t model)
 {
-  // apply bindings
-  // bind.vertex_buffers = model.mesh.bindings.vertex_buffers;
-
   sg_apply_pipeline(pip);
-  sg_apply_bindings(&bind);
+  sg_apply_bindings(&model.mesh.bindings);
   sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
   sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
   sg_draw(0, model.mesh.num_faces * 3, 1);
