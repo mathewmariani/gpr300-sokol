@@ -14,22 +14,28 @@ struct Ambient {
   vec3 color;
   vec3 direction;
 };
+struct Light {
+  float brightness;
+  vec3 color;
+  vec3 position;
+};
 
 out vec4 FragColor;
 
-in vec3 WorldPos;
-in vec3 WorldNormal;
-in vec4 light_proj_pos;
+// varyings
+in vec3 vs_position;
+in vec3 vs_normal;
+in vec4 vs_light_proj_pos;
 
 // uniforms
-uniform vec3 light_position;
-uniform vec3 camera_position;
 uniform Material material;
 uniform Ambient ambient;
+uniform Light light;
+uniform vec3 camera_position;
 
 uniform sampler2DShadow shadow_map;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float shadowCalculation(vec4 fragPosLightSpace)
 {
     // perform perspective divide, and transform to [0,1] range
     vec3 proj_coords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -40,8 +46,8 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float current_depth = proj_coords.z;
 
     // check whether current frag pos is in shadow
-    vec3 normal = normalize(WorldNormal);
-    vec3 light_dir = normalize(light_position - WorldPos);
+    vec3 normal = normalize(vs_normal);
+    vec3 light_dir = normalize(light.position - vs_position);
     float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
 
     // PCF
@@ -60,25 +66,34 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     return shadow;
 }
 
+vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
+{
+  vec3 view_dir = normalize(camera_position - frag_pos);
+  vec3 light_dir = normalize(light_pos - frag_pos);
+  vec3 halfway_dir = normalize(light_dir + view_dir);  
+
+  // diffuse
+  float diff = max(dot(light_dir, normal), 0.0);
+  vec3 diffuse = diff * light_color;
+
+  // specular
+  float spec = pow(max(dot(normal, halfway_dir), 0.0), 64.0);
+  vec3 specular = spec * light_color;    
+
+  return diffuse + specular;
+}
+
 void main()
 {
-    vec3 normal = normalize(WorldNormal);
-    vec3 light_dir = normalize(light_position - WorldPos);
+  vec3 normal = normalize(vs_normal);
+  vec3 color = normal * 0.5 + 0.5;
 
-    // diffuse
-    float diff = max(dot(light_dir, normal), 0.0);
-    vec3 diffuse = diff * ambient.color;
+  float shadow = shadowCalculation(vs_light_proj_pos);
 
-    // specular
-    vec3 to_eye = normalize(camera_position - WorldPos);
-    vec3 h = normalize(light_dir + to_eye);
-    float spec = pow(max(dot(normal, h), 0.0), material.shininess);
-    vec3 specular = spec * ambient.color;
+  vec3 lighting = blinnPhong(normal, vs_position, light.position, light.color);
+  lighting *= (1.0 - shadow);
+  lighting += (ambient.intensity * ambient.color);
+  color *= lighting;
 
-    // calculate shadow
-    float shadow = ShadowCalculation(light_proj_pos);
-    vec3 light_color = (ambient.color * ambient.intensity * material.ambient) + (1.0 - shadow) * (material.diffuse * diffuse + material.specular * specular);
-    vec3 object_color = vec3(normal * 0.5 + 0.5);   
-    
-    FragColor = vec4(light_color * object_color, 1.0);
+  FragColor = vec4(color, 1.0);
 }

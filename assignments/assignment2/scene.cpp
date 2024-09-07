@@ -51,6 +51,8 @@ void Scene::Update(float dt)
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
+
+    ambient.direction = glm::normalize(glm::vec3(0.0f, 0.0f, 0.0f) - light.position);
 }
 
 void Scene::Render(void)
@@ -74,9 +76,9 @@ void Scene::Render(void)
     };
     const Shadow::fs_params_t fs_shadow_params = {
         .material = material,
+        .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
-        .light_position = light.position,
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,

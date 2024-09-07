@@ -18,9 +18,9 @@ struct Shadow final : public batteries::Pass
   struct fs_params_t
   {
     batteries::material_t material;
+    batteries::light_t light;
     batteries::ambient_t ambient;
     glm::vec3 camera_position;
-    glm::vec3 light_position;
   };
 
   sg_sampler sampler;

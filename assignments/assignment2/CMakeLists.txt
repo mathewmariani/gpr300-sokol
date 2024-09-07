@@ -1,7 +1,5 @@
 set(ASSIGNMENT_FILES
     main.cpp
-    blinnphong.cpp
-    blinnphong.h
     depth.cpp
     depth.h
     scene.cpp
