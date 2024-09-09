@@ -26,6 +26,5 @@ struct Shadow final : public batteries::Pass
   sg_sampler sampler;
 
   Shadow();
-
   void Render(const vs_params_t vs_params, const fs_params_t fs_params, sg_image depth, batteries::model_t model);
 };
