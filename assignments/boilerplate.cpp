@@ -29,7 +29,7 @@ sapp_desc sokol_main(int argc, char *argv[])
       .cleanup_cb = cleanup,
       .event_cb = event,
       .width = 800,
-      .height = 800,
+      .height = 600,
       .window_title = "gpr300-sokol",
       .logger = {
           .func = slog_func,
@@ -38,7 +38,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 }
 
 //
-// Assignment0 -- Blinn Phong
+// Boilerplate
 //
 
 #include "scene.h"
@@ -82,12 +82,15 @@ void cleanup(void)
 void frame(void)
 {
   const auto t = (float)sapp_frame_duration();
+  const auto w = sapp_width();
+  const auto h = sapp_height();
 
   sfetch_dowork();
-  simgui_new_frame({sapp_width(), sapp_height(), t, sapp_dpi_scale()});
+  simgui_new_frame({w, h, t, sapp_dpi_scale()});
 
   scene->Update(t);
   scene->Render();
+  scene->Debug();
 
   // FIXME:
   // NOTE: this assumes scene.Render() doens't call `sg_end_pass()` and `sg_commit()`

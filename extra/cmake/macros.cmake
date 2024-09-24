@@ -12,14 +12,14 @@ macro(emscripten target)
 endmacro()
 
 macro(add_assignment target sources)
-  add_executable(${target} ${sources})
-
+  add_executable(${target} ${sources} ../boilerplate.cpp)
   target_link_libraries(${target} PRIVATE batteries)
   target_link_libraries(${target} PRIVATE fast_obj)
   target_link_libraries(${target} PRIVATE glm)
   target_link_libraries(${target} PRIVATE imgui)
   target_link_libraries(${target} PRIVATE sokol)
   target_link_libraries(${target} PRIVATE stb)
+  target_include_directories(${target} PUBLIC .)
   target_include_directories(${target} PUBLIC ../../libs)
 
   emscripten(${target})

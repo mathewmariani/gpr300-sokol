@@ -1,5 +1,4 @@
 set(ASSIGNMENT_FILES
-    main.cpp
     depth.cpp
     depth.h
     scene.cpp

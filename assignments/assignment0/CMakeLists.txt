@@ -1,5 +1,4 @@
 set(ASSIGNMENT_FILES
-    main.cpp
     blinnphong.cpp
     blinnphong.h
     scene.cpp
