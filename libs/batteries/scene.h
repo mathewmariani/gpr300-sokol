@@ -14,6 +14,7 @@ namespace batteries
     virtual void Update(float dt);
     virtual void Render(void) {};
     virtual void Debug(void) {};
+    virtual void Event(const sapp_event *event);
 
   protected:
     sg_pass_action pass_action;

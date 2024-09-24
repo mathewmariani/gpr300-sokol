@@ -156,7 +156,7 @@ Scene::~Scene()
 
 void Scene::Update(float dt)
 {
-    // batteries::Scene::Update(dt);
+    batteries::Scene::Update(dt);
 }
 
 void Scene::Render(void)

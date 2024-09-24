@@ -44,6 +44,8 @@ sapp_desc sokol_main(int argc, char *argv[])
 #include "scene.h"
 
 static Scene *scene;
+static batteries::camera_t camera;
+static batteries::camera_controller_t camera_controller;
 
 void init(void)
 {
@@ -85,6 +87,8 @@ void frame(void)
   const auto w = sapp_width();
   const auto h = sapp_height();
 
+  camera_controller.update(&camera, t);
+
   sfetch_dowork();
   simgui_new_frame({w, h, t, sapp_dpi_scale()});
 
@@ -105,4 +109,5 @@ void frame(void)
 void event(const sapp_event *event)
 {
   simgui_handle_event(event);
+  scene->Event(event);
 }

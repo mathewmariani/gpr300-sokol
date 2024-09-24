@@ -25,4 +25,9 @@ namespace batteries
   {
     camera_controller.update(&camera, dt);
   }
+
+  void Scene::Event(const sapp_event *event)
+  {
+    camera_controller.event(event);
+  }
 }

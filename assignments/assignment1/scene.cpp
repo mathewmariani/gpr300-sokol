@@ -50,6 +50,8 @@ Scene::~Scene()
 
 void Scene::Update(float dt)
 {
+    batteries::Scene::Update(dt);
+
     static auto ry = 0.0f;
     ry += dt;
 
