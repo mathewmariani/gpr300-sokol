@@ -34,8 +34,8 @@ namespace batteries
     {
         sg_image_desc img_desc = {
             .render_target = true,
-            .width = sapp_width(),
-            .height = sapp_height(),
+            .width = 800,
+            .height = 600,
         };
 
         // color attachment

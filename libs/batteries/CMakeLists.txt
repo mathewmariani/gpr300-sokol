@@ -9,14 +9,11 @@ set(BATTERIES_FILES
     framebuffer.cpp
     framebuffer.h
     gbuffer.h
-    geometry.cpp
-    geometry.h
     gizmo.cpp
     gizmo.h
-    lighting.cpp
-    lighting.h
     lights.h
     materials.h
+    math.h
     mesh.h
     model.h
     pass.h

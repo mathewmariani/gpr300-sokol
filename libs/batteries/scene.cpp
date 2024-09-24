@@ -10,6 +10,11 @@ namespace batteries
             .load_action = SG_LOADACTION_CLEAR,
         },
     };
+
+    deferred_action = (sg_pass_action){
+        .colors[0].load_action = SG_LOADACTION_LOAD,
+        .depth.load_action = SG_LOADACTION_LOAD,
+    };
   }
 
   Scene::~Scene()
@@ -19,9 +24,5 @@ namespace batteries
   void Scene::Update(float dt)
   {
     camera_controller.update(&camera, dt);
-  }
-
-  void Scene::Render(void)
-  {
   }
 }

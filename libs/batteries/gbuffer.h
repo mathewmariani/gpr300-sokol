@@ -25,16 +25,16 @@ namespace batteries
             };
 
             img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
-            geometry->position_img = sg_make_image(&img_desc);
+            position_img = sg_make_image(&img_desc);
 
             img_desc.pixel_format = SG_PIXELFORMAT_RGBA16F;
-            geometry->normal_img = sg_make_image(&img_desc);
+            normal_img = sg_make_image(&img_desc);
 
             img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-            geometry->color_img = sg_make_image(&img_desc);
+            color_img = sg_make_image(&img_desc);
 
             img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
-            geometry->depth_img = sg_make_image(&img_desc);
+            depth_img = sg_make_image(&img_desc);
 
             pass = (sg_pass){
                 .action = (sg_pass_action){
@@ -51,11 +51,11 @@ namespace batteries
                 },
                 .attachments = sg_make_attachments({
                     .colors = {
-                        [0].image = geometry->position_img,
-                        [1].image = geometry->normal_img,
-                        [2].image = geometry->color_img,
+                        [0].image = position_img,
+                        [1].image = normal_img,
+                        [2].image = color_img,
                     },
-                    .depth_stencil.image = geometry->depth_img,
+                    .depth_stencil.image = depth_img,
                     .label = "geometry-pass",
                 }),
             };
