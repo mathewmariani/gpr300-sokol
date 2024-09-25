@@ -1,7 +1,7 @@
 # Assignment 0
 <p class="lead">Blinn-Phong Lighting Model</p>
 
-{{ demo }}
+{{{ demo }}}
 
 #### Goal
 
