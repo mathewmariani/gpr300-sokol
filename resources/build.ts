@@ -15,6 +15,9 @@ const meta = fs.readFileSync("resources/mustache/meta.mustache", "utf8");
 const header = fs.readFileSync("resources/mustache/header.mustache", "utf8");
 const footer = fs.readFileSync("resources/mustache/footer.mustache", "utf8");
 const demo = fs.readFileSync("resources/mustache/demo.mustache", "utf8");
+const assignment = fs.readFileSync("resources/mustache/assignment.mustache", "utf8");
+
+const assignments_path = "resources/content/assignments";
 
 // builds a single page
 function _buildPage(body: string) {
@@ -34,6 +37,29 @@ function _copyDirectory(source: string, destination: string) {
   });
 }
 
+function _buildAssignments() {
+  console.log("Building assignments...");
+
+  // glob all .md files
+  const md_glob = globSync(`${assignments_path}/*.md`);
+  md_glob.forEach((file: string) => {
+    try {
+      const name = path.parse(file).name;
+      const body = fs.readFileSync(file, "utf8");
+      const page = Mustache.render(body, { demo: assignment });
+      const content = Mustache.render(_buildPage(page), { script: `demo/${name}.js` });
+
+      fs.writeFile(`website/${name}.html`, content, (err) => {
+        if (err) {
+          console.error("Error writing file:", err);
+        }
+      });
+    } catch (err) {
+      console.error("Error processing file:", err);
+    }
+  });
+}
+
 function _buildWebsite() {
   console.log("Building website...");
 
@@ -45,24 +71,26 @@ function _buildWebsite() {
     fs.mkdirSync("website/demo", { recursive: true });
   }
 
-  // glob all .md files
-  const md_glob = globSync("resources/content/*.md");
-  md_glob.forEach((file: string) => {
-    try {
-      const name = path.parse(file).name;
-      const body = fs.readFileSync(file, "utf8");
-      const page = _buildPage(body);
-      const content = md.render(page);
+  _buildAssignments();
 
-      fs.writeFile(`website/${name}.html`, content, (err) => {
-        if (err) {
-          console.error("Error writing file:", err);
-        }
-      });
-    } catch (err) {
-      console.error("Error processing file:", err);
-    }
-  });
+  // glob all .md files
+  // const md_glob = globSync("resources/content/*.md");
+  // md_glob.forEach((file: string) => {
+  //   try {
+  //     const name = path.parse(file).name;
+  //     const body = fs.readFileSync(file, "utf8");
+  //     const page = _buildPage(body);
+  //     const content = md.render(page);
+
+  //     fs.writeFile(`website/${name}.html`, content, (err) => {
+  //       if (err) {
+  //         console.error("Error writing file:", err);
+  //       }
+  //     });
+  //   } catch (err) {
+  //     console.error("Error processing file:", err);
+  //   }
+  // });
 
   // glob all .wasm files
   const wasm_glob = globSync("build/assignments/Debug/*.wasm");

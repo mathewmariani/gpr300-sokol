@@ -14,14 +14,12 @@ pre {
   position: relative;
 }
 
-.demo {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  margin: 0px;
+.game {
+  margin-right: auto;
+  margin-left: auto;
   border: 0;
   width: 800px;
-  height: 800px;
+  height: 600px;
   overflow: hidden;
   display: block;
   image-rendering: optimizeSpeed;
