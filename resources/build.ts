@@ -23,13 +23,13 @@ const wasm_path = "build/assignments/Debug";
 
 // helper functions
 function _copyDirectory(source: string, destination: string) {
-  fs.cp(source, destination, { recursive: true }, (err) => { if (err) { console.error(`Error copying from ${source} to ${destination}:`, err); } });
+  fs.cp(source, destination, { recursive: true }, (err) => { if (err) { console.error(`Error copying directory from ${source} to ${destination}:`, err); } });
 }
 function _copyFile(source: string, destination: string) {
-  fs.copyFile(source, destination, (err) => { if (err) { console.error("Error copying file:", err); } });
+  fs.copyFile(source, destination, (err) => { if (err) { console.error(`Error copying file from ${source} to ${destination}:`, err); } });
 }
 function _writeFile(destination: string, content: string) {
-  fs.writeFile(destination, content, (err) => { if (err) { console.error("Error writing file:", err); } });
+  fs.writeFile(destination, content, (err) => { if (err) { console.error(`Error writting file to ${destination}:`, err); } });
 }
 
 // builds a single page
