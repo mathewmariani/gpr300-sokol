@@ -38,14 +38,12 @@ sapp_desc sokol_main(int argc, char *argv[])
 }
 
 //
-// Boilerplate
+// Boilerplate; a defacto entry point for all assignments.
 //
 
 #include "scene.h"
 
 static Scene *scene;
-static batteries::camera_t camera;
-static batteries::camera_controller_t camera_controller;
 
 void init(void)
 {
@@ -86,8 +84,6 @@ void frame(void)
   const auto t = (float)sapp_frame_duration();
   const auto w = sapp_width();
   const auto h = sapp_height();
-
-  camera_controller.update(&camera, t);
 
   sfetch_dowork();
   simgui_new_frame({w, h, t, sapp_dpi_scale()});

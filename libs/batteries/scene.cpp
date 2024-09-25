@@ -15,6 +15,13 @@ namespace batteries
         .colors[0].load_action = SG_LOADACTION_LOAD,
         .depth.load_action = SG_LOADACTION_LOAD,
     };
+
+    time = {
+        .frame = 0.0,
+        .absolute = 0.0,
+        .factor = 1.0f,
+        .paused = false,
+    };
   }
 
   Scene::~Scene()
@@ -23,6 +30,14 @@ namespace batteries
 
   void Scene::Update(float dt)
   {
+    // update internal timer
+    time.frame = dt;
+    if (!time.paused)
+    {
+      time.absolute += time.frame * time.factor;
+    }
+
+    // update camera
     camera_controller.update(&camera, dt);
   }
 

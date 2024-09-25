@@ -24,5 +24,13 @@ namespace batteries
     batteries::camera_controller_t camera_controller;
 
     batteries::Framebuffer framebuffer;
+
+    struct
+    {
+      double frame;
+      double absolute;
+      float factor;
+      bool paused;
+    } time;
   };
 }
