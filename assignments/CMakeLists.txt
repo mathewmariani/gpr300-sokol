@@ -7,4 +7,5 @@ add_subdirectory(assignment3)
 # work sessions
 add_subdirectory(worksession0)
 add_subdirectory(worksession1)
+add_subdirectory(worksession2)
 add_subdirectory(worksession4)
