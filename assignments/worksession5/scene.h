@@ -1,8 +1,10 @@
 #pragma once
 
-#include "transition.h"
+#include "blinnphong.h"
+// #include "transition.h"
 
 #include "batteries/scene.h"
+#include "batteries/model.h"
 
 struct gradient_t
 {
@@ -21,8 +23,12 @@ public:
   void Debug(void);
 
 private:
-  TransitionRenderer transition;
-  TransitionRenderer::fs_params_t transition_params;
-
+  BlinnPhong blinnPhong;
+  // TransitionRenderer transition;
   gradient_t gradient;
+
+  batteries::ambient_t ambient;
+  batteries::light_t light;
+  batteries::material_t material;
+  batteries::model_t suzanne;
 };

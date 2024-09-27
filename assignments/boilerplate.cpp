@@ -89,7 +89,9 @@ void frame(void)
   simgui_new_frame({w, h, t, sapp_dpi_scale()});
 
   scene->Update(t);
+  scene->Begin();
   scene->Render();
+  scene->End();
   scene->Debug();
 
   // FIXME:

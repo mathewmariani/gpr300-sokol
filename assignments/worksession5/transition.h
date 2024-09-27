@@ -7,23 +7,23 @@
 // glm
 #include "glm/glm.hpp"
 
-struct Transition final : public batteries::PostProcessEffectSettings
-{
-    float cutoff;
-    glm::vec3 color;
-};
+// sokol
+#include "sokol/sokol_glue.h"
 
-struct TransitionRenderer final : public batteries::PostProcess
+struct Transition final : public batteries::PostProcessEffectSettings
 {
     struct fs_params_t
     {
         float cutoff;
         glm::vec3 color;
-    };
+    } fs_params;
+};
 
+struct TransitionRenderer final : public batteries::PostProcessEffect<Transition>
+{
     TransitionRenderer()
     {
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT2,
@@ -38,7 +38,7 @@ struct TransitionRenderer final : public batteries::PostProcess
                     .source = transition_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
-                        .size = sizeof(fs_params_t),
+                        .size = sizeof(Transition::fs_params_t),
                         .uniforms = {
                             [0] = {.name = "transition.cutoff", .type = SG_UNIFORMTYPE_FLOAT},
                             [1] = {.name = "transition.color", .type = SG_UNIFORMTYPE_FLOAT3},
@@ -56,5 +56,17 @@ struct TransitionRenderer final : public batteries::PostProcess
             }),
             .label = "transition-pipeline",
         });
+    }
+
+    void Render(void)
+    {
+        if (!settings.active)
+        {
+            return;
+        }
+
+        sg_apply_pipeline(pipeline);
+        // sg_apply_bindings(&bindings);
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(settings.fs_params));
     }
 };

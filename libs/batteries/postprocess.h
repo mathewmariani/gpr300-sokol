@@ -3,6 +3,9 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
+// stl
+#include <type_traits>
+
 namespace batteries
 {
   // FIXME: could be a struct, and a single header
@@ -18,5 +21,15 @@ namespace batteries
   struct PostProcessEffectSettings
   {
     bool active = true;
+  };
+
+  template <typename T>
+  struct PostProcessEffect
+  {
+    static_assert(std::is_same<T, PostProcessEffectSettings>::value, "Template parameter T must be PostProcessEffectSettings");
+
+    sg_pass pass;
+    sg_pipeline pipeline;
+    T settings;
   };
 }

@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "framebuffer.h"
+#include "skybox.h"
 
 namespace batteries
 {
@@ -16,6 +17,9 @@ namespace batteries
     virtual void Debug(void) {};
     virtual void Event(const sapp_event *event);
 
+    void Begin(void);
+    void End(void);
+
   protected:
     sg_pass_action pass_action;
     sg_pass_action deferred_action;
@@ -23,6 +27,7 @@ namespace batteries
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
 
+    batteries::Skybox skybox;
     batteries::Framebuffer framebuffer;
 
     struct

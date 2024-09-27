@@ -1,12 +1,6 @@
 #include "scene.h"
-
 #include "batteries/assets.h"
-
 #include "imgui/imgui.h"
-#include "sokol/sokol_imgui.h"
-#include "sokol/sokol_shape.h"
-
-#include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 static uint8_t file_buffer[1024 * 1024 * 5];
@@ -35,7 +29,39 @@ Scene::Scene()
 #undef LOAD_GRADIENT
     };
 
-    load_gradients();
+    auto load_suzanne = [this]()
+    {
+        suzanne.mesh.vbuf = sg_alloc_buffer();
+        suzanne.mesh.bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vbuf,
+        };
+        batteries::load_obj({
+            .buffer_id = suzanne.mesh.vbuf,
+            .mesh = &suzanne.mesh,
+            .path = "assets/suzanne.obj",
+            .buffer = SG_RANGE(file_buffer),
+        });
+    };
+
+    ambient = (batteries::ambient_t){
+        .intensity = 1.0f,
+        .color = {0.5f, 0.5f, 0.5f},
+    };
+
+    light = (batteries::light_t){
+        .brightness = 1.0f,
+        .color = {1.0f, 1.0f, 1.0f},
+    };
+
+    material = (batteries::material_t){
+        .ambient = {0.5f, 0.5f, 0.5f},
+        .diffuse = {0.5f, 0.5f, 0.5f},
+        .specular = {0.5f, 0.5f, 0.5f},
+        .shininess = 128.0f,
+    };
+
+    // load_gradients();
+    load_suzanne();
 }
 
 Scene::~Scene()
@@ -45,28 +71,39 @@ Scene::~Scene()
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
+
+    static auto ry = 0.0f;
+    ry += dt;
+
+    // sugar: rotate light
+    const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
 {
     const auto view_proj = camera.projection() * camera.view();
 
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
+    // initialize uniform data
+    const BlinnPhong::vs_params_t vs_blinnphong_params{
+        .view_proj = view_proj,
+        .model = suzanne.transform.matrix(),
+    };
+    const BlinnPhong::fs_params_t fs_blinnphong_params{
+        .material = material,
+        .light = light,
+        .ambient = ambient,
+        .camera_position = camera.position,
+    };
 
-    /* TODO: render the scene */
-
-    sg_end_pass();
-
-    // render framebuffer
-    framebuffer.Render(&transition);
-
-    // sg_end_pass();
-    // sg_commit();
+    blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
+    suzanne.Render();
 }
 
 void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    // ImGui::DragFloat("Cutoff", &transition.settings.fs_params.cutoff, 0.01f, 0.00f, 1.00f);
     ImGui::End();
 }
