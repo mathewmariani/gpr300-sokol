@@ -14,4 +14,9 @@ namespace batteries
 
     sg_pipeline pip;
   };
+
+  struct PostProcessEffectSettings
+  {
+    bool active = true;
+  };
 }
