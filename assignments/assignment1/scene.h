@@ -8,6 +8,8 @@
 #include "grayscale.h"
 #include "inverse.h"
 
+// batteries
+#include "batteries/gizmo.h"
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/lights.h"
@@ -31,6 +33,7 @@ private:
   GrayScaleRenderer grayscaleRenderer;
   InverseRenderer inverseRenderer;
 
+  batteries::Gizmo gizmo;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::model_t suzanne;

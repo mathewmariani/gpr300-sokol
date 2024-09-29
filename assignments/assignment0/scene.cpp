@@ -111,6 +111,19 @@ void Scene::Render(void)
 void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Ambient"))
+    {
+        ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Color", &ambient.color[0]);
+    }
+    if (ImGui::CollapsingHeader("Light"))
+    {
+        ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Color", &light.color[0]);
+    }
+
     ImGui::End();
 }

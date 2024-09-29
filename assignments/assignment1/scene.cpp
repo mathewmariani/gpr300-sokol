@@ -87,19 +87,21 @@ void Scene::Render(void)
         .ambient = ambient,
         .camera_position = camera.position,
     };
-    // const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-    //     .view_proj = view_proj,
-    //     .model = glm::translate(glm::mat4(1.0f), light.position),
-    // };
-    // const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-    //     .color = light.color,
-    // };
+    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
+        .view_proj = view_proj,
+        .model = glm::translate(glm::mat4(1.0f), light.position),
+    };
+    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
+        .color = light.color,
+    };
 
     // render using blinn-phong pipeline
     blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
     suzanne.Render();
 
-    // FIXME: this fails because were using the framebuffer image
+    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
+
+    // apply a post processing effect
     switch (effect_index)
     {
     case 1:
@@ -124,6 +126,16 @@ void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    if (ImGui::CollapsingHeader("Ambient"))
+    {
+        ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Color", &ambient.color[0]);
+    }
+    if (ImGui::CollapsingHeader("Light"))
+    {
+        ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Color", &light.color[0]);
+    }
     if (ImGui::BeginCombo("Effect", post_processing_effects[effect_index].c_str()))
     {
         for (auto n = 0; n < post_processing_effects.size(); ++n)
