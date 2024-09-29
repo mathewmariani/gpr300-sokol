@@ -17,9 +17,6 @@ namespace batteries
     virtual void Debug(void) {};
     virtual void Event(const sapp_event *event);
 
-    void Begin(void);
-    void End(void);
-
   protected:
     sg_pass_action pass_action;
     sg_pass_action deferred_action;

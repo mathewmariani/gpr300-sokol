@@ -142,4 +142,18 @@ namespace batteries
     {
         this->effect = effect;
     }
+
+    void Framebuffer::RenderTo(std::function<void()> func)
+    {
+        auto pass_action = (sg_pass_action){
+            .colors[0] = {
+                .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+                .load_action = SG_LOADACTION_CLEAR,
+            },
+        };
+
+        sg_begin_pass({.action = pass_action, .attachments = attachments});
+        func();
+        sg_end_pass();
+    }
 }

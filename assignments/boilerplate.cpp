@@ -89,13 +89,8 @@ void frame(void)
   simgui_new_frame({w, h, t, sapp_dpi_scale()});
 
   scene->Update(t);
-  scene->Begin();
   scene->Render();
-  scene->End();
   scene->Debug();
-
-  // FIXME:
-  // NOTE: this assumes scene.Render() doens't call `sg_end_pass()` and `sg_commit()`
 
   // draw ui
   simgui_render();

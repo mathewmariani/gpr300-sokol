@@ -42,24 +42,6 @@ namespace batteries
     camera_controller.update(&camera, dt);
   }
 
-  void Scene::Begin(void)
-  {
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
-  }
-
-  void Scene::End(void)
-  {
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
-    };
-
-    skybox.Render(vs_skybox_params);
-
-    sg_end_pass();
-
-    framebuffer.Render();
-  }
-
   void Scene::Event(const sapp_event *event)
   {
     camera_controller.event(event);

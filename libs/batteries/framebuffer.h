@@ -6,6 +6,8 @@
 // batteries
 #include "batteries/postprocess.h"
 
+#include <functional>
+
 namespace batteries
 {
   struct Framebuffer
@@ -26,5 +28,6 @@ namespace batteries
     void Render(void);
 
     void ApplyEffect(BasePostProcessEffect *effect);
+    void RenderTo(std::function<void()> func);
   };
 }
