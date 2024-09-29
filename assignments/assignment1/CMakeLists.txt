@@ -1,5 +1,4 @@
 set(ASSIGNMENT_FILES
-    blinnphong.cpp
     blinnphong.h
     blur.h
     chromaticaberration.h

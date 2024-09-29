@@ -30,7 +30,7 @@ namespace
 
 namespace batteries
 {
-    Framebuffer::Framebuffer()
+    Framebuffer::Framebuffer(void)
     {
         sg_image_desc img_desc = {
             .render_target = true,
@@ -122,18 +122,10 @@ namespace batteries
         };
     }
 
-    void Framebuffer::Render()
+    void Framebuffer::Render(void)
     {
         sg_begin_pass(&pass);
         sg_apply_pipeline(pip);
-        sg_apply_bindings(&bind);
-        sg_draw(0, 6, 1);
-    }
-
-    void Framebuffer::Render(const PostProcess *effect)
-    {
-        sg_begin_pass(&pass);
-        sg_apply_pipeline(effect->pip);
         sg_apply_bindings(&bind);
         sg_draw(0, 6, 1);
     }

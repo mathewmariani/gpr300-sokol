@@ -55,37 +55,35 @@ namespace batteries
         };
         // clang-format on
 
-        auto shader_desc = (sg_shader_desc){
-            .vs = {
-                .source = skybox_vs,
-                .uniform_blocks[0] = {
-                    .layout = SG_UNIFORMLAYOUT_NATIVE,
-                    .size = sizeof(vs_params_t),
-                    .uniforms = {
-                        [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                    },
-                },
-            },
-            .fs = {
-                .source = skybox_fs,
-                .images[0] = {.used = true, .image_type = SG_IMAGETYPE_CUBE},
-                .samplers[0] = {.used = true},
-                .image_sampler_pairs[0] = {
-                    .glsl_name = "skybox",
-                    .image_slot = 0,
-                    .sampler_slot = 0,
-                    .used = true,
-                },
-            },
-        };
-
         pip = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
                 },
             },
-            .shader = sg_make_shader(shader_desc),
+            .shader = sg_make_shader({
+                .vs = {
+                    .source = skybox_vs,
+                    .uniform_blocks[0] = {
+                        .layout = SG_UNIFORMLAYOUT_NATIVE,
+                        .size = sizeof(vs_params_t),
+                        .uniforms = {
+                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                        },
+                    },
+                },
+                .fs = {
+                    .source = skybox_fs,
+                    .images[0] = {.used = true, .image_type = SG_IMAGETYPE_CUBE},
+                    .samplers[0] = {.used = true},
+                    .image_sampler_pairs[0] = {
+                        .glsl_name = "skybox",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
+                        .used = true,
+                    },
+                },
+            }),
             .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,

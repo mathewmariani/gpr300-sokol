@@ -1,7 +1,6 @@
 #include "scene.h"
-
+#include "imgui/imgui.h"
 #include "batteries/assets.h"
-
 #include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
@@ -37,6 +36,20 @@ static std::unordered_map<std::string, batteries::material_t> material_map = {
 
 Scene::Scene()
 {
+    auto load_suzanne = [this]()
+    {
+        suzanne.mesh.vbuf = sg_alloc_buffer();
+        suzanne.mesh.bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vbuf,
+        };
+        batteries::load_obj({
+            .buffer_id = suzanne.mesh.vbuf,
+            .mesh = &suzanne.mesh,
+            .path = "assets/suzanne.obj",
+            .buffer = SG_RANGE(file_buffer),
+        });
+    };
+
     ambient = (batteries::ambient_t){
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -47,16 +60,7 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    suzanne.mesh.vbuf = sg_alloc_buffer();
-    suzanne.mesh.bindings = (sg_bindings){
-        .vertex_buffers[0] = suzanne.mesh.vbuf,
-    };
-    batteries::load_obj({
-        .buffer_id = suzanne.mesh.vbuf,
-        .mesh = &suzanne.mesh,
-        .path = "assets/suzanne.obj",
-        .buffer = SG_RANGE(file_buffer),
-    });
+    load_suzanne();
 }
 
 Scene::~Scene()
@@ -80,38 +84,31 @@ void Scene::Render(void)
     const auto view_proj = camera.projection() * camera.view();
 
     // initialize uniform data
-    const BlinnPhong::vs_params_t vs_params = {
+    const BlinnPhong::vs_params_t vs_blinnphong_params = {
         .view_proj = view_proj,
         .model = suzanne.transform.matrix(),
     };
-    const BlinnPhong::fs_params_t fs_params = {
+    const BlinnPhong::fs_params_t fs_blinnphong_params = {
         .material = material,
         .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
     };
-    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-        .view_proj = view_proj,
-        .model = glm::translate(glm::mat4(1.0f), light.position),
-    };
-    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-        .color = light.color,
-    };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
-    };
+    // const batteries::Gizmo::vs_params_t vs_gizmo_params = {
+    //     .view_proj = view_proj,
+    //     .model = glm::translate(glm::mat4(1.0f), light.position),
+    // };
+    // const batteries::Gizmo::fs_params_t fs_gizmo_params = {
+    //     .color = light.color,
+    // };
 
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
+    blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
+    suzanne.Render();
+}
 
-    // render using blinn-phong pipeline
-    blinnphong.Render(vs_params, fs_params, suzanne);
-    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params);
-
-    sg_end_pass();
-
-    framebuffer.Render();
-
-    // sg_end_pass();
-    // sg_commit();
+void Scene::Debug(void)
+{
+    ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    ImGui::End();
 }

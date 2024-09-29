@@ -8,8 +8,6 @@
 #include "grayscale.h"
 #include "inverse.h"
 
-#include "batteries/gizmo.h"
-#include "batteries/skybox.h"
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/lights.h"
@@ -22,18 +20,17 @@ public:
   virtual ~Scene();
 
   void Update(float dt);
-  void Render();
+  void Render(void);
+  void Debug(void);
 
 private:
-  BlinnPhong blinnphong;
+  BlinnPhong blinnPhong;
 
-  Blur blur;
-  ChromaticAberration chromaticAberration;
-  GrayScale grayscale;
-  Inverse inverse;
+  BlurRenderer blurRenderer;
+  ChromaticAberrationRenderer chromaticAberrationRenderer;
+  GrayScaleRenderer grayscaleRenderer;
+  InverseRenderer inverseRenderer;
 
-  batteries::Gizmo gizmo;
-  batteries::Skybox skybox;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::model_t suzanne;

@@ -19,9 +19,8 @@ namespace batteries
     sg_pipeline pip;
     sg_bindings bind;
 
-    Framebuffer();
+    Framebuffer(void);
 
-    void Render();
-    void Render(const PostProcess *effect);
+    void Render(void);
   };
 }
