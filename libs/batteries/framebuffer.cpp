@@ -125,8 +125,20 @@ namespace batteries
     void Framebuffer::Render(void)
     {
         sg_begin_pass(&pass);
-        sg_apply_pipeline(pip);
-        sg_apply_bindings(&bind);
+        if (effect)
+        {
+            effect->Apply();
+        }
+        else
+        {
+            sg_apply_pipeline(pip);
+            sg_apply_bindings(&bind);
+        }
         sg_draw(0, 6, 1);
+    }
+
+    void Framebuffer::ApplyEffect(BasePostProcessEffect *effect)
+    {
+        this->effect = effect;
     }
 }

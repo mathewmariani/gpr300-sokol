@@ -19,8 +19,12 @@ namespace batteries
     sg_pipeline pip;
     sg_bindings bind;
 
+    BasePostProcessEffect *effect;
+
     Framebuffer(void);
 
     void Render(void);
+
+    void ApplyEffect(BasePostProcessEffect *effect);
   };
 }

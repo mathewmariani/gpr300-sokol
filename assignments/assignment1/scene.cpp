@@ -48,6 +48,12 @@ Scene::Scene()
     };
 
     load_suzanne();
+
+    grayscaleRenderer.bindings.fs = framebuffer.bind.fs;
+    blurRenderer.bindings.fs = framebuffer.bind.fs;
+    inverseRenderer.bindings.fs = framebuffer.bind.fs;
+    chromaticAberrationRenderer.bindings.fs = framebuffer.bind.fs;
+    chromaticAberrationRenderer.bindings.fs = framebuffer.bind.fs;
 }
 
 Scene::~Scene()
@@ -93,24 +99,23 @@ void Scene::Render(void)
     blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
     suzanne.Render();
 
+    // FIXME: this fails because were using the framebuffer image
     switch (effect_index)
     {
-    case 0:
-        break;
     case 1:
-        grayscaleRenderer.Render();
+        framebuffer.ApplyEffect(&grayscaleRenderer);
         break;
     case 2:
-        blurRenderer.Render();
+        framebuffer.ApplyEffect(&blurRenderer);
         break;
     case 3:
-        inverseRenderer.Render();
+        framebuffer.ApplyEffect(&inverseRenderer);
         break;
     case 4:
-        chromaticAberrationRenderer.Render();
+        framebuffer.ApplyEffect(&chromaticAberrationRenderer);
         break;
-    case 5:
-        chromaticAberrationRenderer.Render();
+    default:
+        framebuffer.ApplyEffect(nullptr);
         break;
     }
 }

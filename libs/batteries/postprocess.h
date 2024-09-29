@@ -25,8 +25,14 @@ namespace batteries
     bool active = true;
   };
 
+  struct BasePostProcessEffect
+  {
+    virtual void Apply() = 0;
+    virtual ~BasePostProcessEffect() = default;
+  };
+
   template <typename T>
-  struct PostProcessEffect
+  struct PostProcessEffect : public BasePostProcessEffect
   {
     sg_pass pass;
     sg_pipeline pipeline;
@@ -43,5 +49,7 @@ namespace batteries
           }),
       };
     }
+
+    virtual void Apply(void) = 0;
   };
 }
