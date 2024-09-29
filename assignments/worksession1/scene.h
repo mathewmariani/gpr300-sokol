@@ -32,7 +32,4 @@ private:
   Water water;
   Water::water_t water_obj;
   ocean_t ocean;
-
-  batteries::ambient_t ambient;
-  batteries::light_t light;
 };

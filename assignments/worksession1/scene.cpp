@@ -61,16 +61,6 @@ Scene::Scene()
         });
     };
 
-    ambient = (batteries::ambient_t){
-        .intensity = 1.0f,
-        .color = {0.5f, 0.5f, 0.5f},
-    };
-
-    light = (batteries::light_t){
-        .brightness = 1.0f,
-        .color = {1.0f, 1.0f, 1.0f},
-    };
-
     ocean = {
         .color = glm::vec3(0.00f, 0.31f, 0.85f),
         .direction = glm::vec3(0.5f),
@@ -91,13 +81,6 @@ Scene::~Scene()
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
-
-    static auto ry = 0.0f;
-    ry += dt;
-
-    // sugar: rotate light
-    const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
-    light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
@@ -129,17 +112,7 @@ void Scene::Render(void)
         .bottom_scale = ocean.bottom_scale,
     };
 
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
-
-    // render using blinn-phong pipeline
-    water.Render(vs_water_params, fs_water_params, water_obj);
-
-    sg_end_pass();
-
-    framebuffer.Render();
-
-    // sg_end_pass();
-    // sg_commit();
+    water.Apply(vs_water_params, fs_water_params);
 }
 
 void Scene::Debug(void)

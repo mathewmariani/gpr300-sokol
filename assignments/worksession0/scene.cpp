@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include "batteries/assets.h"
+#include "imgui/imgui.h"
 
 #include <unordered_map>
 
@@ -9,6 +10,75 @@ static uint8_t file_buffer[1024 * 1024 * 5];
 
 Scene::Scene()
 {
+    auto load_togezoshell = [this]()
+    {
+        togezoshell.mesh.vbuf = sg_alloc_buffer();
+        batteries::load_obj({
+            .buffer_id = togezoshell.mesh.vbuf,
+            .mesh = &togezoshell.mesh,
+            .path = "assets/objects/togezoshell/togezoshell.obj",
+            .buffer = SG_RANGE(file_buffer),
+        });
+
+        // transform
+        togezoshell.transform.rotation = glm::rotate(90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        togezoshell.transform.scale = glm::vec3(0.5f);
+
+        material = {
+            .col = sg_alloc_image(),
+            .mtl = sg_alloc_image(),
+            .rgh = sg_alloc_image(),
+            .ao = sg_alloc_image(),
+            .spc = sg_alloc_image(),
+        };
+
+        togezoshell.mesh.bindings = (sg_bindings){
+            .vertex_buffers[0] = togezoshell.mesh.vbuf,
+            .fs = {
+                .images = {
+                    [0] = material.col,
+                    [1] = material.mtl,
+                    [2] = material.rgh,
+                    [3] = material.ao,
+                    [4] = material.spc,
+                },
+                .samplers[0] = sg_make_sampler({
+                    .min_filter = SG_FILTER_LINEAR,
+                    .mag_filter = SG_FILTER_LINEAR,
+                    .wrap_u = SG_WRAP_REPEAT,
+                    .wrap_v = SG_WRAP_REPEAT,
+                    .label = "model-sampler",
+                }),
+            },
+        };
+
+        batteries::load_img({
+            .image_id = material.ao,
+            .path = "assets/materials/togezoshell/togezoshell_ao.png",
+            .buffer = SG_RANGE(file_buffer),
+        });
+        batteries::load_img({
+            .image_id = material.col,
+            .path = "assets/materials/togezoshell/togezoshell_col.png",
+            .buffer = SG_RANGE(file_buffer),
+        });
+        batteries::load_img({
+            .image_id = material.mtl,
+            .path = "assets/materials/togezoshell/togezoshell_mtl.png",
+            .buffer = SG_RANGE(file_buffer),
+        });
+        batteries::load_img({
+            .image_id = material.rgh,
+            .path = "assets/materials/togezoshell/togezoshell_rgh.png",
+            .buffer = SG_RANGE(file_buffer),
+        });
+        batteries::load_img({
+            .image_id = material.spc,
+            .path = "assets/materials/togezoshell/togezoshell_spc.png",
+            .buffer = SG_RANGE(file_buffer),
+        });
+    };
+
     ambient = (batteries::ambient_t){
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -19,71 +89,7 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    togezoshell.mesh.vbuf = sg_alloc_buffer();
-    batteries::load_obj({
-        .buffer_id = togezoshell.mesh.vbuf,
-        .mesh = &togezoshell.mesh,
-        .path = "assets/objects/togezoshell/togezoshell.obj",
-        .buffer = SG_RANGE(file_buffer),
-    });
-
-    // transform
-    togezoshell.transform.rotation = glm::rotate(90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-    togezoshell.transform.scale = glm::vec3(0.5f);
-
-    material = {
-        .col = sg_alloc_image(),
-        .mtl = sg_alloc_image(),
-        .rgh = sg_alloc_image(),
-        .ao = sg_alloc_image(),
-        .spc = sg_alloc_image(),
-    };
-
-    togezoshell.mesh.bindings = (sg_bindings){
-        .vertex_buffers[0] = togezoshell.mesh.vbuf,
-        .fs = {
-            .images = {
-                [0] = material.col,
-                [1] = material.mtl,
-                [2] = material.rgh,
-                [3] = material.ao,
-                [4] = material.spc,
-            },
-            .samplers[0] = sg_make_sampler({
-                .min_filter = SG_FILTER_LINEAR,
-                .mag_filter = SG_FILTER_LINEAR,
-                .wrap_u = SG_WRAP_REPEAT,
-                .wrap_v = SG_WRAP_REPEAT,
-                .label = "model-sampler",
-            }),
-        },
-    };
-
-    batteries::load_img({
-        .image_id = material.ao,
-        .path = "assets/materials/togezoshell/togezoshell_ao.png",
-        .buffer = SG_RANGE(file_buffer),
-    });
-    batteries::load_img({
-        .image_id = material.col,
-        .path = "assets/materials/togezoshell/togezoshell_col.png",
-        .buffer = SG_RANGE(file_buffer),
-    });
-    batteries::load_img({
-        .image_id = material.mtl,
-        .path = "assets/materials/togezoshell/togezoshell_mtl.png",
-        .buffer = SG_RANGE(file_buffer),
-    });
-    batteries::load_img({
-        .image_id = material.rgh,
-        .path = "assets/materials/togezoshell/togezoshell_rgh.png",
-        .buffer = SG_RANGE(file_buffer),
-    });
-    batteries::load_img({
-        .image_id = material.spc,
-        .path = "assets/materials/togezoshell/togezoshell_spc.png",
-        .buffer = SG_RANGE(file_buffer),
-    });
+    load_togezoshell();
 }
 
 Scene::~Scene()
@@ -122,21 +128,17 @@ void Scene::Render(void)
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
     };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
-    };
-
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
 
     // render using blinn-phong pipeline
-    pbr.Render(vs_pbr_params, fs_pbr_params, togezoshell);
+    pbr.Apply(vs_pbr_params, fs_pbr_params);
+    togezoshell.Render();
+
     gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params);
+}
 
-    sg_end_pass();
-
-    framebuffer.Render();
-
-    // sg_end_pass();
-    // sg_commit();
+void Scene::Debug(void)
+{
+    ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    ImGui::End();
 }

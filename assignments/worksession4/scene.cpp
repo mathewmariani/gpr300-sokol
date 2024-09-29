@@ -115,23 +115,12 @@ void Scene::Render(void)
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
     };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
-    };
-
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
 
     // render using blinn-phong pipeline
-    toonshading.Render(vs_toon_params, fs_toon_params, skull.model);
+    toonshading.Apply(vs_toon_params, fs_toon_params);
+    skull.model.Render();
+
     gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params);
-
-    sg_end_pass();
-
-    framebuffer.Render();
-
-    // sg_end_pass();
-    // sg_commit();
 }
 
 void Scene::Debug(void)

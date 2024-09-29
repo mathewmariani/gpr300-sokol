@@ -3,7 +3,6 @@
 #include "toonshading.h"
 
 #include "batteries/gizmo.h"
-#include "batteries/skybox.h"
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/lights.h"
@@ -30,9 +29,8 @@ private:
   ToonShading toonshading;
   ToonShading::Palette palette;
   skull_t skull;
-
   batteries::Gizmo gizmo;
-  batteries::Skybox skybox;
+
   batteries::ambient_t ambient;
   batteries::light_t light;
 };

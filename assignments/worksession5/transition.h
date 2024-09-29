@@ -7,9 +7,6 @@
 // glm
 #include "glm/glm.hpp"
 
-// sokol
-#include "sokol/sokol_glue.h"
-
 struct Transition final : public batteries::PostProcessEffectSettings
 {
     struct fs_params_t
