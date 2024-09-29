@@ -5,6 +5,7 @@
 #include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
+#include "batteries/gizmo.h"
 
 class Scene final : public batteries::Scene
 {
@@ -18,6 +19,7 @@ public:
 
 private:
   BlinnPhong blinnPhong;
+  batteries::Gizmo gizmo;
 
   batteries::ambient_t ambient;
   batteries::light_t light;

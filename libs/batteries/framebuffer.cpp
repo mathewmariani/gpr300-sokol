@@ -31,6 +31,7 @@ namespace
 namespace batteries
 {
     Framebuffer::Framebuffer(void)
+        : effect{nullptr}
     {
         sg_image_desc img_desc = {
             .render_target = true,

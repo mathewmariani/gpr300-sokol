@@ -9,7 +9,6 @@ set(BATTERIES_FILES
     framebuffer.cpp
     framebuffer.h
     gbuffer.h
-    gizmo.cpp
     gizmo.h
     lights.h
     materials.h

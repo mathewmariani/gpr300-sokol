@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "imgui/imgui.h"
 #include "batteries/assets.h"
+#include "batteries/gizmo.h"
 #include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
@@ -94,16 +95,17 @@ void Scene::Render(void)
         .ambient = ambient,
         .camera_position = camera.position,
     };
-    // const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-    //     .view_proj = view_proj,
-    //     .model = glm::translate(glm::mat4(1.0f), light.position),
-    // };
-    // const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-    //     .color = light.color,
-    // };
+    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
+        .view_proj = view_proj,
+        .model = glm::translate(glm::mat4(1.0f), light.position),
+    };
+    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
+        .color = light.color,
+    };
 
     blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
     suzanne.Render();
+    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
 }
 
 void Scene::Debug(void)
