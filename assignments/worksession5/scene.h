@@ -1,16 +1,10 @@
 #pragma once
 
 #include "blinnphong.h"
-// #include "transition.h"
+#include "transition.h"
 
 #include "batteries/scene.h"
 #include "batteries/model.h"
-
-struct gradient_t
-{
-  sg_image img[3];
-  sg_sampler smp;
-};
 
 class Scene final : public batteries::Scene
 {
@@ -24,8 +18,7 @@ public:
 
 private:
   BlinnPhong blinnPhong;
-  // TransitionRenderer transition;
-  gradient_t gradient;
+  TransitionRenderer transition;
 
   batteries::ambient_t ambient;
   batteries::light_t light;

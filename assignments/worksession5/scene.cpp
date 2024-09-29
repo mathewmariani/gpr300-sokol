@@ -5,27 +5,20 @@
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 static uint8_t file_buffer[1024 * 1024 * 5];
 
+static sg_image gradients[3];
+
 Scene::Scene()
 {
     auto load_gradients = [this]()
     {
-#define LOAD_GRADIENT(i, filepath)                    \
-    gradient.img[i] = sg_alloc_image();               \
-    batteries::load_img({.image_id = gradient.img[i], \
-                         .path = filepath,            \
+#define LOAD_GRADIENT(i, filepath)                 \
+    gradients[i] = sg_alloc_image();               \
+    batteries::load_img({.image_id = gradients[i], \
+                         .path = filepath,         \
                          .buffer = SG_RANGE(file_buffer)})
         LOAD_GRADIENT(0, "assets/transitions/gradient1.png");
         LOAD_GRADIENT(1, "assets/transitions/gradient2.png");
         LOAD_GRADIENT(2, "assets/transitions/gradient3.png");
-
-        // create an image sampler
-        gradient.smp = sg_make_sampler({
-            .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-            .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-            .min_filter = SG_FILTER_LINEAR,
-            .mag_filter = SG_FILTER_LINEAR,
-        });
-
 #undef LOAD_GRADIENT
     };
 
@@ -60,8 +53,18 @@ Scene::Scene()
         .shininess = 128.0f,
     };
 
-    // load_gradients();
+    load_gradients();
     load_suzanne();
+
+    transition.bindings.fs = {
+        .images[0] = gradients[0],
+        .samplers[0] = sg_make_sampler({
+            .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+            .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+            .min_filter = SG_FILTER_LINEAR,
+            .mag_filter = SG_FILTER_LINEAR,
+        }),
+    };
 }
 
 Scene::~Scene()
@@ -98,12 +101,28 @@ void Scene::Render(void)
 
     blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
     suzanne.Render();
+
+    // apply post process
+    transition.Render();
 }
 
 void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
-    // ImGui::DragFloat("Cutoff", &transition.settings.fs_params.cutoff, 0.01f, 0.00f, 1.00f);
+    ImGui::DragFloat("Cutoff", &transition.settings.fs_params.cutoff, 0.01f, 0.00f, 1.00f);
+    ImGui::ColorEdit3("Fadeout Color", &transition.settings.fs_params.color[0]);
+    if (ImGui::Button("Gradient 1"))
+    {
+        transition.bindings.fs.images[0] = gradients[0];
+    }
+    if (ImGui::Button("Gradient 2"))
+    {
+        transition.bindings.fs.images[0] = gradients[1];
+    }
+    if (ImGui::Button("Gradient 3"))
+    {
+        transition.bindings.fs.images[0] = gradients[2];
+    }
     ImGui::End();
 }

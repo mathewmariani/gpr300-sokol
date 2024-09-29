@@ -6,6 +6,21 @@
 // stl
 #include <type_traits>
 
+namespace
+{
+  // clang-format off
+  constexpr float quad_vertices[] = {
+     -1.0f, 1.0f, 0.0f, 1.0f,
+     -1.0f, -1.0f, 0.0f, 0.0f,
+      1.0f, -1.0f, 1.0f, 0.0f,
+
+     -1.0f, 1.0f, 0.0f, 1.0f,
+      1.0f, -1.0f, 1.0f, 0.0f,
+      1.0f, 1.0f, 1.0f, 1.0f,
+  };
+  // clang-format on
+}
+
 namespace batteries
 {
   // FIXME: could be a struct, and a single header
@@ -26,10 +41,22 @@ namespace batteries
   template <typename T>
   struct PostProcessEffect
   {
-    static_assert(std::is_same<T, PostProcessEffectSettings>::value, "Template parameter T must be PostProcessEffectSettings");
+    // static_assert(std::is_same<T, PostProcessEffectSettings>::value, "Template parameter T must be PostProcessEffectSettings");
 
     sg_pass pass;
     sg_pipeline pipeline;
+    sg_bindings bindings;
     T settings;
+
+    PostProcessEffect()
+    {
+      // apply bindings
+      bindings = (sg_bindings){
+          .vertex_buffers[0] = sg_make_buffer({
+              .data = SG_RANGE(quad_vertices),
+              .label = "quad-vertices",
+          }),
+      };
+    }
   };
 }
