@@ -98,12 +98,28 @@ void Scene::Render(void)
         .ambient = ambient,
         .camera_position = camera.position,
     };
+    const batteries::Skybox::vs_params_t vs_skybox_params = {
+        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
+    };
+    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
+        .view_proj = view_proj,
+        .model = glm::translate(glm::mat4(1.0f), light.position),
+    };
+    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
+        .color = light.color,
+    };
+    const batteries::Skybox::vs_params_t vs_skybox_params = {
+        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
+    };
 
-    blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
-    suzanne.Render();
+    framebuffer.RenderTo([&]()
+                         {
+        blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
+        suzanne.Render();
+        gizmo.Render(vs_gizmo_params, fs_gizmo_params);
+        transition.Render(); });
 
-    // apply post process
-    transition.Render();
+    framebuffer.Render();
 }
 
 void Scene::Debug(void)

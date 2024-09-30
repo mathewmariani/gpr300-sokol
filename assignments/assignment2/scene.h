@@ -18,7 +18,7 @@ public:
   virtual ~Scene();
 
   void Update(float dt);
-  void Render();
+  void Render(void);
 
 private:
   Depth depth;

@@ -128,12 +128,17 @@ void Scene::Render(void)
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
     };
+    const batteries::Skybox::vs_params_t vs_skybox_params = {
+        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
+    };
 
-    // render using blinn-phong pipeline
-    pbr.Apply(vs_pbr_params, fs_pbr_params);
-    togezoshell.Render();
+    framebuffer.RenderTo([&]()
+                         {
+        pbr.Apply(vs_pbr_params, fs_pbr_params);
+        togezoshell.Render();
+        gizmo.Render(vs_gizmo_params, fs_gizmo_params); });
 
-    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
+    framebuffer.Render();
 }
 
 void Scene::Debug(void)

@@ -111,8 +111,14 @@ void Scene::Render(void)
         .top_scale = ocean.top_scale,
         .bottom_scale = ocean.bottom_scale,
     };
+    const batteries::Skybox::vs_params_t vs_skybox_params = {
+        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
+    };
 
-    water.Apply(vs_water_params, fs_water_params);
+    framebuffer.RenderTo([&]()
+                         { water.Apply(vs_water_params, fs_water_params); });
+
+    framebuffer.Render();
 }
 
 void Scene::Debug(void)

@@ -3,6 +3,7 @@
 #include "blinnphong.h"
 #include "transition.h"
 
+#include "batteries/gizmo.h"
 #include "batteries/scene.h"
 #include "batteries/model.h"
 
@@ -20,6 +21,7 @@ private:
   BlinnPhong blinnPhong;
   TransitionRenderer transition;
 
+  batteries::Gizmo gizmo;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;

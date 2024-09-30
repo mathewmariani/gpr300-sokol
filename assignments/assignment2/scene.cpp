@@ -10,6 +10,20 @@ static uint8_t file_buffer[1024 * 1024 * 5];
 
 Scene::Scene()
 {
+    auto load_suzanne = [this]()
+    {
+        suzanne.mesh.vbuf = sg_alloc_buffer();
+        suzanne.mesh.bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vbuf,
+        };
+        batteries::load_obj({
+            .buffer_id = suzanne.mesh.vbuf,
+            .mesh = &suzanne.mesh,
+            .path = "assets/suzanne.obj",
+            .buffer = SG_RANGE(file_buffer),
+        });
+    };
+
     ambient = (batteries::ambient_t){
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -27,16 +41,7 @@ Scene::Scene()
         .shininess = 128.0f,
     },
 
-    suzanne.mesh.vbuf = sg_alloc_buffer();
-    suzanne.mesh.bindings = (sg_bindings){
-        .vertex_buffers[0] = suzanne.mesh.vbuf,
-    };
-    batteries::load_obj({
-        .buffer_id = suzanne.mesh.vbuf,
-        .mesh = &suzanne.mesh,
-        .path = "assets/suzanne.obj",
-        .buffer = SG_RANGE(file_buffer),
-    });
+    load_suzanne();
 }
 
 Scene::~Scene()
@@ -53,7 +58,6 @@ void Scene::Update(float dt)
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
-
     ambient.direction = glm::normalize(glm::vec3(0.0f, 0.0f, 0.0f) - light.position);
 }
 
@@ -97,14 +101,12 @@ void Scene::Render(void)
     depth.Render(vs_depth_params, suzanne);
     sg_end_pass();
 
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
-    shadow.Render(vs_shadow_params, fs_shadow_params, depthbuffer.depth, suzanne);
-    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params);
-    sg_end_pass();
+    framebuffer.RenderTo([&]()
+                         {
+        shadow.Render(vs_shadow_params, fs_shadow_params, depthbuffer.depth, suzanne);
+        suzanne.Render();
+        gizmo.Render(vs_gizmo_params, fs_gizmo_params);
+        skybox.Render(vs_skybox_params); });
 
     framebuffer.Render();
-
-    // sg_end_pass();
-    // sg_commit();
 }
