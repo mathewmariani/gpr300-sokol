@@ -17,12 +17,13 @@
 #include <string>
 #include <vector>
 
+static uint8_t file_buffer[1024 * 1024 * 5];
+
 namespace
 {
   struct _obj_request_instance_t
   {
-    sg_buffer buffer_id;
-    batteries::mesh_t *mesh;
+    batteries::Mesh *mesh;
   };
   struct _img_request_instance_t
   {
@@ -43,47 +44,6 @@ namespace
     _cubemap_request_t *request;
   };
 
-  // TODO: use index/element buffer:
-  void read_obj(const sfetch_response_t *response)
-  {
-    auto *obj = fast_obj_read((const char *)response->data.ptr, response->data.size);
-    if (obj)
-    {
-      auto req_inst = (_obj_request_instance_t *)response->user_data;
-      auto *mesh = req_inst->mesh;
-      mesh->num_faces = obj->face_count;
-      for (auto i = 0; i < obj->face_count * 3; ++i)
-      {
-        auto vertex = obj->indices[i];
-        // vertex
-        mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 0));
-        mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 1));
-        mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 2));
-        // normals
-        mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 0));
-        mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 1));
-        mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 2));
-        // texcoords
-        mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 0));
-        mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 1));
-
-        mesh->indices.push_back(i);
-      }
-
-      // fast_obj_destroy(obj);
-      mesh->obj = obj;
-
-      // clang-format off
-      sg_init_buffer(req_inst->buffer_id, (sg_buffer_desc){
-          .data = {
-              .ptr = mesh->vertices.data(),
-              .size = mesh->vertices.size() * sizeof(float),
-          },
-          .label = "obj-vertices",
-      });
-      // clang-format on
-    }
-  }
   void read_img(const sfetch_response_t *response)
   {
     int width, height, components;
@@ -155,7 +115,8 @@ namespace
   }
 }
 
-namespace batteries {
+namespace batteries
+{
   static struct
   {
     _cubemap_request_t cubemap_req;
@@ -167,7 +128,8 @@ namespace batteries {
     {
       if (response->fetched)
       {
-        read_obj(response);
+        auto *req_inst = (_obj_request_instance_t *)response->user_data;
+        Mesh::Load(req_inst->mesh, response->data.ptr, response->data.size);
       }
       else if (response->failed)
       {
@@ -176,17 +138,13 @@ namespace batteries {
     };
 
     _obj_request_instance_t _obj = {
-        .buffer_id = request.buffer_id,
         .mesh = request.mesh,
     };
 
     sfetch_send((sfetch_request_t){
         .path = request.path,
         .callback = obj_fetch_callback,
-        .buffer = {
-            .ptr = request.buffer.ptr,
-            .size = request.buffer.size,
-        },
+        .buffer = SFETCH_RANGE(file_buffer),
         .user_data = SFETCH_RANGE(_obj),
     });
   }

@@ -7,10 +7,8 @@ namespace batteries
 {
   struct obj_request_t
   {
-    sg_buffer buffer_id;
-    sg_range buffer;
     const char *path;
-    mesh_t *mesh;
+    Mesh *mesh;
   };
 
   struct img_request_t
