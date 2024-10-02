@@ -1,6 +1,7 @@
 #pragma once
 
 // batteries
+#include "assets.h"
 #include "transform.h"
 #include "vertex.h"
 #include "mesh.h"
@@ -41,14 +42,22 @@ namespace batteries
     };
   };
 
-  struct Model
+  struct Model final : public batteries::Asset
   {
     Mesh mesh;
     transform_t transform;
 
+    void Load(const std::string &path)
+    {
+      batteries::load_model({
+          .model = this,
+          .path = path.c_str(),
+      });
+    }
+
     void Render(void)
     {
-      if (!mesh.loaded)
+      if (!loaded)
       {
         return;
       }

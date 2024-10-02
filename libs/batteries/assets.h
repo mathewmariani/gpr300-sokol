@@ -5,10 +5,22 @@
 
 namespace batteries
 {
+  struct Asset
+  {
+    bool loaded = false;
+    Asset() = default;
+  };
+
   struct obj_request_t
   {
     const char *path;
     Mesh *mesh;
+  };
+
+  struct model_request_t
+  {
+    const char *path;
+    Model *model;
   };
 
   struct img_request_t
@@ -32,6 +44,7 @@ namespace batteries
   };
 
   void load_obj(const obj_request_t &request);
+  void load_model(const model_request_t &request);
   void load_img(const img_request_t &request);
   void load_cubemap(const cubemap_request_t &request);
 }

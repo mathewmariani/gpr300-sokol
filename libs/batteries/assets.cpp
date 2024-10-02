@@ -148,6 +148,9 @@ namespace batteries
         .user_data = SFETCH_RANGE(_obj),
     });
   }
+  void load_model(const model_request_t &request)
+  {
+    }
   void load_img(const img_request_t &request)
   {
     auto img_fetch_callback = [](const sfetch_response_t *response)

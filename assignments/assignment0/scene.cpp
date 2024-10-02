@@ -37,20 +37,6 @@ static std::unordered_map<std::string, batteries::material_t> material_map = {
 
 Scene::Scene()
 {
-    // auto load_suzanne = [this]()
-    // {
-    //     suzanne.mesh.vbuf = sg_alloc_buffer();
-    //     suzanne.mesh.bindings = (sg_bindings){
-    //         .vertex_buffers[0] = suzanne.mesh.vbuf,
-    //     };
-    //     batteries::load_obj({
-    //         .buffer_id = suzanne.mesh.vbuf,
-    //         .mesh = &suzanne.mesh,
-    //         .path = "assets/suzanne.obj",
-    //         .buffer = SG_RANGE(file_buffer),
-    //     });
-    // };
-
     auto load_suzanne = [this]()
     {
         batteries::load_obj({

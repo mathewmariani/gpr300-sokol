@@ -7,7 +7,7 @@
 #include "fast_obj/fast_obj.h"
 
 // batteries
-#include "transform.h"
+#include "assets.h"
 
 // std
 #include <vector>
@@ -26,7 +26,9 @@ namespace batteries
     std::vector<uint16_t> indices;
   };
 
-  struct Mesh
+  // TODO: move to implementation file.
+  // NOTE: technically the model should be the asset.
+  struct Mesh final : public Asset
   {
     // sokol info
     sg_bindings bindings;
@@ -35,8 +37,6 @@ namespace batteries
     std::vector<sg_image> textures;
     std::vector<float> vertices;
     std::vector<uint16_t> indices;
-
-    bool loaded = false;
 
     fastObjMesh *obj;
     int num_faces = 0;
