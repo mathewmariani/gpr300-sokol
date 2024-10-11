@@ -19,8 +19,7 @@ public:
 
 private:
   ToonShading toonshading;
-  ToonShading::Palette palette;
-  nintendo::Model skull;
+  std::vector<nintendo::Model> models;
 
   batteries::Gizmo gizmo;
   batteries::ambient_t ambient;
