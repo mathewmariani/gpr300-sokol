@@ -1,4 +1,6 @@
 set(ASSIGNMENT_FILES
+    nintendo.cpp
+    nintendo.h
     scene.cpp
     scene.h
     toonshading.h)

@@ -1,4 +1,6 @@
 set(ASSIGNMENT_FILES
+    nintendo.cpp
+    nintendo.h
     pbr.h
     scene.cpp
     scene.h)

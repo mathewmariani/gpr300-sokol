@@ -22,12 +22,14 @@ public:
   void Debug(void);
 
 private:
-  batteries::Gbuffer gbuffer;
   BlinnPhong blinnphong;
   Geometry geometry;
 
   batteries::Gizmo gizmo;
   batteries::Skybox skybox;
+  batteries::Gbuffer gbuffer;
+  batteries::Model suzanne;
+
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::model_t suzanne;

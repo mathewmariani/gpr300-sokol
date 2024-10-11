@@ -2,8 +2,9 @@
 
 #include "pbr.h"
 
+#include "nintendo.h"
+
 #include "batteries/materials.h"
-#include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/gizmo.h"
@@ -20,10 +21,11 @@ public:
 
 private:
   PhysicallyBasedRendering pbr;
+  PhysicallyBasedRendering::Material material;
+
+  nintendo::Model togezoshell;
 
   batteries::Gizmo gizmo;
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::model_t togezoshell;
-  PhysicallyBasedRendering::Material material;
 };

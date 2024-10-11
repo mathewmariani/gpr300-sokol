@@ -1,11 +1,20 @@
 #pragma once
 
-#include "blinnphong.h"
+#include "islandpass.h"
+
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/gizmo.h"
+
+#include <vector>
+
+struct windwaker_model_t
+{
+  batteries::model_t model;
+  std::vector<sg_image> materials;
+};
 
 class Scene final : public batteries::Scene
 {
@@ -18,9 +27,12 @@ public:
   void Debug(void);
 
 private:
-  BlinnPhong blinnPhong;
+  IslandPass islandPass;
+  IslandPass::Palette palette;
   batteries::Gizmo gizmo;
-  batteries::Model suzanne;
+
+  windwaker_model_t island;
+  windwaker_model_t water;
 
   batteries::ambient_t ambient;
   batteries::light_t light;

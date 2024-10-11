@@ -1,11 +1,8 @@
 #include "scene.h"
 #include "imgui/imgui.h"
-#include "batteries/assets.h"
-#include "batteries/gizmo.h"
 #include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-static uint8_t file_buffer[1024 * 1024 * 5];
 
 // http://devernay.free.fr/cours/opengl/materials.html
 static std::unordered_map<std::string, batteries::material_t> material_map = {
@@ -37,14 +34,6 @@ static std::unordered_map<std::string, batteries::material_t> material_map = {
 
 Scene::Scene()
 {
-    auto load_suzanne = [this]()
-    {
-        batteries::load_obj({
-            .mesh = &suzanne.mesh,
-            .path = "assets/suzanne.obj",
-        });
-    };
-
     ambient = (batteries::ambient_t){
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -55,7 +44,7 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    load_suzanne();
+    suzanne.Load("assets/suzanne.obj");
 }
 
 Scene::~Scene()

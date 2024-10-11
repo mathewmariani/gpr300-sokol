@@ -1,6 +1,5 @@
 #include "scene.h"
 
-#include "batteries/assets.h"
 #include "batteries/math.h"
 
 #include "imgui/imgui.h"
@@ -107,22 +106,7 @@ Scene::Scene()
         .label = "gizmo-attachment",
     });
 
-    suzanne.mesh.vbuf = sg_alloc_buffer();
-    suzanne.mesh.bindings = (sg_bindings){
-        .vertex_buffers = {
-            [0] = suzanne.mesh.vbuf,
-            [1] = sg_make_buffer({
-                .type = SG_BUFFERTYPE_VERTEXBUFFER,
-                .data = SG_RANGE(instance_data),
-            }),
-        },
-    };
-    batteries::load_obj({
-        .buffer_id = suzanne.mesh.vbuf,
-        .mesh = &suzanne.mesh,
-        .path = "assets/suzanne.obj",
-        .buffer = SG_RANGE(file_buffer),
-    });
+    suzanne.Load("assets/suzanne.obj");
 
     auto dbg_smp = sg_make_sampler({
         .min_filter = SG_FILTER_NEAREST,

@@ -7,6 +7,7 @@
 
 // libs
 #include "imgui/imgui.h"
+#include "stb/stb_image.h"
 
 // sokol-imgui
 #define SOKOL_IMGUI_IMPL
@@ -65,6 +66,8 @@ void init(void)
   simgui_setup({
       .logger.func = slog_func,
   });
+
+  stbi_set_flip_vertically_on_load(true);
 
   scene = new Scene();
 }

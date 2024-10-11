@@ -3,6 +3,7 @@
 // batteries
 #include "batteries/lights.h"
 #include "batteries/materials.h"
+#include "batteries/texture.h"
 #include "batteries/model.h"
 #include "batteries/pass.h"
 
@@ -12,11 +13,11 @@ struct PhysicallyBasedRendering final : public batteries::Pass
 {
     struct Material
     {
-        sg_image col;
-        sg_image mtl;
-        sg_image rgh;
-        sg_image ao;
-        sg_image spc;
+        batteries::Texture col;
+        batteries::Texture mtl;
+        batteries::Texture rgh;
+        batteries::Texture ao;
+        batteries::Texture spc;
     };
 
     struct vs_params_t

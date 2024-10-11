@@ -1,10 +1,20 @@
 #pragma once
 
-#include "mesh.h"
-#include "model.h"
+#include "sokol/sokol_gfx.h"
+
+#include <string>
+#include <functional>
+
+#include "fast_obj/fast_obj.h"
 
 namespace batteries
 {
+  struct Model;
+  struct Mesh;
+  struct Texture;
+
+  typedef void (*obj_request_callback_t)(Model *, fastObjMesh *);
+
   struct Asset
   {
     bool loaded = false;
@@ -14,22 +24,19 @@ namespace batteries
   struct obj_request_t
   {
     const char *path;
-    Mesh *mesh;
+    Model *model;
+    obj_request_callback_t callback;
   };
-
   struct model_request_t
   {
     const char *path;
     Model *model;
   };
-
-  struct img_request_t
+  struct texture_request_t
   {
-    sg_image image_id;
-    sg_range buffer;
     const char *path;
+    Texture *texture;
   };
-
   struct cubemap_request_t
   {
     sg_image img_id;
@@ -44,7 +51,6 @@ namespace batteries
   };
 
   void load_obj(const obj_request_t &request);
-  void load_model(const model_request_t &request);
-  void load_img(const img_request_t &request);
+  void load_texture(const texture_request_t &request);
   void load_cubemap(const cubemap_request_t &request);
 }

@@ -14,6 +14,7 @@ set(BATTERIES_FILES
     materials.h
     math.h
     mesh.h
+    model.cpp
     model.h
     pass.h
     postprocess.h
@@ -22,6 +23,7 @@ set(BATTERIES_FILES
     shape.h
     skybox.cpp
     skybox.h
+    texture.h
     transform.h
     vertex.h)
 

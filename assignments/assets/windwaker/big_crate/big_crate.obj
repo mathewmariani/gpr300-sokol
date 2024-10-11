@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib big_crate.mtl
+mtllib assets/windwaker/big_crate/big_crate.mtl
 o crate_big
 v 122.645821 27.353947 149.298874
 v -122.645821 27.353947 149.298874

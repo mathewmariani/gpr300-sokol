@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib skull.mtl
+mtllib assets/windwaker/skull/skull.mtl
 o skull
 v 1.899794 25.132967 20.800903
 v -12.737894 22.425863 18.818762

@@ -1,7 +1,5 @@
 #include "scene.h"
 
-#include "batteries/assets.h"
-
 #include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
@@ -10,20 +8,6 @@ static uint8_t file_buffer[1024 * 1024 * 5];
 
 Scene::Scene()
 {
-    auto load_suzanne = [this]()
-    {
-        suzanne.mesh.vbuf = sg_alloc_buffer();
-        suzanne.mesh.bindings = (sg_bindings){
-            .vertex_buffers[0] = suzanne.mesh.vbuf,
-        };
-        batteries::load_obj({
-            .buffer_id = suzanne.mesh.vbuf,
-            .mesh = &suzanne.mesh,
-            .path = "assets/suzanne.obj",
-            .buffer = SG_RANGE(file_buffer),
-        });
-    };
-
     ambient = (batteries::ambient_t){
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -41,7 +25,7 @@ Scene::Scene()
         .shininess = 128.0f,
     },
 
-    load_suzanne();
+    suzanne.Load("assets/suzanne.obj");
 }
 
 Scene::~Scene()

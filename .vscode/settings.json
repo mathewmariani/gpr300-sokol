@@ -51,6 +51,8 @@
 		"span": "cpp",
 		"stack": "cpp",
 		"string_view": "cpp",
-		"unordered_map": "cpp"
+		"unordered_map": "cpp",
+		"atomic": "cpp",
+		"utility": "cpp"
 	}
 }

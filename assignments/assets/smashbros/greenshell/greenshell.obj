@@ -2,7 +2,7 @@
 # Copyright 2004-2024 Aspose Pty Ltd.
 # File created: 02/06/2024 22:15:07
 
-mtllib material.lib
+mtllib assets/smashbros/greenshell/greenshell.mtl
 g greenshellShape
 
 #

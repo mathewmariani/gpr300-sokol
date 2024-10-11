@@ -34,8 +34,8 @@ private:
   InverseRenderer inverseRenderer;
 
   batteries::Gizmo gizmo;
+  batteries::Model suzanne;
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::model_t suzanne;
   batteries::material_t material;
 };
