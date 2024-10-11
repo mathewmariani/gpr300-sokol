@@ -1,7 +1,6 @@
 # Blender 3.3.1
 # www.blender.org
-mtllib Suzanne.mtl
-o Suzanne
+o suzanne
 v 0.437500 0.164062 0.765625
 v -0.437500 0.164062 0.765625
 v 0.500000 0.093750 0.687500

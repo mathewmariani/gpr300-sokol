@@ -7,6 +7,8 @@
 #include "batteries/scene.h"
 #include "batteries/gizmo.h"
 
+#include "assignment0.h"
+
 class Scene final : public batteries::Scene
 {
 public:
@@ -19,8 +21,8 @@ public:
 
 private:
   BlinnPhong blinnPhong;
+  assignment0::Model suzanne;
   batteries::Gizmo gizmo;
-  batteries::Model suzanne;
 
   batteries::ambient_t ambient;
   batteries::light_t light;

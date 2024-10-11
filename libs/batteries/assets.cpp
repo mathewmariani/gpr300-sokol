@@ -141,7 +141,11 @@ namespace batteries
       obj_request_data_t request = *(obj_request_data_t *)response->user_data;
       request.mesh = fast_obj_read((const char *)response->data.ptr, response->data.size);
 
-      // read mtl file.
+      if (request.mesh->mtllib_count == 0)
+      {
+        request.callback(request.model, request.mesh);
+        return;
+      }
       for (auto i = 0; i < request.mesh->mtllib_count; ++i)
       {
         sfetch_send({
