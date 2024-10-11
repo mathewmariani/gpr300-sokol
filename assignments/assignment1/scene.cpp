@@ -9,7 +9,6 @@
 #include <vector>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-static uint8_t file_buffer[1024 * 1024 * 5];
 
 static int effect_index = 0;
 static std::vector<std::string> post_processing_effects = {
@@ -118,6 +117,12 @@ void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+    }
+
     if (ImGui::CollapsingHeader("Ambient"))
     {
         ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);

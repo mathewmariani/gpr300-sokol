@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assignment1.h"
 #include "blinnphong.h"
 
 // effects
@@ -10,9 +11,8 @@
 
 // batteries
 #include "batteries/gizmo.h"
-#include "batteries/materials.h"
-#include "batteries/model.h"
 #include "batteries/lights.h"
+#include "batteries/materials.h"
 #include "batteries/scene.h"
 
 class Scene final : public batteries::Scene
@@ -27,6 +27,7 @@ public:
 
 private:
   BlinnPhong blinnPhong;
+  assignment1::Model suzanne;
 
   BlurRenderer blurRenderer;
   ChromaticAberrationRenderer chromaticAberrationRenderer;
@@ -34,7 +35,6 @@ private:
   InverseRenderer inverseRenderer;
 
   batteries::Gizmo gizmo;
-  batteries::Model suzanne;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;

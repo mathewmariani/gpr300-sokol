@@ -1,4 +1,6 @@
 set(ASSIGNMENT_FILES
+    assignment1.cpp
+    assignment1.h
     blinnphong.h
     blur.h
     chromaticaberration.h
