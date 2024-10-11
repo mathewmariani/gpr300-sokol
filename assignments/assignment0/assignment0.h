@@ -1,9 +1,7 @@
 #pragma once
 
 // batteries
-#include "batteries/assets.h"
 #include "batteries/model.h"
-#include "batteries/materials.h"
 
 namespace assignment0
 {

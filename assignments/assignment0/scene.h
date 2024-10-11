@@ -26,5 +26,4 @@ private:
 
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::material_t material;
 };

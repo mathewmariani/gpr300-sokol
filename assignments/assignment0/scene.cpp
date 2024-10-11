@@ -4,8 +4,15 @@
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
-// http://devernay.free.fr/cours/opengl/materials.html
-static std::unordered_map<std::string, batteries::material_t> material_map = {
+typedef struct
+{
+    const std::string name;
+    const batteries::material_t material;
+} mtl_t;
+
+static int materials_index = 0;
+static std::vector<mtl_t> materials = {
+    // http://devernay.free.fr/cours/opengl/materials.html
     {"emerald", {{0.0215f, 0.1745f, 0.0215f}, {0.07568f, 0.61424f, 0.07568f}, {0.633f, 0.727811f, 0.633f}, 0.6f}},
     {"jade", {{0.135f, 0.2225f, 0.1575f}, {0.54f, 0.89f, 0.63f}, {0.316228f, 0.316228f, 0.316228f}, 0.1}},
     {"obsidian", {{0.05375f, 0.05f, 0.06625f}, {0.18275f, 0.17f, 0.22525f}, {0.332741f, 0.328634f, 0.346435f}, 0.3f}},
@@ -73,7 +80,7 @@ void Scene::Render(void)
         .model = suzanne.transform.matrix(),
     };
     const BlinnPhong::fs_params_t fs_blinnphong_params = {
-        .material = material,
+        .material = materials[materials_index].material,
         .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
@@ -104,6 +111,31 @@ void Scene::Debug(void)
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+    }
+
+    if (ImGui::CollapsingHeader("Material"))
+    {
+        if (ImGui::BeginCombo("Presets", materials[materials_index].name.c_str()))
+        {
+            for (auto n = 0; n < materials.size(); ++n)
+            {
+                auto is_selected = (materials[materials_index].name == materials[n].name);
+                if (ImGui::Selectable(materials[n].name.c_str(), is_selected))
+                {
+                    materials_index = n;
+                }
+                if (is_selected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
 
     if (ImGui::CollapsingHeader("Ambient"))
     {
