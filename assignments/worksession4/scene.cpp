@@ -92,6 +92,7 @@ void Scene::Render(void)
 void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
 
     ImGui::Text("Presets");
     if (ImGui::BeginCombo("Palette", std::get<std::string>(palette[palette_index]).c_str()))

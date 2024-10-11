@@ -1,10 +1,9 @@
 #pragma once
 
-#include "pbr.h"
 
 #include "nintendo.h"
+#include "pbr.h"
 
-#include "batteries/materials.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/gizmo.h"
@@ -21,9 +20,7 @@ public:
 
 private:
   PhysicallyBasedRendering pbr;
-  PhysicallyBasedRendering::Material material;
-
-  nintendo::Model togezoshell;
+  std::vector<nintendo::Model> models;
 
   batteries::Gizmo gizmo;
   batteries::ambient_t ambient;
