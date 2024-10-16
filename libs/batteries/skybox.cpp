@@ -55,7 +55,7 @@ namespace batteries
         };
         // clang-format on
 
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -95,7 +95,7 @@ namespace batteries
         });
 
         auto skybox_img = sg_alloc_image();
-        bind = (sg_bindings){
+        bindings = (sg_bindings){
             .vertex_buffers[0] = sg_make_buffer({
                 .data = SG_RANGE(vertices),
                 .label = "skybox-vertices",
@@ -129,8 +129,8 @@ namespace batteries
     void Skybox::Render(const vs_params_t vs_params)
     {
         // render skybox
-        sg_apply_pipeline(pip);
-        sg_apply_bindings(&bind);
+        sg_apply_pipeline(pipeline);
+        sg_apply_bindings(&bindings);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
         sg_draw(0, 36, 1);
     }

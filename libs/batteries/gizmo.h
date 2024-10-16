@@ -28,7 +28,7 @@ namespace batteries
 
     Gizmo()
     {
-      pip = sg_make_pipeline({
+      pipeline = sg_make_pipeline({
           .shader = sg_make_shader({
               .vs = {
                   .source = shapes_vs,
@@ -63,11 +63,11 @@ namespace batteries
           },
           .index_type = SG_INDEXTYPE_UINT16,
           .cull_mode = SG_CULLMODE_NONE,
-          .depth = {
-              .pixel_format = SG_PIXELFORMAT_DEPTH,
-              .compare = SG_COMPAREFUNC_LESS_EQUAL,
-              .write_enabled = true,
-          },
+          // .depth = {
+          //     .pixel_format = SG_PIXELFORMAT_DEPTH,
+          //     .compare = SG_COMPAREFUNC_LESS_EQUAL,
+          //     .write_enabled = true,
+          // },
           .label = "gizmo-pipeline",
       });
 
@@ -90,7 +90,7 @@ namespace batteries
       sphere = sshape_element_range(&buf);
       const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
       const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
-      bind = (sg_bindings){
+      bindings = (sg_bindings){
           .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
           .index_buffer = sg_make_buffer(&ibuf_desc),
       };
@@ -98,14 +98,13 @@ namespace batteries
 
     void Render(const vs_params_t &vs_params, const fs_params_t &fs_params)
     {
-      sg_apply_pipeline(pip);
-      sg_apply_bindings(&bind);
+      sg_apply_pipeline(pipeline);
+      sg_apply_bindings(&bindings);
       sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
       sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
       sg_draw(sphere.base_element, sphere.num_elements, 1);
     }
 
-  private:
     sshape_element_range_t sphere;
   };
 }

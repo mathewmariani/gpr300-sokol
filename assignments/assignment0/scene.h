@@ -20,7 +20,7 @@ public:
   void Debug(void);
 
 private:
-  BlinnPhong blinnPhong;
+  BlinnPhong blinnphong;
   assignment0::Model suzanne;
   batteries::Gizmo gizmo;
 

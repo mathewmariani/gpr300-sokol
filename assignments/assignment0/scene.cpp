@@ -10,6 +10,9 @@ typedef struct
     const batteries::material_t material;
 } mtl_t;
 
+// use model:
+// https://www.blendswap.com/blend/9755
+
 static int materials_index = 0;
 static std::vector<mtl_t> materials = {
     // http://devernay.free.fr/cours/opengl/materials.html
@@ -96,14 +99,26 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    framebuffer.RenderTo([&]()
-                         {
-        blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
-        suzanne.Render();
-        gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-        skybox.Render(vs_skybox_params); });
+    sg_begin_pass(&pass);
 
-    framebuffer.Render();
+    // apply blinnphong pipeline and uniforms
+    sg_apply_pipeline(blinnphong.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_blinnphong_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+
+    // render suzanne
+    if (suzanne.loaded)
+    {
+        sg_apply_bindings(suzanne.mesh.bindings);
+        sg_draw(0, suzanne.mesh.indices.size(), 1);
+    }
+
+    // render light sources
+    sg_apply_pipeline(gizmo.pipeline);
+    sg_apply_bindings(&gizmo.bindings);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
 }
 
 void Scene::Debug(void)

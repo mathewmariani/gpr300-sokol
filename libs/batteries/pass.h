@@ -8,8 +8,8 @@ namespace batteries
   struct Pass
   {
     sg_pass_action pass_action;
-    sg_pipeline pip;
-    sg_bindings bind;
+    sg_pipeline pipeline;
+    sg_bindings bindings;
 
     Pass() = default;
     ~Pass() = default;
