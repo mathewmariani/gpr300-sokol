@@ -67,17 +67,18 @@ struct BlinnPhong final : public batteries::Pass
                     },
                 },
             }),
-            .index_type = SG_INDEXTYPE_UINT16,
+            // .index_type = SG_INDEXTYPE_UINT16,
+            .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,
             .colors = {
                 [0].pixel_format = SG_PIXELFORMAT_RGBA8,
             },
-            // .depth = {
-            //     .pixel_format = SG_PIXELFORMAT_DEPTH,
-            //     .compare = SG_COMPAREFUNC_LESS_EQUAL,
-            //     .write_enabled = true,
-            // },
+            .depth = {
+                .pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL,
+                .compare = SG_COMPAREFUNC_LESS_EQUAL,
+                .write_enabled = true,
+            },
             .label = "blinnphong-pipeline",
         });
     }

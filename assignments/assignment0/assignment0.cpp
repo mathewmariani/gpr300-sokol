@@ -30,23 +30,22 @@ namespace assignment0
     }
 
     // initialize gfx resources
-    mesh->bindings = (sg_bindings){
-        .vertex_buffers[0] = sg_make_buffer({
-            .type = SG_BUFFERTYPE_VERTEXBUFFER,
-            .data = {
-                .ptr = mesh->vertices.data(),
-                .size = mesh->vertices.size() * sizeof(float),
-            },
-            .label = "mesh-vertices",
-        }),
-        .index_buffer = sg_make_buffer({
-            .type = SG_BUFFERTYPE_INDEXBUFFER,
-            .data = {
-                .ptr = mesh->indices.data(),
-                .size = mesh->indices.size() * sizeof(uint16_t),
-            },
-            .label = "mesh-indices",
-        })};
+    mesh->vertex_buffer = sg_make_buffer({
+        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .data = {
+            .ptr = mesh->vertices.data(),
+            .size = mesh->vertices.size() * sizeof(float),
+        },
+        .label = "mesh-vertices",
+    });
+    mesh->index_buffer = sg_make_buffer({
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = {
+            .ptr = mesh->indices.data(),
+            .size = mesh->indices.size() * sizeof(uint16_t),
+        },
+        .label = "mesh-indices",
+    });
   }
   void Model::Load(const std::string &path)
   {

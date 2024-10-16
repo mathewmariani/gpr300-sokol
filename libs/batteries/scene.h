@@ -19,8 +19,6 @@ namespace batteries
 
   protected:
     sg_pass pass;
-    sg_pass_action pass_action;
-    sg_pass_action deferred_action;
 
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;

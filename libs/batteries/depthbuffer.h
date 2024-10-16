@@ -3,6 +3,8 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
+#include <functional>
+
 static constexpr int depth_map_size = 1024;
 
 namespace batteries
@@ -36,6 +38,13 @@ namespace batteries
               .label = "depthbuffer-attachments",
           }),
       };
+    }
+
+    void RenderTo(std::function<void()> func)
+    {
+      sg_begin_pass(&pass);
+      func();
+      sg_end_pass();
     }
   };
 }

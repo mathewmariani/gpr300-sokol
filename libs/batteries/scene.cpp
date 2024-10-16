@@ -7,17 +7,21 @@ namespace batteries
 {
   Scene::Scene()
   {
-    pass_action = (sg_pass_action){
-        .colors[0] = {
-            .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-            .load_action = SG_LOADACTION_CLEAR,
-        },
+    sg_image_desc img_desc = {
+        .render_target = true,
+        .width = 800,
+        .height = 600,
     };
 
-    deferred_action = (sg_pass_action){
-        .colors[0].load_action = SG_LOADACTION_LOAD,
-        .depth.load_action = SG_LOADACTION_LOAD,
-    };
+    // color attachment
+    img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+    img_desc.label = "framebuffer-color-image";
+    auto color = sg_make_image(img_desc);
+
+    // depth attachment
+    img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
+    img_desc.label = "framebuffer-depth-image";
+    auto depth = sg_make_image(img_desc);
 
     pass = (sg_pass){
         .action = (sg_pass_action){
@@ -25,7 +29,17 @@ namespace batteries
                 .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
                 .load_action = SG_LOADACTION_CLEAR,
             },
+            .depth = {
+                .load_action = SG_LOADACTION_CLEAR,
+                .store_action = SG_STOREACTION_STORE,
+                .clear_value = 1.0f,
+            },
         },
+        // .attachments = sg_make_attachments({
+        //     .colors[0].image = color,
+        //     .depth_stencil.image = depth,
+        //     .label = "framebuffer-attachments",
+        // }),
         .swapchain = sglue_swapchain(),
     };
 

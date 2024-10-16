@@ -109,8 +109,14 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        sg_apply_bindings(suzanne.mesh.bindings);
-        sg_draw(0, suzanne.mesh.indices.size(), 1);
+        // create bindings
+        auto bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
+            // .index_buffer = suzanne.mesh.index_buffer,
+        };
+
+        sg_apply_bindings(bindings);
+        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
     }
 
     // render light sources
@@ -151,7 +157,6 @@ void Scene::Debug(void)
             ImGui::EndCombo();
         }
     }
-
     if (ImGui::CollapsingHeader("Ambient"))
     {
         ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
