@@ -1,9 +1,9 @@
 set(ASSIGNMENT_FILES
-    blinnphong.cpp
+    assignment3.cpp
+    assignment3.h
     blinnphong.h
-    geometry.cpp
     geometry.h
     scene.cpp
     scene.h)
 
-add_assignment(assignmen3 "${ASSIGNMENT_FILES}")
+add_assignment(assignment3 "${ASSIGNMENT_FILES}")

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "camera.h"
-#include "framebuffer.h"
 #include "depthbuffer.h"
+#include "framebuffer.h"
+#include "geometrybuffer.h"
 #include "skybox.h"
 
 namespace batteries
@@ -27,6 +28,7 @@ namespace batteries
     batteries::Skybox skybox;
     batteries::Framebuffer framebuffer;
     batteries::Depthbuffer depthbuffer;
+    batteries::Geometrybuffer geometrybuffer;
 
     struct
     {

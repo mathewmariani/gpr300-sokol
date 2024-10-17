@@ -9,7 +9,8 @@
 #include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
-#include "batteries/gbuffer.h"
+
+#include "assignment3.h"
 
 class Scene final : public batteries::Scene
 {
@@ -27,11 +28,9 @@ private:
 
   batteries::Gizmo gizmo;
   batteries::Skybox skybox;
-  batteries::Gbuffer gbuffer;
-  batteries::Model suzanne;
+  assignment3::Model suzanne;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::model_t suzanne;
   batteries::material_t material;
 };

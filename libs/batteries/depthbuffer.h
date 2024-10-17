@@ -3,8 +3,6 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
-static constexpr int depth_map_size = 1024;
-
 namespace batteries
 {
   struct Depthbuffer
@@ -17,8 +15,8 @@ namespace batteries
     {
       depth = sg_make_image({
           .render_target = true,
-          .width = depth_map_size,
-          .height = depth_map_size,
+          .width = 1024,
+          .height = 1024,
           .sample_count = 1,
           .pixel_format = SG_PIXELFORMAT_DEPTH,
           .label = "depthbuffer-depth",

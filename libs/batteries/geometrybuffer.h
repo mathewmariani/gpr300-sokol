@@ -3,11 +3,9 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
-static constexpr int depth_map_size = 1024;
-
 namespace batteries
 {
-    struct Gbuffer
+    struct Geometrybuffer
     {
         sg_pass pass;
         sg_image color_img;
@@ -15,7 +13,7 @@ namespace batteries
         sg_image normal_img;
         sg_image depth_img;
 
-        Gbuffer(int width, int height)
+        Geometrybuffer(int width, int height)
         {
             sg_image_desc img_desc = {
                 .render_target = true,

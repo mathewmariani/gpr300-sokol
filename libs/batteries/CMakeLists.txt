@@ -8,7 +8,7 @@ set(BATTERIES_FILES
     depthbuffer.h
     framebuffer.cpp
     framebuffer.h
-    gbuffer.h
+    geometrybuffer.h
     gizmo.h
     lights.h
     materials.h

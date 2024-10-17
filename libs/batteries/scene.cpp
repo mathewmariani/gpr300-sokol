@@ -6,6 +6,7 @@
 namespace batteries
 {
   Scene::Scene()
+  : geometrybuffer(800, 600)
   {
     pass = (sg_pass){
         .action = (sg_pass_action){

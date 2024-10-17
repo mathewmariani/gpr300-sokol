@@ -5,15 +5,13 @@
 #include "imgui/imgui.h"
 #include "sokol/sokol_imgui.h"
 
-#include <unordered_map>
-
 static constexpr int max_instances = 64;
 static BlinnPhong::my_light_t instance_light_data;
 static constexpr glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-static uint8_t file_buffer[1024 * 1024 * 5];
 sg_attachments gizmo_attachments;
-
+sg_buffer instance_buffer;
 static glm::mat4 instance_data[max_instances];
+static auto num_instances = 9;
 
 static struct
 {
@@ -83,26 +81,30 @@ static void init_instance_data(void)
             }
         }
     }
+
+    instance_buffer = sg_make_buffer({
+        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .data = SG_RANGE(instance_data),
+    });
 }
 
 Scene::Scene()
-    : gbuffer(800, 600), blinnphong(gbuffer)
 {
     init_instance_data();
 
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };
 
     gizmo_attachments = sg_make_attachments({
         .colors[0].image = framebuffer.color,
-        .depth_stencil.image = gbuffer.depth_img,
+        .depth_stencil.image = geometrybuffer.depth_img,
         .label = "gizmo-attachment",
     });
 
@@ -117,19 +119,19 @@ Scene::Scene()
     });
 
     debug.color_img = simgui_make_image({
-        .image = gbuffer.color_img,
+        .image = geometrybuffer.color_img,
         .sampler = dbg_smp,
     });
     debug.position_img = simgui_make_image({
-        .image = gbuffer.position_img,
+        .image = geometrybuffer.position_img,
         .sampler = dbg_smp,
     });
     debug.normal_img = simgui_make_image({
-        .image = gbuffer.normal_img,
+        .image = geometrybuffer.normal_img,
         .sampler = dbg_smp,
     });
     debug.depth_img = simgui_make_image({
-        .image = gbuffer.depth_img,
+        .image = geometrybuffer.depth_img,
         .sampler = dbg_smp,
     });
 }
@@ -145,7 +147,6 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
-    static auto num_instances = 9;
     const auto view_proj = camera.projection() * camera.view();
 
     // initialize uniform data
@@ -162,36 +163,57 @@ void Scene::Render(void)
     // const batteries::Gizmo::fs_params_t fs_gizmo_params = {
     //     .color = light.color,
     // };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
-    };
-
     const Geometry::vs_params_t vs_geometry_params = {
         .view_proj = view_proj,
     };
 
-    sg_begin_pass(&gbuffer.pass);
-    geometry.Render(vs_geometry_params, suzanne, num_instances);
+    sg_begin_pass(&geometrybuffer.pass);
+    sg_apply_pipeline(geometry.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
+    // render suzanne
+    if (suzanne.loaded)
+    {
+        // create bindings
+        auto bindings = (sg_bindings){
+            .vertex_buffers = {
+                [0] = suzanne.mesh.vertex_buffer,
+                [1] = instance_buffer,
+            },
+        };
+
+        sg_apply_bindings(bindings);
+        sg_draw(0, suzanne.mesh.num_faces * 3, num_instances);
+    }
     sg_end_pass();
 
-    sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
-    blinnphong.Render(fs_params);
-    sg_end_pass();
-
-    sg_begin_pass({.action = deferred_action, .attachments = gizmo_attachments});
-    // gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params);
-    sg_end_pass();
-
-    framebuffer.Render();
-
+    // sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
+    // blinnphong.Render(fs_params);
     // sg_end_pass();
-    // sg_commit();
+
+    // sg_begin_pass({.action = deferred_action, .attachments = gizmo_attachments});
+    // // gizmo.Render(vs_gizmo_params, fs_gizmo_params);
+    // skybox.Render(vs_skybox_params);
+    // sg_end_pass();
+
+    // render framebuffer
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(framebuffer.pipeline);
+    sg_apply_bindings(&framebuffer.bindings);
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)
 {
     auto size = ImGui::GetWindowSize();
+
+    ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+    }
+    ImGui::End();
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Offscreen Render");
