@@ -8,6 +8,7 @@ namespace batteries
     struct Geometrybuffer
     {
         sg_pass pass;
+        sg_sampler sampler;
         sg_image color_img;
         sg_image position_img;
         sg_image normal_img;
@@ -33,6 +34,13 @@ namespace batteries
 
             img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
             depth_img = sg_make_image(&img_desc);
+
+            sampler = sg_make_sampler({
+                .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+                .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+                .min_filter = SG_FILTER_LINEAR,
+                .mag_filter = SG_FILTER_LINEAR,
+            });
 
             pass = (sg_pass){
                 .action = (sg_pass_action){

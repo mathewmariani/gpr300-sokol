@@ -150,7 +150,7 @@ void Scene::Render(void)
     const auto view_proj = camera.projection() * camera.view();
 
     // initialize uniform data
-    const BlinnPhong::fs_params_t fs_params = {
+    const BlinnPhong::fs_params_t fs_blinnphong_params = {
         .camera_position = camera.position,
         .lights = instance_light_data,
         .ambient = ambient,
@@ -186,9 +186,28 @@ void Scene::Render(void)
     }
     sg_end_pass();
 
-    // sg_begin_pass({.action = pass_action, .attachments = framebuffer.attachments});
-    // blinnphong.Render(fs_params);
-    // sg_end_pass();
+    sg_begin_pass(&framebuffer.pass);
+    sg_apply_pipeline(blinnphong.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+
+    // create bindings
+    auto bindings = (sg_bindings){
+        .vertex_buffers = {
+            [0] = framebuffer.vertex_buffer,
+        },
+        .fs = {
+            .images = {
+                [0] = geometrybuffer.position_img,
+                [1] = geometrybuffer.normal_img,
+                [2] = geometrybuffer.color_img,
+            },
+            .samplers[0] = geometrybuffer.sampler,
+        },
+    };
+
+    sg_apply_bindings(bindings);
+    sg_draw(0, 6, 1);
+    sg_end_pass();
 
     // sg_begin_pass({.action = deferred_action, .attachments = gizmo_attachments});
     // // gizmo.Render(vs_gizmo_params, fs_gizmo_params);

@@ -100,12 +100,15 @@ namespace batteries
         };
         // clang-format on
 
+        // create buffer
+        vertex_buffer = sg_make_buffer({
+            .data = SG_RANGE(quad_vertices),
+            .label = "quad-vertices",
+        });
+
         // apply bindings
         bindings = (sg_bindings){
-            .vertex_buffers[0] = sg_make_buffer({
-                .data = SG_RANGE(quad_vertices),
-                .label = "quad-vertices",
-            }),
+            .vertex_buffers[0] = vertex_buffer,
             .fs = {
                 .images[0] = color,
                 .samplers[0] = sg_make_sampler({

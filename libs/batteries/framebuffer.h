@@ -17,6 +17,7 @@ namespace batteries
     sg_bindings bindings;
     sg_image color;
     sg_image depth;
+    sg_buffer vertex_buffer;
 
     Framebuffer(void);
   };
