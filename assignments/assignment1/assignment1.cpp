@@ -8,6 +8,7 @@ namespace assignment1
   static void fetch_callback(batteries::Model *model, fastObjMesh *obj)
   {
     batteries::Mesh *mesh = &model->mesh;
+    model->loaded = true;
 
     mesh->num_faces = obj->face_count;
     for (auto i = 0; i < obj->face_count * 3; ++i)
@@ -29,15 +30,22 @@ namespace assignment1
     }
 
     // initialize gfx resources
-    mesh->bindings = (sg_bindings){
-        .vertex_buffers[0] = sg_make_buffer({
-            .data = {
-                .ptr = mesh->vertices.data(),
-                .size = mesh->vertices.size() * sizeof(float),
-            },
-            .label = "mesh-vertices",
-        }),
-    };
+    mesh->vertex_buffer = sg_make_buffer({
+        .type = SG_BUFFERTYPE_VERTEXBUFFER,
+        .data = {
+            .ptr = mesh->vertices.data(),
+            .size = mesh->vertices.size() * sizeof(float),
+        },
+        .label = "mesh-vertices",
+    });
+    mesh->index_buffer = sg_make_buffer({
+        .type = SG_BUFFERTYPE_INDEXBUFFER,
+        .data = {
+            .ptr = mesh->indices.data(),
+            .size = mesh->indices.size() * sizeof(uint16_t),
+        },
+        .label = "mesh-indices",
+    });
   }
   void Model::Load(const std::string &path)
   {

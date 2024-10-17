@@ -31,7 +31,6 @@ namespace
 namespace batteries
 {
     Framebuffer::Framebuffer(void)
-        : effect{nullptr}
     {
         sg_image_desc img_desc = {
             .render_target = true,
@@ -45,15 +44,9 @@ namespace batteries
         color = sg_make_image(img_desc);
 
         // depth attachment
-        img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
+        img_desc.pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL;
         img_desc.label = "framebuffer-depth-image";
         depth = sg_make_image(img_desc);
-
-        attachments = sg_make_attachments({
-            .colors[0].image = color,
-            .depth_stencil.image = depth,
-            .label = "framebuffer-attachments",
-        });
 
         pass = (sg_pass){
             .action = (sg_pass_action){
@@ -62,34 +55,36 @@ namespace batteries
                     .load_action = SG_LOADACTION_CLEAR,
                 },
             },
-            .swapchain = sglue_swapchain(),
+            .attachments = sg_make_attachments({
+                .colors[0].image = color,
+                .depth_stencil.image = depth,
+                .label = "framebuffer-attachments",
+            }),
         };
 
-        auto display_shader_desc = (sg_shader_desc){
-            .vs = {
-                .source = no_post_process_vs,
-            },
-            .fs = {
-                .source = no_post_process_fs,
-                .images[0].used = true,
-                .samplers[0].used = true,
-                .image_sampler_pairs[0] = {
-                    .glsl_name = "screen",
-                    .image_slot = 0,
-                    .sampler_slot = 0,
-                    .used = true,
-                },
-            },
-        };
-
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT2,
                     [1].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader(display_shader_desc),
+            .shader = sg_make_shader({
+                .vs = {
+                    .source = no_post_process_vs,
+                },
+                .fs = {
+                    .source = no_post_process_fs,
+                    .images[0].used = true,
+                    .samplers[0].used = true,
+                    .image_sampler_pairs[0] = {
+                        .glsl_name = "screen",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
+                        .used = true,
+                    },
+                },
+            }),
             .label = "display-pipeline",
         });
 
@@ -106,7 +101,7 @@ namespace batteries
         // clang-format on
 
         // apply bindings
-        bind = (sg_bindings){
+        bindings = (sg_bindings){
             .vertex_buffers[0] = sg_make_buffer({
                 .data = SG_RANGE(quad_vertices),
                 .label = "quad-vertices",
@@ -121,39 +116,5 @@ namespace batteries
                 }),
             },
         };
-    }
-
-    void Framebuffer::Render(void)
-    {
-        sg_begin_pass(&pass);
-        if (effect)
-        {
-            effect->Apply();
-        }
-        else
-        {
-            sg_apply_pipeline(pip);
-            sg_apply_bindings(&bind);
-        }
-        sg_draw(0, 6, 1);
-    }
-
-    void Framebuffer::ApplyEffect(BasePostProcessEffect *effect)
-    {
-        this->effect = effect;
-    }
-
-    void Framebuffer::RenderTo(std::function<void()> func)
-    {
-        auto pass_action = (sg_pass_action){
-            .colors[0] = {
-                .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
-                .load_action = SG_LOADACTION_CLEAR,
-            },
-        };
-
-        sg_begin_pass({.action = pass_action, .attachments = attachments});
-        func();
-        sg_end_pass();
     }
 }

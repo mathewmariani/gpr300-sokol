@@ -26,7 +26,7 @@ public:
   void Debug(void);
 
 private:
-  BlinnPhong blinnPhong;
+  BlinnPhong blinnphong;
   assignment1::Model suzanne;
 
   BlurRenderer blurRenderer;

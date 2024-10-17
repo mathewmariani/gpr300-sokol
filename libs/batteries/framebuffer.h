@@ -12,22 +12,12 @@ namespace batteries
 {
   struct Framebuffer
   {
-    sg_attachments attachments;
+    sg_pass pass;
+    sg_pipeline pipeline;
+    sg_bindings bindings;
     sg_image color;
     sg_image depth;
 
-    sg_pass pass;
-    sg_pass_action action;
-    sg_pipeline pip;
-    sg_bindings bind;
-
-    BasePostProcessEffect *effect;
-
     Framebuffer(void);
-
-    void Render(void);
-
-    void ApplyEffect(BasePostProcessEffect *effect);
-    void RenderTo(std::function<void()> func);
   };
 }

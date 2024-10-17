@@ -41,11 +41,4 @@ struct ChromaticAberrationRenderer final : public batteries::PostProcessEffect<C
             .label = "chromatic-aberration-pipeline",
         });
     }
-
-    void Apply(void)
-    {
-        sg_apply_pipeline(pipeline);
-        sg_apply_bindings(&bindings);
-        // sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(settings.fs_params));
-    }
 };

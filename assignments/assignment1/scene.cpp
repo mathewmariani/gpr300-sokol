@@ -33,12 +33,6 @@ Scene::Scene()
     };
 
     suzanne.Load("assets/suzanne.obj");
-
-    grayscaleRenderer.bindings.fs = framebuffer.bind.fs;
-    blurRenderer.bindings.fs = framebuffer.bind.fs;
-    inverseRenderer.bindings.fs = framebuffer.bind.fs;
-    chromaticAberrationRenderer.bindings.fs = framebuffer.bind.fs;
-    chromaticAberrationRenderer.bindings.fs = framebuffer.bind.fs;
 }
 
 Scene::~Scene()
@@ -83,34 +77,63 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    framebuffer.RenderTo([&]()
-                         {
-    blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
-    suzanne.Render();
-    gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    skybox.Render(vs_skybox_params); });
+    sg_begin_pass(&framebuffer.pass);
+
+    // apply blinnphong pipeline and uniforms
+    sg_apply_pipeline(blinnphong.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_blinnphong_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+
+    // render suzanne
+    if (suzanne.loaded)
+    {
+        // create bindings
+        auto bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
+            // .index_buffer = suzanne.mesh.index_buffer,
+        };
+
+        sg_apply_bindings(bindings);
+        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
+    }
+
+    // render light sources
+    sg_apply_pipeline(gizmo.pipeline);
+    sg_apply_bindings(&gizmo.bindings);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+
+    sg_end_pass();
+
+    // render framebuffer
+    sg_begin_pass(&pass);
 
     // apply a post processing effect
     switch (effect_index)
     {
     case 1:
-        framebuffer.ApplyEffect(&grayscaleRenderer);
+        sg_apply_pipeline(grayscaleRenderer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
         break;
     case 2:
-        framebuffer.ApplyEffect(&blurRenderer);
+        sg_apply_pipeline(blurRenderer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
         break;
     case 3:
-        framebuffer.ApplyEffect(&inverseRenderer);
+        sg_apply_pipeline(inverseRenderer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
         break;
     case 4:
-        framebuffer.ApplyEffect(&chromaticAberrationRenderer);
+        sg_apply_pipeline(chromaticAberrationRenderer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
         break;
     default:
-        framebuffer.ApplyEffect(nullptr);
+        sg_apply_pipeline(framebuffer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
         break;
     }
-
-    framebuffer.Render();
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)
