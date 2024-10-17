@@ -11,6 +11,7 @@ namespace batteries
   class Skybox final : public Pass
   {
   public:
+    sg_bindings bindings;
     struct vs_params_t
     {
       glm::mat4 view_proj;

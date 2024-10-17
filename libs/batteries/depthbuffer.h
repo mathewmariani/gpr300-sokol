@@ -3,8 +3,6 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
-#include <functional>
-
 static constexpr int depth_map_size = 1024;
 
 namespace batteries
@@ -13,6 +11,7 @@ namespace batteries
   {
     sg_pass pass;
     sg_image depth;
+    sg_sampler sampler;
 
     Depthbuffer()
     {
@@ -22,7 +21,16 @@ namespace batteries
           .height = depth_map_size,
           .sample_count = 1,
           .pixel_format = SG_PIXELFORMAT_DEPTH,
-          .label = "depthbuffer-image",
+          .label = "depthbuffer-depth",
+      });
+
+      sampler = sg_make_sampler({
+          .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+          .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+          .min_filter = SG_FILTER_NEAREST,
+          .mag_filter = SG_FILTER_NEAREST,
+          .compare = SG_COMPAREFUNC_LESS,
+          .label = "depthbuffer-sampler",
       });
 
       pass = (sg_pass){
@@ -38,13 +46,6 @@ namespace batteries
               .label = "depthbuffer-attachments",
           }),
       };
-    }
-
-    void RenderTo(std::function<void()> func)
-    {
-      sg_begin_pass(&pass);
-      func();
-      sg_end_pass();
     }
   };
 }

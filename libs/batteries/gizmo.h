@@ -26,6 +26,8 @@ namespace batteries
             glm::vec3 color;
         };
 
+        sg_bindings bindings;
+
         Gizmo()
         {
             pipeline = sg_make_pipeline({
