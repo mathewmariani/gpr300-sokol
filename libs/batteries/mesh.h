@@ -13,6 +13,7 @@ namespace batteries
     // sokol info
     sg_buffer vertex_buffer;
     sg_buffer index_buffer;
+    sg_sampler sampler;
 
     std::vector<float> vertices;
     std::vector<uint16_t> indices;

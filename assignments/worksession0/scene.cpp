@@ -14,18 +14,18 @@ static std::vector<std::string> model_paths{
 
 Scene::Scene()
 {
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    models.resize(model_paths.size());
     auto size = model_paths.size();
+    models.resize(size);
     for (auto i = 0; i < size; ++i)
     {
         models[i].Load(model_paths[i]);
@@ -74,13 +74,45 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    framebuffer.RenderTo([&]()
-                         {
-        pbr.Apply(vs_pbr_params, fs_pbr_params);
-        model.Render();
-        gizmo.Render(vs_gizmo_params, fs_gizmo_params); });
+    sg_begin_pass(&framebuffer.pass);
+    // apply pbr pipeline and uniforms
+    sg_apply_pipeline(pbr.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_pbr_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_pbr_params));
+    // render suzanne
+    if (model.loaded)
+    {
+        // create bindings
+        auto bindings = (sg_bindings){
+            .vertex_buffers[0] = model.mesh.vertex_buffer,
+            // .index_buffer = suzanne.mesh.index_buffer,
+            .fs = {
+                .images = {
+                    [0] = model.col.image,
+                    [1] = model.mtl.image,
+                    [2] = model.rgh.image,
+                    [3] = model.ao.image,
+                    [4] = model.spc.image,
+                },
+                .samplers[0] = model.mesh.sampler,
+            },
+        };
+        sg_apply_bindings(bindings);
+        sg_draw(0, model.mesh.num_faces * 3, 1);
+    }
+    // render light sources
+    sg_apply_pipeline(gizmo.pipeline);
+    sg_apply_bindings(&gizmo.bindings);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_end_pass();
 
-    framebuffer.Render();
+    // render framebuffer
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(framebuffer.pipeline);
+    sg_apply_bindings(&framebuffer.bindings);
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)

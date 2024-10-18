@@ -34,7 +34,7 @@ struct PhysicallyBasedRendering final : public batteries::Pass
 
     PhysicallyBasedRendering()
     {
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     // position, normal, texcoords
@@ -124,12 +124,5 @@ struct PhysicallyBasedRendering final : public batteries::Pass
             },
             .label = "pbr-pipeline",
         });
-    }
-
-    void Apply(const vs_params_t &vs_params, const fs_params_t &fs_params)
-    {
-        sg_apply_pipeline(pip);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_params));
     }
 };

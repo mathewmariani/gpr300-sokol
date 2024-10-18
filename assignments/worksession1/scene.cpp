@@ -115,10 +115,15 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    framebuffer.RenderTo([&]()
-                         { water.Apply(vs_water_params, fs_water_params); });
+    sg_begin_pass(&framebuffer.pass);
+    // water.Apply(vs_water_params, fs_water_params);
+    sg_end_pass();
 
-    framebuffer.Render();
+    // render framebuffer
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(framebuffer.pipeline);
+    sg_apply_bindings(&framebuffer.bindings);
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)

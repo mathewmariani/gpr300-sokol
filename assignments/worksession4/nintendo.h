@@ -10,8 +10,6 @@ namespace nintendo
   struct Model : public batteries::Model
   {
     batteries::Texture albedo;
-    batteries::Texture zatoon;
-
     void Load(const std::string &path);
   };
 }
