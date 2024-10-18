@@ -9,6 +9,7 @@ static constexpr int max_instances = 64;
 static BlinnPhong::my_light_t instance_light_data;
 static constexpr glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 sg_attachments gizmo_attachments;
+sg_pass_action gizmo_pass_action;
 sg_buffer instance_buffer;
 static glm::mat4 instance_data[max_instances];
 static auto num_instances = 9;
@@ -102,6 +103,10 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
+    gizmo_pass_action = (sg_pass_action){
+        .colors[0].load_action = SG_LOADACTION_DONTCARE,
+        .depth.load_action = SG_LOADACTION_DONTCARE,
+    };
     gizmo_attachments = sg_make_attachments({
         .colors[0].image = framebuffer.color,
         .depth_stencil.image = geometrybuffer.depth_img,
@@ -156,13 +161,6 @@ void Scene::Render(void)
         .ambient = ambient,
         .num_instances = num_instances,
     };
-    // const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-    //     .view_proj = view_proj,
-    //     .model = glm::translate(glm::mat4(1.0f), light.position),
-    // };
-    // const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-    //     .color = light.color,
-    // };
     const Geometry::vs_params_t vs_geometry_params = {
         .view_proj = view_proj,
     };
@@ -189,7 +187,6 @@ void Scene::Render(void)
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(blinnphong.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
-
     // create bindings
     auto bindings = (sg_bindings){
         .vertex_buffers = {
@@ -204,15 +201,28 @@ void Scene::Render(void)
             .samplers[0] = geometrybuffer.sampler,
         },
     };
-
     sg_apply_bindings(bindings);
     sg_draw(0, 6, 1);
     sg_end_pass();
 
-    // sg_begin_pass({.action = deferred_action, .attachments = gizmo_attachments});
-    // // gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-    // skybox.Render(vs_skybox_params);
-    // sg_end_pass();
+    sg_begin_pass({.action = gizmo_pass_action, .attachments = gizmo_attachments});
+    for (auto i = 0; i < num_instances; i++)
+    {
+        // initialize uniform data
+        const batteries::Gizmo::vs_params_t vs_gizmo_params = {
+            .view_proj = view_proj,
+            .model = glm::translate(glm::mat4(1.0f), glm::vec3(instance_light_data.position[i])),
+        };
+        const batteries::Gizmo::fs_params_t fs_gizmo_params = {
+            .color = instance_light_data.color[i],
+        };
+        sg_apply_pipeline(gizmo.pipeline);
+        sg_apply_bindings(&gizmo.bindings);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+        sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    }
+    sg_end_pass();
 
     // render framebuffer
     sg_begin_pass(&pass);

@@ -44,7 +44,7 @@ namespace batteries
         color = sg_make_image(img_desc);
 
         // depth attachment
-        img_desc.pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL;
+        img_desc.pixel_format = SG_PIXELFORMAT_DEPTH;
         img_desc.label = "framebuffer-depth-image";
         depth = sg_make_image(img_desc);
 

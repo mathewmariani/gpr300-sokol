@@ -66,7 +66,7 @@ namespace batteries
                 .index_type = SG_INDEXTYPE_UINT16,
                 .cull_mode = SG_CULLMODE_NONE,
                 .depth = {
-                    .pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL,
+                    .pixel_format = SG_PIXELFORMAT_DEPTH,
                     .compare = SG_COMPAREFUNC_LESS_EQUAL,
                     .write_enabled = true,
                 },

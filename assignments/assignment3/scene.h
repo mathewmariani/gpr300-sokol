@@ -1,16 +1,14 @@
 #pragma once
 
+#include "assignment3.h"
 #include "blinnphong.h"
 #include "geometry.h"
 
+// batteries
 #include "batteries/gizmo.h"
-#include "batteries/skybox.h"
 #include "batteries/materials.h"
-#include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
-
-#include "assignment3.h"
 
 class Scene final : public batteries::Scene
 {
@@ -27,7 +25,6 @@ private:
   Geometry geometry;
 
   batteries::Gizmo gizmo;
-  batteries::Skybox skybox;
   assignment3::Model suzanne;
 
   batteries::ambient_t ambient;

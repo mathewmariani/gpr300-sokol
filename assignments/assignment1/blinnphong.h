@@ -75,7 +75,7 @@ struct BlinnPhong final : public batteries::Pass
                 [0].pixel_format = SG_PIXELFORMAT_RGBA8,
             },
             .depth = {
-                .pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL,
+                .pixel_format = SG_PIXELFORMAT_DEPTH,
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },

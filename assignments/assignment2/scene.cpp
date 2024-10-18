@@ -100,11 +100,9 @@ void Scene::Render(void)
     };
 
     sg_begin_pass(&depthbuffer.pass);
-
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(depth.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_depth_params));
-
     // render suzanne
     if (suzanne.loaded)
     {
@@ -117,16 +115,13 @@ void Scene::Render(void)
         sg_apply_bindings(bindings);
         sg_draw(0, suzanne.mesh.num_faces * 3, 1);
     }
-
     sg_end_pass();
 
-    sg_begin_pass(&pass);
-
+    sg_begin_pass(&framebuffer.pass);
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(shadow.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
-
     // render suzanne
     if (suzanne.loaded)
     {
@@ -139,17 +134,22 @@ void Scene::Render(void)
                 .samplers[0] = depthbuffer.sampler,
             },
         };
-
         sg_apply_bindings(bindings);
         sg_draw(0, suzanne.mesh.num_faces * 3, 1);
     }
-
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
     sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
     sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_end_pass();
+
+    // render framebuffer
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(framebuffer.pipeline);
+    sg_apply_bindings(&framebuffer.bindings);
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)
