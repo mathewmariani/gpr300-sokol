@@ -3,68 +3,44 @@
 #include "imgui/imgui.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-static uint8_t file_buffer[1024 * 1024 * 5];
 
-static sg_image gradients[3];
+static sg_sampler sampler;
 
 Scene::Scene()
 {
-    auto load_gradients = [this]()
-    {
-#define LOAD_GRADIENT(i, filepath)                 \
-    gradients[i] = sg_alloc_image();               \
-    batteries::load_img({.image_id = gradients[i], \
-                         .path = filepath,         \
-                         .buffer = SG_RANGE(file_buffer)})
-        LOAD_GRADIENT(0, "assets/transitions/gradient1.png");
-        LOAD_GRADIENT(1, "assets/transitions/gradient2.png");
-        LOAD_GRADIENT(2, "assets/transitions/gradient3.png");
-#undef LOAD_GRADIENT
-    };
-
-    auto load_suzanne = [this]()
-    {
-        suzanne.mesh.vbuf = sg_alloc_buffer();
-        suzanne.mesh.bindings = (sg_bindings){
-            .vertex_buffers[0] = suzanne.mesh.vbuf,
-        };
-        batteries::load_obj({
-            .buffer_id = suzanne.mesh.vbuf,
-            .mesh = &suzanne.mesh,
-            .path = "assets/suzanne.obj",
-            .buffer = SG_RANGE(file_buffer),
-        });
-    };
-
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    material = (batteries::material_t){
+    material = {
         .ambient = {0.5f, 0.5f, 0.5f},
         .diffuse = {0.5f, 0.5f, 0.5f},
         .specular = {0.5f, 0.5f, 0.5f},
         .shininess = 128.0f,
     };
 
-    load_gradients();
-    load_suzanne();
-
-    transition.bindings.fs = {
-        .images[0] = gradients[0],
-        .samplers[0] = sg_make_sampler({
-            .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-            .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-            .min_filter = SG_FILTER_LINEAR,
-            .mag_filter = SG_FILTER_LINEAR,
-        }),
+    transition.settings.fs_params = {
+        .color = {0.00f, 0.31f, 0.85f},
+        .cutoff = 0.0f,
     };
+
+    suzanne.Load("assets/suzanne.obj");
+    gradients[0].Load("assets/transitions/gradient1.png");
+    gradients[1].Load("assets/transitions/gradient2.png");
+    gradients[2].Load("assets/transitions/gradient3.png");
+
+    sampler = sg_make_sampler({
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+        .min_filter = SG_FILTER_NEAREST,
+        .mag_filter = SG_FILTER_NEAREST,
+    });
 }
 
 Scene::~Scene()
@@ -88,18 +64,15 @@ void Scene::Render(void)
     const auto view_proj = camera.projection() * camera.view();
 
     // initialize uniform data
-    const BlinnPhong::vs_params_t vs_blinnphong_params{
+    const BlinnPhong::vs_params_t vs_blinnphong_params = {
         .view_proj = view_proj,
         .model = suzanne.transform.matrix(),
     };
-    const BlinnPhong::fs_params_t fs_blinnphong_params{
+    const BlinnPhong::fs_params_t fs_blinnphong_params = {
         .material = material,
         .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
-    };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
@@ -112,14 +85,45 @@ void Scene::Render(void)
         .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
-    framebuffer.RenderTo([&]()
-                         {
-        blinnPhong.Apply(vs_blinnphong_params, fs_blinnphong_params);
-        suzanne.Render();
-        gizmo.Render(vs_gizmo_params, fs_gizmo_params);
-        transition.Render(); });
+    sg_begin_pass(&framebuffer.pass);
+    // apply blinnphong pipeline and uniforms
+    sg_apply_pipeline(blinnphong.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_blinnphong_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+    // render suzanne
+    if (suzanne.loaded)
+    {
+        // create bindings
+        auto bindings = (sg_bindings){
+            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
+            // .index_buffer = suzanne.mesh.index_buffer,
+        };
 
-    framebuffer.Render();
+        sg_apply_bindings(bindings);
+        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
+    }
+    // render light sources
+    sg_apply_pipeline(gizmo.pipeline);
+    sg_apply_bindings(&gizmo.bindings);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_end_pass();
+
+    // render framebuffer
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(transition.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(transition.settings.fs_params));
+    // create bindings
+    auto bindings = (sg_bindings){
+        .vertex_buffers[0] = framebuffer.vertex_buffer,
+        .fs = {
+            .images[0] = gradients[0].image,
+            .samplers[0] = sampler,
+        },
+    };
+    sg_apply_bindings(&bindings);
+    sg_draw(0, 6, 1);
 }
 
 void Scene::Debug(void)
@@ -128,17 +132,17 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
     ImGui::DragFloat("Cutoff", &transition.settings.fs_params.cutoff, 0.01f, 0.00f, 1.00f);
     ImGui::ColorEdit3("Fadeout Color", &transition.settings.fs_params.color[0]);
-    if (ImGui::Button("Gradient 1"))
-    {
-        transition.bindings.fs.images[0] = gradients[0];
-    }
-    if (ImGui::Button("Gradient 2"))
-    {
-        transition.bindings.fs.images[0] = gradients[1];
-    }
-    if (ImGui::Button("Gradient 3"))
-    {
-        transition.bindings.fs.images[0] = gradients[2];
-    }
+    // if (ImGui::Button("Gradient 1"))
+    // {
+    //     transition.bindings.fs.images[0] = gradients[0];
+    // }
+    // if (ImGui::Button("Gradient 2"))
+    // {
+    //     transition.bindings.fs.images[0] = gradients[1];
+    // }
+    // if (ImGui::Button("Gradient 3"))
+    // {
+    //     transition.bindings.fs.images[0] = gradients[2];
+    // }
     ImGui::End();
 }

@@ -44,12 +44,12 @@ static std::vector<mtl_t> materials = {
 
 Scene::Scene()
 {
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };

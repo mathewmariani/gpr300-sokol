@@ -1,4 +1,6 @@
 set(ASSIGNMENT_FILES
+    worksession5.cpp
+    worksession5.h
     blinnphong.h
     scene.cpp
     scene.h)

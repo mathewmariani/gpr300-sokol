@@ -26,7 +26,7 @@ struct BlinnPhong final : public batteries::Pass
 
     BlinnPhong()
     {
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -67,6 +67,7 @@ struct BlinnPhong final : public batteries::Pass
                     },
                 },
             }),
+            // .index_type = SG_INDEXTYPE_UINT16,
             .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,
@@ -80,12 +81,5 @@ struct BlinnPhong final : public batteries::Pass
             },
             .label = "blinnphong-pipeline",
         });
-    }
-
-    void Apply(const vs_params_t &vs_params, const fs_params_t &fs_params)
-    {
-        sg_apply_pipeline(pip);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
     }
 };
