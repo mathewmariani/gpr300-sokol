@@ -6,4 +6,4 @@ set(ASSIGNMENT_FILES
     scene.h
     shadow.h)
 
-add_assignment(assignmen2 "${ASSIGNMENT_FILES}")
+add_assignment(assignment2 "${ASSIGNMENT_FILES}")
