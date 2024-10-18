@@ -1,6 +1,7 @@
 #pragma once
 
 // sokol
+#include "sokol/sokol_gfx.h"
 #include "sokol/sokol_shape.h"
 
 // batteries
@@ -10,7 +11,9 @@ namespace batteries
 {
   struct shape_t
   {
-    transform_t transform;
+    Transform transform;
     sshape_element_range_t draw;
+    sg_buffer vertex_buffer;
+    sg_buffer index_buffer;
   };
 }

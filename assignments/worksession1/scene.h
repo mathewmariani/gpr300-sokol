@@ -2,9 +2,6 @@
 
 #include "water.h"
 
-#include "batteries/materials.h"
-#include "batteries/model.h"
-#include "batteries/lights.h"
 #include "batteries/scene.h"
 
 struct ocean_t

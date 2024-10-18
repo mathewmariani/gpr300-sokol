@@ -1,22 +1,16 @@
 #include "scene.h"
 
-#include "batteries/assets.h"
-
 #include "imgui/imgui.h"
-#include "sokol/sokol_imgui.h"
 #include "sokol/sokol_shape.h"
 
-#include <unordered_map>
-
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-static uint8_t file_buffer[1024 * 1024 * 5];
 
 Scene::Scene()
 {
     auto init_water = [this]()
     {
-        water_obj.img = sg_alloc_image();
-        sg_sampler smp = sg_make_sampler({
+        water_obj.texture.Load("assets/materials/water.png");
+        water_obj.sampler = sg_make_sampler({
             .min_filter = SG_FILTER_LINEAR,
             .mag_filter = SG_FILTER_LINEAR,
             .wrap_u = SG_WRAP_REPEAT,
@@ -36,34 +30,21 @@ Scene::Scene()
             .depth = 100.0f,
             .tiles = 10,
         };
-        buf = sshape_build_plane(&buf, &plane);
-        water_obj.plane.draw = sshape_element_range(&buf);
-
-        water_obj.plane.transform.position = glm::vec3(0.0f, -1.0f, 0.0f);
 
         // one vertex/index-buffer-pair for all shapes
+        buf = sshape_build_plane(&buf, &plane);
         const auto vbuf_desc = sshape_vertex_buffer_desc(&buf);
         const auto ibuf_desc = sshape_index_buffer_desc(&buf);
+        water_obj.plane.vertex_buffer = sg_make_buffer(&vbuf_desc);
+        water_obj.plane.index_buffer = sg_make_buffer(&ibuf_desc);
 
-        water_obj.bind = (sg_bindings){
-            .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
-            .index_buffer = sg_make_buffer(&ibuf_desc),
-            .fs = {
-                .images[0] = water_obj.img,
-                .samplers[0] = smp,
-            },
-        };
-
-        batteries::load_img({
-            .image_id = water_obj.img,
-            .path = "assets/materials/water.png",
-            .buffer = SG_RANGE(file_buffer),
-        });
+        water_obj.plane.draw = sshape_element_range(&buf);
+        water_obj.plane.transform.position = {0.0f, -1.0f, 0.0f};
     };
 
     ocean = {
-        .color = glm::vec3(0.00f, 0.31f, 0.85f),
-        .direction = glm::vec3(0.5f),
+        .color = {0.00f, 0.31f, 0.85f},
+        .direction = {0.5f, 0.5f},
         .scale = 10.0f,
         .strength = 1.0f,
         .tiling = 10.0f,
@@ -116,7 +97,19 @@ void Scene::Render(void)
     };
 
     sg_begin_pass(&framebuffer.pass);
-    // water.Apply(vs_water_params, fs_water_params);
+    sg_apply_pipeline(water.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
+    // create bindings
+    auto bindings = (sg_bindings){
+        .vertex_buffers[0] = water_obj.plane.vertex_buffer,
+        .index_buffer = water_obj.plane.index_buffer,
+        .fs = {
+            .images[0] = water_obj.texture.image,
+            .samplers[0] = water_obj.sampler,
+        },
+    };
+    sg_apply_bindings(&bindings);
+    sg_draw(water_obj.plane.draw.base_element, water_obj.plane.draw.num_elements, 1);
     sg_end_pass();
 
     // render framebuffer
@@ -131,6 +124,11 @@ void Scene::Debug(void)
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+
+    if (ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+    }
 
     if (ImGui::CollapsingHeader("Color"))
     {
