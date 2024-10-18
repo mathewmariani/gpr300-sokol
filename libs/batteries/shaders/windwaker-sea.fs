@@ -27,7 +27,6 @@ in vec3 world_normal;
 in vec2 texcoords;
 
 uniform Palette palette;
-uniform Ambient ambient;
 uniform WaterProperties water;
 uniform sampler2D albedo;
 

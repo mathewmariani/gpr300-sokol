@@ -12,9 +12,9 @@ newmtl m2
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS00.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS00.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS00.png"
+	map_Ka assets/windwaker/island/Sea.SS00.png
+	map_Kd assets/windwaker/island/Sea.SS00.png
+	map_d assets/windwaker/island/Sea.SS00.png
 
 newmtl m3
 	Ns 10.0000
@@ -27,9 +27,9 @@ newmtl m3
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS01.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS01.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS01.png"
+	map_Ka assets/windwaker/island/Sea.SS01.png
+	map_Kd assets/windwaker/island/Sea.SS01.png
+	map_d assets/windwaker/island/Sea.SS01.png
 
 newmtl m1
 	Ns 10.0000
@@ -42,9 +42,9 @@ newmtl m1
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
+	map_Ka assets/windwaker/island/Sea.SS02.png
+	map_Kd assets/windwaker/island/Sea.SS02.png
+	map_d assets/windwaker/island/Sea.SS02.png
 
 newmtl m4
 	Ns 10.0000
@@ -57,9 +57,9 @@ newmtl m4
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS02.png"
+	map_Ka assets/windwaker/island/Sea.SS02.png
+	map_Kd assets/windwaker/island/Sea.SS02.png
+	map_d assets/windwaker/island/Sea.SS02.png
 
 newmtl m5
 	Ns 10.0000
@@ -72,9 +72,9 @@ newmtl m5
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS06.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS06.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS06.png"
+	map_Ka assets/windwaker/island/Sea.SS06.png
+	map_Kd assets/windwaker/island/Sea.SS06.png
+	map_d assets/windwaker/island/Sea.SS06.png
 
 newmtl m6
 	Ns 10.0000
@@ -87,9 +87,9 @@ newmtl m6
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS07.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS07.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS07.png"
+	map_Ka assets/windwaker/island/Sea.SS07.png
+	map_Kd assets/windwaker/island/Sea.SS07.png
+	map_d assets/windwaker/island/Sea.SS07.png
 
 newmtl m7
 	Ns 10.0000
@@ -102,9 +102,9 @@ newmtl m7
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS08.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS08.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\Sea.SS08.png"
+	map_Ka assets/windwaker/island/Sea.SS08.png
+	map_Kd assets/windwaker/island/Sea.SS08.png
+	map_d assets/windwaker/island/Sea.SS08.png
 
 newmtl m0
 	Ns 10.0000

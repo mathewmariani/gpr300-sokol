@@ -1,24 +1,18 @@
 #pragma once
 
+#include "nintendo.h"
+
 // batteries
-#include "batteries/lights.h"
-#include "batteries/materials.h"
 #include "batteries/pass.h"
 
 // glm
 #include "glm/glm.hpp"
 
 // shader
-#include "batteries/shaders/windwaker_object.h"
+#include "batteries/shaders/windwaker_sea.h"
 
-struct IslandPass final : public batteries::Pass
+struct SeaPass final : public batteries::Pass
 {
-    struct Palette
-    {
-        glm::vec3 highlight;
-        glm::vec3 shadow;
-    };
-
     typedef struct
     {
         glm::mat4 view_proj;
@@ -27,13 +21,12 @@ struct IslandPass final : public batteries::Pass
 
     typedef struct
     {
-        batteries::ambient_t ambient;
-        Palette palette;
+        nintendo::Palette palette;
     } fs_params_t;
 
-    IslandPass()
+    SeaPass()
     {
-        pip = sg_make_pipeline({
+        pipeline = sg_make_pipeline({
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -43,7 +36,7 @@ struct IslandPass final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = windwaker_object_vs,
+                    .source = windwaker_sea_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -54,16 +47,13 @@ struct IslandPass final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = windwaker_object_fs,
+                    .source = windwaker_sea_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
                         .uniforms = {
-                            [0] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                            [1] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [2] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [4] = {.name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [0] = {.name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [1] = {.name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
                     .images = {
@@ -90,14 +80,7 @@ struct IslandPass final : public batteries::Pass
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "object-pipeline",
+            .label = "windwaker-sea-pipeline",
         });
-    }
-
-    void Apply(const vs_params_t &vs_params, const fs_params_t &fs_params)
-    {
-        sg_apply_pipeline(pip);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
     }
 };

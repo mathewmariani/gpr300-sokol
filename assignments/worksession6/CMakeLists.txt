@@ -1,6 +1,10 @@
 set(ASSIGNMENT_FILES
-    islandpass.h
+    geometry.h
+    nintendo.cpp
+    nintendo.h
     scene.cpp
-    scene.h)
+    scene.h
+    sea.h
+    windowlights.h)
 
 add_assignment(worksession6 "${ASSIGNMENT_FILES}")

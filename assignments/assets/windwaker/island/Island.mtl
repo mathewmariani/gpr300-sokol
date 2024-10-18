@@ -12,9 +12,9 @@ newmtl m0
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS00.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS00.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS00.png"
+	map_Ka assets/windwaker/island/OutsSS00.png
+	map_Kd assets/windwaker/island/OutsSS00.png
+	map_d assets/windwaker/island/OutsSS00.png
 
 newmtl m1
 	Ns 10.0000
@@ -27,9 +27,9 @@ newmtl m1
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM03.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM03.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM03.png"
+	map_Ka assets/windwaker/island/OutsMM03.png
+	map_Kd assets/windwaker/island/OutsMM03.png
+	map_d assets/windwaker/island/OutsMM03.png
 
 newmtl m2
 	Ns 10.0000
@@ -42,9 +42,9 @@ newmtl m2
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM02.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM02.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsMM02.png"
+	map_Ka assets/windwaker/island/OutsMM02.png
+	map_Kd assets/windwaker/island/OutsMM02.png
+	map_d assets/windwaker/island/OutsMM02.png
 
 newmtl m3
 	Ns 10.0000
@@ -57,9 +57,9 @@ newmtl m3
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS01.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS01.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS01.png"
+	map_Ka assets/windwaker/island/OutsSS01.png
+	map_Kd assets/windwaker/island/OutsSS01.png
+	map_d assets/windwaker/island/OutsSS01.png
 
 newmtl m4
 	Ns 10.0000
@@ -72,9 +72,9 @@ newmtl m4
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS05.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS05.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS05.png"
+	map_Ka assets/windwaker/island/OutsSS05.png
+	map_Kd assets/windwaker/island/OutsSS05.png
+	map_d assets/windwaker/island/OutsSS05.png
 
 newmtl m5
 	Ns 10.0000
@@ -87,9 +87,9 @@ newmtl m5
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS04.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS04.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS04.png"
+	map_Ka assets/windwaker/island/OutsSS04.png
+	map_Kd assets/windwaker/island/OutsSS04.png
+	map_d assets/windwaker/island/OutsSS04.png
 
 newmtl m6
 	Ns 10.0000
@@ -102,9 +102,9 @@ newmtl m6
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS07.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS07.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS07.png"
+	map_Ka assets/windwaker/island/OutsSS07.png
+	map_Kd assets/windwaker/island/OutsSS07.png
+	map_d assets/windwaker/island/OutsSS07.png
 
 newmtl m7
 	Ns 10.0000
@@ -117,6 +117,6 @@ newmtl m7
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS06.png"
-	map_Kd "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS06.png"
-	map_d "C:\Users\Lexou\Documents\3D stuff\Wind Waker Stages\Outset Island\OutsSS06.png"
+	map_Ka assets/windwaker/island/OutsSS06.png
+	map_Kd assets/windwaker/island/OutsSS06.png
+	map_d assets/windwaker/island/OutsSS06.png

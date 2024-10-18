@@ -1,7 +1,7 @@
 # 3ds Max Wavefront OBJ Exporter v0.94b - (c)2007 guruware
 # File Created: 18.11.2010 20:48:33
 
-mtllib Sea.mtl
+mtllib assets/windwaker/island/sea.mtl
 
 #
 # object n0b0
