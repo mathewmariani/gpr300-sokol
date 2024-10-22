@@ -1,7 +1,8 @@
 #include "scene.h"
 
 #include "imgui/imgui.h"
-#include "sokol/sokol_shape.h"
+
+#include "batteries/texture.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
@@ -18,7 +19,7 @@ static const uint32_t mip_colors[9] = {
 };
 
 static int sampler_index = 0;
-static float lod_bias = 12.5f;
+static float lod_bias = 14.5f;
 static int num_mips = 5;
 sg_image img;
 sg_sampler smp;
@@ -31,33 +32,22 @@ struct
     uint32_t mip4[16];   // 4*4
 } pixels;
 
+struct
+{
+    batteries::Texture water128;
+    batteries::Texture water64;
+    batteries::Texture water32;
+    batteries::Texture water16;
+    batteries::Texture water8;
+} texture;
+
 Scene::Scene()
 {
-    auto init_water_plane = [this]()
-    {
-        // generate shape geometries
-        sshape_vertex_t vertices[2 * 1024];
-        uint16_t indices[4 * 1024];
-        sshape_buffer_t buf = {
-            .vertices.buffer = SSHAPE_RANGE(vertices),
-            .indices.buffer = SSHAPE_RANGE(indices),
-        };
-        sshape_plane_t plane = {
-            .width = 400.0f,
-            .depth = 400.0f,
-            .tiles = 10,
-        };
-
-        // one vertex/index-buffer-pair for all shapes
-        buf = sshape_build_plane(&buf, &plane);
-        const auto vbuf_desc = sshape_vertex_buffer_desc(&buf);
-        const auto ibuf_desc = sshape_index_buffer_desc(&buf);
-        water_obj.plane.vertex_buffer = sg_make_buffer(&vbuf_desc);
-        water_obj.plane.index_buffer = sg_make_buffer(&ibuf_desc);
-
-        water_obj.plane.draw = sshape_element_range(&buf);
-        water_obj.plane.transform.position = {0.0f, -1.0f, 0.0f};
-    };
+    texture.water128.Load("assets/sunshine/water128.png");
+    texture.water64.Load("assets/sunshine/water64.png");
+    texture.water32.Load("assets/sunshine/water32.png");
+    texture.water16.Load("assets/sunshine/water16.png");
+    texture.water8.Load("assets/sunshine/water8.png");
 
     auto init_water_texture = [this]()
     {
@@ -94,7 +84,7 @@ Scene::Scene()
         });
     };
 
-    init_water_plane();
+    water_obj.plane = batteries::BuildPlane();
     init_water_texture();
 }
 
