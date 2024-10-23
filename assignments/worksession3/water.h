@@ -26,11 +26,15 @@ struct Water final : public batteries::Pass
     struct fs_params_t
     {
         float lod_bias;
+        float tiling;
+        float time;
+        float top_scale;
+        float bottom_scale;
     };
 
     Water()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .buffers[0] = sshape_vertex_buffer_layout_state(),
                 .attrs = {
@@ -60,6 +64,10 @@ struct Water final : public batteries::Pass
                         .size = sizeof(fs_params_t),
                         .uniforms = {
                             [0] = {.name = "lod_bias", .type = SG_UNIFORMTYPE_FLOAT},
+                            [1] = {.name = "tiling", .type = SG_UNIFORMTYPE_FLOAT},
+                            [2] = {.name = "time", .type = SG_UNIFORMTYPE_FLOAT},
+                            [3] = {.name = "top_scale", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.name = "bottom_scale", .type = SG_UNIFORMTYPE_FLOAT},
                         },
                     },
                     .images = {
@@ -80,6 +88,13 @@ struct Water final : public batteries::Pass
             }),
             .index_type = SG_INDEXTYPE_UINT16,
             .cull_mode = SG_CULLMODE_NONE,
+            .colors[0] = {
+                .blend = {
+                    .enabled = true,
+                    .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+                    .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                },
+            },
             .depth = {
                 .pixel_format = SG_PIXELFORMAT_DEPTH,
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,

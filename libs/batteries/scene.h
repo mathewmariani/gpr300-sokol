@@ -25,7 +25,6 @@ namespace batteries
     batteries::camera_t camera;
     batteries::camera_controller_t camera_controller;
 
-    batteries::Skybox skybox;
     batteries::Framebuffer framebuffer;
     batteries::Depthbuffer depthbuffer;
     batteries::Geometrybuffer geometrybuffer;

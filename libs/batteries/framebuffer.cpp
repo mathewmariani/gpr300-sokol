@@ -23,7 +23,7 @@ namespace
         uniform sampler2D screen;
         void main()
         {
-            FragColor = vec4(texture(screen, texcoords).rgb, 1.0);
+            FragColor = texture(screen, texcoords).rgba;
         })";
     // clang-format on
 }
@@ -51,7 +51,7 @@ namespace batteries
         pass = (sg_pass){
             .action = (sg_pass_action){
                 .colors[0] = {
-                    .clear_value = {0.0f, 0.0f, 0.0f, 1.0f},
+                    .clear_value = {0.0f, 0.0f, 0.0f, 0.0f},
                     .load_action = SG_LOADACTION_CLEAR,
                 },
             },
@@ -85,6 +85,13 @@ namespace batteries
                     },
                 },
             }),
+            .colors[0] = {
+                .blend = {
+                    .enabled = true,
+                    .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+                    .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                },
+            },
             .label = "display-pipeline",
         });
 

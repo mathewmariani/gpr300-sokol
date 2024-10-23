@@ -37,6 +37,24 @@ namespace batteries
     const char *path;
     Texture *texture;
   };
+  struct mipmap_request_t
+  {
+    struct
+    {
+      const char *mip0;
+      const char *mip1;
+      const char *mip2;
+      const char *mip3;
+      const char *mip4;
+      const char *mip5;
+      const char *mip6;
+      const char *mip7;
+    } path;
+    Texture *texture;
+    sg_image img_id;
+    uint8_t *buffer_ptr;
+    uint32_t buffer_offset;
+  };
   struct cubemap_request_t
   {
     sg_image img_id;
@@ -52,5 +70,6 @@ namespace batteries
 
   void load_obj(const obj_request_t &request);
   void load_texture(const texture_request_t &request);
+  void load_mipmap(const mipmap_request_t &request);
   void load_cubemap(const cubemap_request_t &request);
 }

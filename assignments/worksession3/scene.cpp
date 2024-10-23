@@ -19,68 +19,82 @@ static const uint32_t mip_colors[9] = {
 };
 
 static int sampler_index = 0;
-static float lod_bias = 14.5f;
+
 static int num_mips = 5;
-sg_image img;
+sg_image mipmap_color_img;
 sg_sampler smp;
 struct
 {
-    uint32_t mip0[4096]; // 64*64
-    uint32_t mip1[1024]; // 32*32
-    uint32_t mip2[256];  // 16*16
-    uint32_t mip3[64];   // 8*8
-    uint32_t mip4[16];   // 4*4
+    uint32_t mip0[16384]; // 128x128
+    uint32_t mip1[4096];  // 64*64
+    uint32_t mip2[1024];  // 32*32
+    uint32_t mip3[256];   // 16*16
+    uint32_t mip4[64];    // 8*8
 } pixels;
 
-struct
+static uint8_t cubemap_buffer[1024 * 1024 * 10];
+sg_image mipmap_img;
+
+static struct
 {
-    batteries::Texture water128;
-    batteries::Texture water64;
-    batteries::Texture water32;
-    batteries::Texture water16;
-    batteries::Texture water8;
-} texture;
+    bool mipmap_colors = false;
+    float lod_bias = 14.5f;
+    float tiling = 100.0f;
+    float time;
+    float top_scale = 1.00f;
+    float bottom_scale = 1.00f;
+} debug;
 
 Scene::Scene()
 {
-    texture.water128.Load("assets/sunshine/water128.png");
-    texture.water64.Load("assets/sunshine/water64.png");
-    texture.water32.Load("assets/sunshine/water32.png");
-    texture.water16.Load("assets/sunshine/water16.png");
-    texture.water8.Load("assets/sunshine/water8.png");
+    pass.action.colors[0].clear_value = {0.0f, 0.4549f, 0.8980f, 1.0f};
+    // framebuffer.pass.action.colors[0].clear_value = {0.0f, 0.4549f, 0.8980f, 1.0f};
+
+    mipmap_img = sg_alloc_image();
+    batteries::load_mipmap({
+        .img_id = mipmap_img,
+        .path = {
+            .mip0 = "assets/sunshine/water128.png",
+            .mip1 = "assets/sunshine/water64.png",
+            .mip2 = "assets/sunshine/water32.png",
+            .mip3 = "assets/sunshine/water16.png",
+            .mip4 = "assets/sunshine/water8.png",
+        },
+        .buffer_ptr = cubemap_buffer,
+        .buffer_offset = 1024 * 1024,
+    });
 
     auto init_water_texture = [this]()
     {
         // create image with mipmap content, different colors and checkboard pattern
         sg_image_data img_data;
         uint32_t *ptr = pixels.mip0;
-        for (int mip_index = 2; mip_index <= 6; mip_index++)
+        for (int mip_index = 1; mip_index <= 5; mip_index++)
         {
             const int dim = 1 << (8 - mip_index);
-            img_data.subimage[0][mip_index - 2].ptr = ptr;
-            img_data.subimage[0][mip_index - 2].size = (size_t)(dim * dim * 4);
+            img_data.subimage[0][mip_index - 1].ptr = ptr;
+            img_data.subimage[0][mip_index - 1].size = (size_t)(dim * dim * 4);
             for (int y = 0; y < dim; y++)
             {
                 for (int x = 0; x < dim; x++)
                 {
-                    *ptr++ = mip_colors[mip_index - 2];
+                    *ptr++ = mip_colors[mip_index - 1];
                 }
             }
         }
-        img = sg_make_image((sg_image_desc){
-            .width = 64,
-            .height = 64,
+        mipmap_color_img = sg_make_image((sg_image_desc){
+            .width = 128,
+            .height = 128,
             .num_mipmaps = num_mips,
             .pixel_format = SG_PIXELFORMAT_RGBA8,
             .data = img_data,
         });
-
         smp = sg_make_sampler((sg_sampler_desc){
             .min_filter = SG_FILTER_LINEAR,
             .mag_filter = SG_FILTER_LINEAR,
             .mipmap_filter = SG_FILTER_LINEAR,
-            .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-            .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+            .wrap_u = SG_WRAP_REPEAT,
+            .wrap_v = SG_WRAP_REPEAT,
         });
     };
 
@@ -108,8 +122,14 @@ void Scene::Render(void)
         .camera_pos = camera.position,
     };
     const Water::fs_params_t fs_water_params = {
-        .lod_bias = lod_bias,
+        .lod_bias = debug.lod_bias,
+        .tiling = debug.tiling,
+        .time = (float)time.absolute,
+        .top_scale = debug.top_scale,
+        .bottom_scale = debug.bottom_scale,
     };
+
+    sg_image img = debug.mipmap_colors ? mipmap_color_img : mipmap_img;
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(water.pipeline);
@@ -146,7 +166,19 @@ void Scene::Debug(void)
         ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
     }
 
-    ImGui::SliderFloat("lod_bias", &lod_bias, 0.0f, +30.0f, "%.2f");
+    ImGui::SliderFloat("lod_bias", &debug.lod_bias, 0.0f, +30.0f, "%.2f");
+
+    if (ImGui::Button("mipmap_colors"))
+    {
+        debug.mipmap_colors = !debug.mipmap_colors;
+    }
+
+    if (ImGui::CollapsingHeader("Texture"))
+    {
+        ImGui::SliderFloat("debug.tiling", &debug.tiling, 1.0f, 1000.0f);
+        ImGui::SliderFloat("debug.top_scale", &debug.top_scale, 0.0f, 1.0f);
+        ImGui::SliderFloat("debug.bottom_scale", &debug.bottom_scale, 0.0f, 1.0f);
+    }
 
     ImGui::End();
 }
