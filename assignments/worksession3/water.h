@@ -30,6 +30,8 @@ struct Water final : public batteries::Pass
         float time;
         float top_scale;
         float bottom_scale;
+        float brightness_lower_cutoff;
+        float brightness_upper_cutoff;
     };
 
     Water()
@@ -68,6 +70,8 @@ struct Water final : public batteries::Pass
                             [2] = {.name = "time", .type = SG_UNIFORMTYPE_FLOAT},
                             [3] = {.name = "top_scale", .type = SG_UNIFORMTYPE_FLOAT},
                             [4] = {.name = "bottom_scale", .type = SG_UNIFORMTYPE_FLOAT},
+                            [5] = {.name = "brightness_lower_cutoff", .type = SG_UNIFORMTYPE_FLOAT},
+                            [6] = {.name = "brightness_upper_cutoff", .type = SG_UNIFORMTYPE_FLOAT},
                         },
                     },
                     .images = {
@@ -79,7 +83,7 @@ struct Water final : public batteries::Pass
                     .image_sampler_pairs = {
                         [0] = {
                             .used = true,
-                            .glsl_name = "water_texture",
+                            .glsl_name = "texture",
                             .image_slot = 0,
                             .sampler_slot = 0,
                         },
@@ -91,8 +95,12 @@ struct Water final : public batteries::Pass
             .colors[0] = {
                 .blend = {
                     .enabled = true,
-                    .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-                    .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                    .src_factor_rgb = SG_BLENDFACTOR_ONE,
+                    .dst_factor_rgb = SG_BLENDFACTOR_ZERO,
+                    .op_rgb = SG_BLENDOP_ADD,
+                    .src_factor_alpha = SG_BLENDFACTOR_ONE,
+                    .dst_factor_alpha = SG_BLENDFACTOR_ZERO,
+                    .op_alpha = SG_BLENDOP_ADD,
                 },
             },
             .depth = {

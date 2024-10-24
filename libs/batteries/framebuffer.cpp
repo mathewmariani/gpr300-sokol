@@ -88,11 +88,15 @@ namespace batteries
             .colors[0] = {
                 .blend = {
                     .enabled = true,
-                    .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-                    .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                    .src_factor_rgb = SG_BLENDFACTOR_ONE,
+                    .dst_factor_rgb = SG_BLENDFACTOR_ONE,
+                    .op_rgb = SG_BLENDOP_ADD,
+                    .src_factor_alpha = SG_BLENDFACTOR_ONE,
+                    .dst_factor_alpha = SG_BLENDFACTOR_ZERO,
+                    .op_alpha = SG_BLENDOP_ADD,
                 },
             },
-            .label = "display-pipeline",
+            .label = "framebuffer-pipeline",
         });
 
         // clang-format off
@@ -110,7 +114,7 @@ namespace batteries
         // create buffer
         vertex_buffer = sg_make_buffer({
             .data = SG_RANGE(quad_vertices),
-            .label = "quad-vertices",
+            .label = "framebuffer-vertices",
         });
 
         // apply bindings

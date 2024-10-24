@@ -4,92 +4,41 @@
 
 #include "batteries/texture.h"
 
-static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
-
-static const uint32_t mip_colors[9] = {
-    0xFF0000FF, // red
-    0xFF00FF00, // green
-    0xFFFF0000, // blue
-    0xFFFF00FF, // magenta
-    0xFFFFFF00, // cyan
-    0xFF00FFFF, // yellow
-    0xFFFF00A0, // violet
-    0xFFFFA0FF, // orange
-    0xFFA000FF, // purple
-};
-
-static int sampler_index = 0;
-
-static int num_mips = 5;
-sg_image mipmap_color_img;
-sg_sampler smp;
-struct
-{
-    uint32_t mip0[16384]; // 128x128
-    uint32_t mip1[4096];  // 64*64
-    uint32_t mip2[1024];  // 32*32
-    uint32_t mip3[256];   // 16*16
-    uint32_t mip4[64];    // 8*8
-} pixels;
-
 static uint8_t cubemap_buffer[1024 * 1024 * 10];
 sg_image mipmap_img;
+sg_sampler mimap_smp;
 
 static struct
 {
-    bool mipmap_colors = false;
     float lod_bias = 14.5f;
     float tiling = 100.0f;
     float time;
     float top_scale = 1.00f;
     float bottom_scale = 1.00f;
+    float brightness_lower_cutoff = 0.40f;
+    float brightness_upper_cutoff = 0.93f;
 } debug;
 
 Scene::Scene()
 {
     pass.action.colors[0].clear_value = {0.0f, 0.4549f, 0.8980f, 1.0f};
-    // framebuffer.pass.action.colors[0].clear_value = {0.0f, 0.4549f, 0.8980f, 1.0f};
-
-    mipmap_img = sg_alloc_image();
-    batteries::load_mipmap({
-        .img_id = mipmap_img,
-        .path = {
-            .mip0 = "assets/sunshine/water128.png",
-            .mip1 = "assets/sunshine/water64.png",
-            .mip2 = "assets/sunshine/water32.png",
-            .mip3 = "assets/sunshine/water16.png",
-            .mip4 = "assets/sunshine/water8.png",
-        },
-        .buffer_ptr = cubemap_buffer,
-        .buffer_offset = 1024 * 1024,
-    });
 
     auto init_water_texture = [this]()
     {
-        // create image with mipmap content, different colors and checkboard pattern
-        sg_image_data img_data;
-        uint32_t *ptr = pixels.mip0;
-        for (int mip_index = 1; mip_index <= 5; mip_index++)
-        {
-            const int dim = 1 << (8 - mip_index);
-            img_data.subimage[0][mip_index - 1].ptr = ptr;
-            img_data.subimage[0][mip_index - 1].size = (size_t)(dim * dim * 4);
-            for (int y = 0; y < dim; y++)
-            {
-                for (int x = 0; x < dim; x++)
-                {
-                    *ptr++ = mip_colors[mip_index - 1];
-                }
-            }
-        }
-        mipmap_color_img = sg_make_image((sg_image_desc){
-            .width = 128,
-            .height = 128,
-            .num_mipmaps = num_mips,
-            .pixel_format = SG_PIXELFORMAT_RGBA8,
-            .data = img_data,
+        mipmap_img = sg_alloc_image();
+        batteries::load_mipmap({
+            .img_id = mipmap_img,
+            .path = {
+                .mip0 = "assets/sunshine/water128.png",
+                .mip1 = "assets/sunshine/water64.png",
+                .mip2 = "assets/sunshine/water32.png",
+                .mip3 = "assets/sunshine/water16.png",
+                .mip4 = "assets/sunshine/water8.png",
+            },
+            .buffer_ptr = cubemap_buffer,
+            .buffer_offset = 1024 * 1024,
         });
-        smp = sg_make_sampler((sg_sampler_desc){
+        mimap_smp = sg_make_sampler((sg_sampler_desc){
             .min_filter = SG_FILTER_LINEAR,
             .mag_filter = SG_FILTER_LINEAR,
             .mipmap_filter = SG_FILTER_LINEAR,
@@ -127,9 +76,9 @@ void Scene::Render(void)
         .time = (float)time.absolute,
         .top_scale = debug.top_scale,
         .bottom_scale = debug.bottom_scale,
+        .brightness_lower_cutoff = debug.brightness_lower_cutoff,
+        .brightness_upper_cutoff = debug.brightness_upper_cutoff,
     };
-
-    sg_image img = debug.mipmap_colors ? mipmap_color_img : mipmap_img;
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(water.pipeline);
@@ -140,8 +89,8 @@ void Scene::Render(void)
         .vertex_buffers[0] = water_obj.plane.vertex_buffer,
         .index_buffer = water_obj.plane.index_buffer,
         .fs = {
-            .images[0] = img,
-            .samplers[0] = smp,
+            .images[0] = mipmap_img,
+            .samplers[0] = mimap_smp,
         },
     };
     sg_apply_bindings(&bindings);
@@ -166,12 +115,9 @@ void Scene::Debug(void)
         ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
     }
 
-    ImGui::SliderFloat("lod_bias", &debug.lod_bias, 0.0f, +30.0f, "%.2f");
-
-    if (ImGui::Button("mipmap_colors"))
-    {
-        debug.mipmap_colors = !debug.mipmap_colors;
-    }
+    ImGui::SliderFloat("lod_bias", &debug.lod_bias, 0.0f, 30.0f, "%.2f");
+    ImGui::SliderFloat("brightness_lower_cutoff", &debug.brightness_lower_cutoff, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("brightness_upper_cutoff", &debug.brightness_upper_cutoff, 0.0f, 1.0f, "%.2f");
 
     if (ImGui::CollapsingHeader("Texture"))
     {
