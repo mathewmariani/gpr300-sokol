@@ -3,15 +3,15 @@
 precision mediump float;
 
 // attributes
-layout(location = 0) in vec3 vPosition;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vTexCoord;
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_texcoord;
 
 // uniforms
 uniform mat4 model;
 uniform mat4 view_proj;
 
-out vec2 TexCoords;
+out vec2 texcoords;
 
 struct WaveProperties {
   float scale;
@@ -32,9 +32,9 @@ float calculateSurface(float x, float z) {
 
 void main()
 {
-  TexCoords = vTexCoord;
+  texcoords = in_texcoord;
 
-  vec3 pos = vPosition;
+  vec3 pos = in_position;
   pos.y += calculateSurface(pos.x, pos.z) * wave.strength;
   pos.y -= calculateSurface(0.0, 0.0) * wave.strength;
 

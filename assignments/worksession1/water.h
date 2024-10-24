@@ -9,13 +9,6 @@
 
 struct Water final : public batteries::Pass
 {
-    struct water_t
-    {
-        batteries::Texture texture;
-        batteries::shape_t plane;
-        sg_sampler sampler;
-    };
-
     struct vs_params_t
     {
         glm::mat4 view_proj;
@@ -29,6 +22,7 @@ struct Water final : public batteries::Pass
         glm::vec2 direction;
         float top_scale;
         float bottom_scale;
+        float lod_bias;
     };
 
     struct fs_params_t
@@ -41,6 +35,7 @@ struct Water final : public batteries::Pass
         glm::vec2 direction;
         float top_scale;
         float bottom_scale;
+        float lod_bias;
     };
 
     Water()
@@ -73,6 +68,7 @@ struct Water final : public batteries::Pass
                             [8] = {.name = "wave.direction", .type = SG_UNIFORMTYPE_FLOAT2},
                             [9] = {.name = "Ts", .type = SG_UNIFORMTYPE_FLOAT},
                             [10] = {.name = "Bs", .type = SG_UNIFORMTYPE_FLOAT},
+                            [11] = {.name = "lod_bias", .type = SG_UNIFORMTYPE_FLOAT},
                         },
                     },
                 },
@@ -101,7 +97,7 @@ struct Water final : public batteries::Pass
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "water-pipeline",
+            .label = "windwaker-water-pipeline",
         });
     }
 };
