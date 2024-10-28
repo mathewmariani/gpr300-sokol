@@ -6,7 +6,7 @@
 namespace batteries
 {
   Scene::Scene()
-  : geometrybuffer(800, 600)
+      : geometrybuffer(800, 600)
   {
     pass = (sg_pass){
         .action = (sg_pass_action){
@@ -15,9 +15,8 @@ namespace batteries
                 .load_action = SG_LOADACTION_CLEAR,
             },
             .depth = {
-                .load_action = SG_LOADACTION_CLEAR,
-                .store_action = SG_STOREACTION_STORE,
                 .clear_value = 1.0f,
+                .load_action = SG_LOADACTION_CLEAR,
             },
         },
         .swapchain = sglue_swapchain(),

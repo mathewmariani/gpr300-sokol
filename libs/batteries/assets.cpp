@@ -63,9 +63,9 @@ namespace
   void read_texture(batteries::Texture *texture, const void *data, unsigned int size)
   {
     int width, height, components;
-    texture->pixels = stbi_load_from_memory((const stbi_uc *)data, size, &width, &height, &components, 4);
+    auto *pixels = stbi_load_from_memory((const stbi_uc *)data, size, &width, &height, &components, 4);
 
-    if (!texture->pixels)
+    if (!pixels)
     {
       return;
     }
@@ -78,12 +78,12 @@ namespace
         .height = height,
         .pixel_format = SG_PIXELFORMAT_RGBA8,
         .data.subimage[0][0] = {
-            .ptr = texture->pixels,
+            .ptr = pixels,
             .size = (size_t)(width * height * 4),
         }
     });
     // clang-format on
-    // stbi_image_free(pixels);
+    stbi_image_free(pixels);
   }
   void read_cubemap(const sfetch_response_t *response)
   {

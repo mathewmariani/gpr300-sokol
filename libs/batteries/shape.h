@@ -7,6 +7,8 @@
 // batteries
 #include "transform.h"
 
+#include <vector>
+
 namespace batteries
 {
   struct shape_t
@@ -17,19 +19,20 @@ namespace batteries
     sg_buffer index_buffer;
   };
 
-  static shape_t BuildPlane(void)
+  static shape_t BuildPlane(float width, float height, unsigned short tiles)
   {
-    // generate shape geometries
-    sshape_vertex_t vertices[2 * 1024];
-    uint16_t indices[4 * 1024];
+    auto info = sshape_plane_sizes(tiles);
+    std::vector<sshape_vertex_t> vertices(info.vertices.num);
+    std::vector<uint16_t> indices(info.indices.num);
+
     sshape_buffer_t buf = {
-        .vertices.buffer = SSHAPE_RANGE(vertices),
-        .indices.buffer = SSHAPE_RANGE(indices),
+        .vertices.buffer = {vertices.data(), vertices.size() * sizeof(sshape_vertex_t)},
+        .indices.buffer = {indices.data(), indices.size() * sizeof(uint16_t)},
     };
     sshape_plane_t plane = {
-        .width = 400.0f,
-        .depth = 400.0f,
-        .tiles = 10,
+        .width = width,
+        .depth = height,
+        .tiles = tiles,
     };
 
     // one vertex/index-buffer-pair for all shapes
@@ -43,5 +46,10 @@ namespace batteries
         .index_buffer = sg_make_buffer(&ibuf_desc),
         .draw = sshape_element_range(&buf),
     };
+  }
+
+  static shape_t BuildPlane(void)
+  {
+    return BuildPlane(400.0f, 400.0f, 10);
   }
 }

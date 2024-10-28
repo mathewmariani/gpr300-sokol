@@ -11,7 +11,6 @@ namespace batteries
   struct Texture final : public batteries::Asset
   {
     sg_image image;
-    void *pixels;
 
     Texture()
     {

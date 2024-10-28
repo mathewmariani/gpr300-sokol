@@ -2,6 +2,7 @@
 
 #include "terrain.h"
 
+#include "batteries/texture.h"
 #include "batteries/scene.h"
 
 class Scene final : public batteries::Scene
@@ -16,5 +17,6 @@ public:
 
 private:
   Terrain terrain;
-  Terrain::plane_t terrain_obj;
+  batteries::Texture heightmap;
+  batteries::shape_t plane;
 };
