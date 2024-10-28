@@ -5,6 +5,9 @@ import Mustache from "mustache";
 import hljs from "highlight.js"
 import { globSync } from "glob";
 
+// args
+const args = process.argv.slice(2);
+
 // initialize markdown
 hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
 hljs.registerLanguage("glsl", require("highlight.js/lib/languages/glsl"));
@@ -19,7 +22,7 @@ const demo = fs.readFileSync("resources/mustache/demo.mustache", "utf8");
 
 const content_path = "resources/content";
 const assignments_path = "resources/content/assignments";
-const wasm_path = "build/assignments/Debug";
+const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
 
 // helper functions
 function _copyDirectory(source: string, destination: string) {
@@ -83,19 +86,19 @@ function _buildWebsite() {
   });
 
   // glob all .wasm files
-  const wasm_glob = globSync(`${wasm_path}/*.wasm`);
+  const wasm_glob = globSync(`${build_path}/*.wasm`);
   wasm_glob.forEach((file: string) => {
     const name = path.parse(file).name;
 
     // copy to output
-    _copyFile(`build/assignments/Debug/${name}.js`, `website/assets/${name}.js`);
-    _copyFile(`build/assignments/Debug/${name}.wasm`, `website/assets/${name}.wasm`);
+    _copyFile(`${build_path}/${name}.js`, `website/assets/${name}.js`);
+    _copyFile(`${build_path}/${name}.wasm`, `website/assets/${name}.wasm`);
   });
 
   // copy to output
   _copyDirectory("resources/images", "website/images");
   _copyDirectory("resources/assets", "website/assets");
-  _copyDirectory("assignments/assets", "website/demo/assets");
+  _copyDirectory("assignments/assets", "website/assets");
 }
 
 // main.js

@@ -3,10 +3,9 @@
 # Work Session 0
 <p class="lead">Physically Based Rendering</p>
 
+{{{ demo }}}
 
-View [demo](demo/worksession0.html)
-
-
+#### Goal
 This worksession involves converting mathematical equations into a shader program for use in the graphics pipeline. You will be provided with equations, and your task is to express them in GLSL (OpenGL Shading Language) code. This exercise aims to develop your skills in translating equations into a fragment shader for visualization on the GPU.
 
 Through this practical application, you'll gain hands-on experience in shader programming, connecting mathematical formulations with visual outputs.

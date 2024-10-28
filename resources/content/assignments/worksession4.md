@@ -1,12 +1,9 @@
 # Work Session 4
 <p class="lead">Toon Shading</p>
 
-
-View [demo](demo/worksession4.html)
-
+{{{ demo }}}
 
 #### Goal
-
 The goal of this work-session is to explore the power of textures. We will be using a texture as a lookup table to map values from our vertex lighting calculation onto a range authored by an artist.
 
 

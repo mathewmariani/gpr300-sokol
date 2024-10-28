@@ -52,12 +52,12 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 0][] - Physically Based Rendering (PBR)
 *   [worksession 1][] - Windwaker Ocean
 *   [worksession 2][] - Landmass Generation
+*   [worksession 3][] - Super Mario Sunshine Water
 *   [worksession 4][] - Toon Shading
 *   [worksession 5][] - Transition Sequences
 *   [worksession 6][] - Complex Geometries
 
 <!-- Future Work Sessions:
-*   [worksession 3][] - Super Mario Sunshine Water
 *   [worksession 4][] - Mandelbrot Set
 -->
 
