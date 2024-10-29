@@ -3,7 +3,7 @@
 // batteries
 #include "batteries/postprocess.h"
 
-#include "inverse_post_process.glsl.h"
+#include "inverse.glsl.h"
 
 struct Inverse final : public batteries::PostProcessEffectSettings
 {
@@ -25,10 +25,10 @@ struct InverseRenderer final : public batteries::PostProcessEffect<Inverse>
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = inverse_post_process_vs,
+                    .source = inverse_vs,
                 },
                 .fs = {
-                    .source = inverse_post_process_fs,
+                    .source = inverse_fs,
                     .images[0].used = true,
                     .samplers[0].used = true,
                     .image_sampler_pairs[0] = {

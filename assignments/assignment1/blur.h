@@ -3,7 +3,7 @@
 // batteries
 #include "batteries/postprocess.h"
 
-#include "blur_post_process.glsl.h"
+#include "blur.glsl.h"
 
 struct Blur final : public batteries::PostProcessEffectSettings
 {
@@ -25,10 +25,10 @@ struct BlurRenderer final : public batteries::PostProcessEffect<Blur>
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = blur_post_process_vs,
+                    .source = blur_vs,
                 },
                 .fs = {
-                    .source = blur_post_process_fs,
+                    .source = blur_fs,
                     .images[0].used = true,
                     .samplers[0].used = true,
                     .image_sampler_pairs[0] = {

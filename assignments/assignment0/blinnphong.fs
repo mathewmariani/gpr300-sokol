@@ -40,11 +40,11 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
 
   // diffuse
   float diff = max(dot(light_dir, normal), 0.0);
-  vec3 diffuse = diff * light_color;
+  vec3 diffuse = diff * light_color * material.diffuse;
 
   // specular
-  float spec = pow(max(dot(normal, halfway_dir), 0.0), 64.0);
-  vec3 specular = spec * light_color;    
+  float spec = pow(max(dot(normal, halfway_dir), 0.0), material.shininess);
+  vec3 specular = spec * light_color * material.specular;    
 
   return diffuse + specular;
 }
@@ -52,11 +52,7 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
 void main()
 {
   vec3 normal = normalize(vs_normal);
-  vec3 color = vs_normal * 0.5 + 0.5;
-
   vec3 lighting = blinnPhong(normal, vs_position, light.position, light.color);
-  lighting += ambient.intensity * ambient.color;
-  color *= lighting;
-
-  FragColor = vec4(color, 1.0);
+  lighting += ambient.intensity * ambient.color * material.ambient;
+  FragColor = vec4(lighting, 1.0);
 }

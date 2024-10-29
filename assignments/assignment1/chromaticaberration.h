@@ -3,7 +3,7 @@
 // batteries
 #include "batteries/postprocess.h"
 
-#include "chromatic_aberration.glsl.h"
+#include "chromaticaberration.glsl.h"
 
 struct ChromaticAberration final : public batteries::PostProcessEffectSettings
 {
@@ -25,10 +25,10 @@ struct ChromaticAberrationRenderer final : public batteries::PostProcessEffect<C
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = chromatic_aberration_vs,
+                    .source = chromaticaberration_vs,
                 },
                 .fs = {
-                    .source = chromatic_aberration_fs,
+                    .source = chromaticaberration_fs,
                     .images[0].used = true,
                     .samplers[0].used = true,
                     .image_sampler_pairs[0] = {

@@ -3,7 +3,7 @@
 // batteries
 #include "batteries/postprocess.h"
 
-#include "grayscale_post_process.glsl.h"
+#include "grayscale.glsl.h"
 
 struct GrayScale final : public batteries::PostProcessEffectSettings
 {
@@ -25,10 +25,10 @@ struct GrayScaleRenderer final : public batteries::PostProcessEffect<GrayScale>
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = grayscale_post_process_vs,
+                    .source = grayscale_vs,
                 },
                 .fs = {
-                    .source = grayscale_post_process_fs,
+                    .source = grayscale_fs,
                     .images[0].used = true,
                     .samplers[0].used = true,
                     .image_sampler_pairs[0] = {

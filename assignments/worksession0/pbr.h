@@ -7,7 +7,7 @@
 #include "batteries/model.h"
 #include "batteries/pass.h"
 
-#include "pbr_pass.glsl.h"
+#include "pbr.glsl.h"
 
 struct PhysicallyBasedRendering final : public batteries::Pass
 {
@@ -45,7 +45,7 @@ struct PhysicallyBasedRendering final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = pbr_pass_vs,
+                    .source = pbr_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -56,7 +56,7 @@ struct PhysicallyBasedRendering final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = pbr_pass_fs,
+                    .source = pbr_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),

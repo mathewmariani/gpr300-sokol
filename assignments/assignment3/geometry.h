@@ -4,7 +4,7 @@
 #include "batteries/pass.h"
 #include "batteries/vertex.h"
 
-#include "geometry_pass.glsl.h"
+#include "geometry.glsl.h"
 
 struct Geometry final : public batteries::Pass
 {
@@ -36,7 +36,7 @@ struct Geometry final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = geometry_pass_vs,
+                    .source = geometry_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -46,7 +46,7 @@ struct Geometry final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = geometry_pass_fs,
+                    .source = geometry_fs,
                 },
             }),
             .index_type = SG_INDEXTYPE_NONE,

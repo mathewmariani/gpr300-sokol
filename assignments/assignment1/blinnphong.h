@@ -6,7 +6,7 @@
 #include "batteries/pass.h"
 
 // shader
-#include "blinn_phong.glsl.h"
+#include "blinnphong.glsl.h"
 
 struct BlinnPhong final : public batteries::Pass
 {
@@ -36,7 +36,7 @@ struct BlinnPhong final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = blinn_phong_vs,
+                    .source = blinnphong_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -47,7 +47,7 @@ struct BlinnPhong final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = blinn_phong_fs,
+                    .source = blinnphong_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
