@@ -2,7 +2,8 @@
 
 // batteries
 #include "batteries/postprocess.h"
-#include "batteries/shaders/inverse_post_process.h"
+
+#include "inverse_post_process.glsl.h"
 
 struct Inverse final : public batteries::PostProcessEffectSettings
 {

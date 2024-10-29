@@ -9,7 +9,7 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "batteries/shaders/windwaker_sea.h"
+#include "windwaker_sea.glsl.h"
 
 struct SeaPass final : public batteries::Pass
 {

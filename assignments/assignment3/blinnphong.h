@@ -4,7 +4,7 @@
 #include "batteries/lights.h"
 #include "batteries/pass.h"
 
-#include "batteries/shaders/lighting_pass.h"
+#include "lighting_pass.glsl.h"
 
 #define MAX_LIGHTS (64)
 

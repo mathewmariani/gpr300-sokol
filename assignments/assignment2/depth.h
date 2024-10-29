@@ -6,7 +6,7 @@
 // batteries
 #include "batteries/pass.h"
 
-#include "batteries/shaders/shadow_depth.h"
+#include "shadow_depth.glsl.h"
 
 struct Depth final : public batteries::Pass
 {

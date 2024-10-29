@@ -2,7 +2,8 @@
 
 // batteries
 #include "batteries/postprocess.h"
-#include "batteries/shaders/chromatic_aberration.h"
+
+#include "chromatic_aberration.glsl.h"
 
 struct ChromaticAberration final : public batteries::PostProcessEffectSettings
 {

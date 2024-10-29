@@ -2,7 +2,8 @@
 
 // batteries
 #include "batteries/postprocess.h"
-#include "batteries/shaders/blur_post_process.h"
+
+#include "blur_post_process.glsl.h"
 
 struct Blur final : public batteries::PostProcessEffectSettings
 {

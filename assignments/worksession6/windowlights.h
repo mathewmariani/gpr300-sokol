@@ -9,7 +9,7 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "batteries/shaders/windwaker_windowlights.h"
+#include "windwaker_windowlights.glsl.h"
 
 struct WindowLightsPass final : public batteries::Pass
 {

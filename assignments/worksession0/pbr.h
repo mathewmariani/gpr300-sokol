@@ -7,7 +7,7 @@
 #include "batteries/model.h"
 #include "batteries/pass.h"
 
-#include "batteries/shaders/pbr_pass.h"
+#include "pbr_pass.glsl.h"
 
 struct PhysicallyBasedRendering final : public batteries::Pass
 {

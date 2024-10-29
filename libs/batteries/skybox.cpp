@@ -1,6 +1,6 @@
 #include "assets.h"
 #include "skybox.h"
-#include "shaders/skybox.h"
+#include "skybox.glsl.h"
 
 namespace batteries
 {

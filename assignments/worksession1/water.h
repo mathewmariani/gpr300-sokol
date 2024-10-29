@@ -5,7 +5,7 @@
 #include "batteries/shape.h"
 #include "batteries/texture.h"
 
-#include "batteries/shaders/windwaker_water.h"
+#include "windwaker_water.glsl.h"
 
 struct Water final : public batteries::Pass
 {

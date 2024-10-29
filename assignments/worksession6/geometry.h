@@ -9,7 +9,7 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "batteries/shaders/windwaker_geometry.h"
+#include "windwaker_geometry.glsl.h"
 
 struct GeometryPass final : public batteries::Pass
 {

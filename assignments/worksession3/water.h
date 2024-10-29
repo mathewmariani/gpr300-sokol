@@ -5,7 +5,7 @@
 #include "batteries/shape.h"
 #include "batteries/texture.h"
 
-#include "batteries/shaders/sunshine_water.h"
+#include "sunshine_water.glsl.h"
 
 struct Water final : public batteries::Pass
 {

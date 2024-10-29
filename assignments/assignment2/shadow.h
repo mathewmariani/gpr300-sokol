@@ -5,7 +5,7 @@
 #include "batteries/materials.h"
 #include "batteries/pass.h"
 
-#include "batteries/shaders/shadow_map.h"
+#include "shadow_map.glsl.h"
 
 struct Shadow final : public batteries::Pass
 {

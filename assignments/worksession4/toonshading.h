@@ -4,7 +4,7 @@
 #include "batteries/lights.h"
 #include "batteries/pass.h"
 
-#include "batteries/shaders/toon_shadowing.h"
+#include "toon_shadowing.glsl.h"
 
 struct ToonShading final : public batteries::Pass
 {

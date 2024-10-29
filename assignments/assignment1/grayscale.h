@@ -2,7 +2,8 @@
 
 // batteries
 #include "batteries/postprocess.h"
-#include "batteries/shaders/grayscale_post_process.h"
+
+#include "grayscale_post_process.glsl.h"
 
 struct GrayScale final : public batteries::PostProcessEffectSettings
 {

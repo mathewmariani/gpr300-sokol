@@ -5,7 +5,7 @@
 
 // batteries
 #include "pass.h"
-#include "shaders/shapes.h"
+#include "shapes.glsl.h"
 
 // sokol
 #include "sokol/sokol_gfx.h"

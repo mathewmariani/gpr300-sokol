@@ -9,15 +9,15 @@ layout(location = 2) in vec2 in_texcoord;
 uniform mat4 view_proj;
 uniform mat4 model;
 
-// send to fragment
-out vec3 world_position;
-out vec3 world_normal;
-out vec2 texcoords;
+// varyings
+out vec3 vs_position;
+out vec3 vs_normal;
+out vec2 vs_texcoord;
 
 void main()
 {
-  texcoords = in_texcoord;
-  world_position = vec3(model * vec4(in_position, 1.0));
-  world_normal = transpose(inverse(mat3(model))) * in_normal;
+  vs_position = in_position;
+  vs_normal = in_normal;
+  vs_texcoord = in_texcoord;
   gl_Position = view_proj * model * vec4(in_position, 1.0);
 }

@@ -6,7 +6,7 @@
 #include "batteries/pass.h"
 
 // shader
-#include "batteries/shaders/blinn_phong.h"
+#include "blinn_phong.glsl.h"
 
 struct BlinnPhong final : public batteries::Pass
 {

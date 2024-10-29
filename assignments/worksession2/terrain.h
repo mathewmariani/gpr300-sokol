@@ -4,7 +4,7 @@
 #include "batteries/pass.h"
 #include "batteries/shape.h"
 
-#include "batteries/shaders/island_generator.h"
+#include "island_generator.glsl.h"
 
 struct Terrain final : public batteries::Pass
 {

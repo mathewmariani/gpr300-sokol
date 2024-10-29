@@ -2,7 +2,7 @@
 
 // batteries
 #include "batteries/postprocess.h"
-#include "batteries/shaders/transition.h"
+#include "transition.glsl.h"
 
 // glm
 #include "glm/glm.hpp"
