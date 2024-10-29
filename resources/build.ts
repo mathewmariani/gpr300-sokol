@@ -54,7 +54,7 @@ function _buildAssignments() {
     const name = path.parse(file).name;
     const body = fs.readFileSync(file, "utf8");
     const page = Mustache.render(body, { demo: demo });
-    const content = Mustache.render(_buildPage(page), { script: `assets/${name}.js` });
+    const content = Mustache.render(_buildPage(page), { script: `demos/${name}.js` });
 
     // copy to output
     _writeFile(`website/${name}.html`, content);
@@ -68,8 +68,8 @@ function _buildWebsite() {
   if (!fs.existsSync("website")) {
     fs.mkdirSync("website");
   }
-  if (!fs.existsSync("website/demo")) {
-    fs.mkdirSync("website/demo", { recursive: true });
+  if (!fs.existsSync("website/demos")) {
+    fs.mkdirSync("website/demos", { recursive: true });
   }
 
   _buildAssignments();
@@ -91,8 +91,8 @@ function _buildWebsite() {
     const name = path.parse(file).name;
 
     // copy to output
-    _copyFile(`${build_path}/${name}.js`, `website/assets/${name}.js`);
-    _copyFile(`${build_path}/${name}.wasm`, `website/assets/${name}.wasm`);
+    _copyFile(`${build_path}/${name}.js`, `website/demos/${name}.js`);
+    _copyFile(`${build_path}/${name}.wasm`, `website/demos/${name}.wasm`);
   });
 
   // copy to output
