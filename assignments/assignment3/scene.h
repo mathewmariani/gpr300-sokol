@@ -1,12 +1,12 @@
 #pragma once
 
-#include "assignment3.h"
 #include "blinnphong.h"
 #include "geometry.h"
 
 // batteries
 #include "batteries/gizmo.h"
 #include "batteries/materials.h"
+#include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 
@@ -25,8 +25,7 @@ private:
   Geometry geometry;
 
   batteries::Gizmo gizmo;
-  assignment3::Model suzanne;
-
+  batteries::Model suzanne;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;

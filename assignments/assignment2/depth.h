@@ -6,7 +6,7 @@
 // batteries
 #include "batteries/pass.h"
 
-#include "shadow_depth.glsl.h"
+#include "depth.glsl.h"
 
 struct Depth final : public batteries::Pass
 {
@@ -28,7 +28,7 @@ struct Depth final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = shadow_depth_vs,
+                    .source = depth_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -39,7 +39,7 @@ struct Depth final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = shadow_depth_fs,
+                    .source = depth_fs,
                 },
             }),
             .index_type = SG_INDEXTYPE_NONE,

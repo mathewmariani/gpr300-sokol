@@ -13,17 +13,17 @@ static struct
 
 Scene::Scene()
 {
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    material = (batteries::material_t){
+    material = {
         .ambient = {0.5f, 0.5f, 0.5f},
         .diffuse = {0.5f, 0.5f, 0.5f},
         .specular = {0.5f, 0.5f, 0.5f},
@@ -31,6 +31,9 @@ Scene::Scene()
     },
 
     suzanne.Load("assets/suzanne.obj");
+
+    plane = batteries::BuildPlane();
+    ortho_wireframe = batteries::BuildPlane();
 
     // create an sokol-imgui wrapper for the shadow map
     auto ui_smp = sg_make_sampler({
@@ -128,21 +131,34 @@ void Scene::Render(void)
         // create bindings
         auto bindings = (sg_bindings){
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            // .index_buffer = suzanne.mesh.index_buffer,
+            .index_buffer = suzanne.mesh.index_buffer,
             .fs = {
                 .images[0] = depthbuffer.depth,
                 .samplers[0] = depthbuffer.sampler,
             },
         };
         sg_apply_bindings(bindings);
-        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
+        sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
+    // create bindings
+    auto bindings = (sg_bindings){
+        .vertex_buffers[0] = plane.vertex_buffer,
+        .index_buffer = plane.index_buffer,
+        .fs = {
+            .images[0] = depthbuffer.depth,
+            .samplers[0] = depthbuffer.sampler,
+        },
+    };
+    sg_apply_bindings(&bindings);
+    sg_draw(plane.draw.base_element, plane.draw.num_elements, 1);
+    sg_end_pass();
+
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
     sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
     sg_end_pass();
 
     // render framebuffer
@@ -177,8 +193,11 @@ void Scene::Debug(void)
     ImGui::End();
 
     ImGui::Begin("Offscreen Render");
-    ImGui::BeginChild("Offscreen Render");
+    ImGui::BeginChild("Depth Buffer");
     ImGui::Image(simgui_imtextureid(debug.depth_buffer), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::EndChild();
+    ImGui::BeginChild("Shadow Map");
+    ImGui::Image(simgui_imtextureid(debug.shadow_map), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }

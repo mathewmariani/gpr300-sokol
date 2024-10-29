@@ -1,6 +1,5 @@
 #include "scene.h"
 #include "imgui/imgui.h"
-#include <unordered_map>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
@@ -41,6 +40,11 @@ static std::vector<mtl_t> materials = {
     {"white rubber", {{0.05f, 0.05f, 0.05f}, {0.5f, 0.5f, 0.5f}, {0.7f, 0.7f, 0.7f}, 0.078125f}},
     {"yellow rubber", {{0.05f, 0.05f, 0.0f}, {0.5f, 0.5f, 0.4f}, {0.7f, 0.7f, 0.04f}, 0.078125f}},
 };
+
+static struct
+{
+    bool material_enabled = true;
+} state;
 
 Scene::Scene()
 {
@@ -121,7 +125,7 @@ void Scene::Render(void)
     sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
     sg_end_pass();
 
     // render framebuffer
@@ -171,6 +175,18 @@ void Scene::Debug(void)
         ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &light.color[0]);
     }
+
+    // ImGui::Checkbox("Enable Material", &state.material_enabled);
+    // ImGui::PopStyleColor(1);
+    // if (state.material_enabled)
+    // {
+    //     ImGui::PushID("material");
+    //     ImGui::Separator();
+    //     ImGui::ColorEdit3("Diffuse", &materials[materials_index].material.diffuse.r, ImGuiColorEditFlags_None);
+    //     ImGui::ColorEdit3("Specular", &materials[materials_index].material.specular.r, ImGuiColorEditFlags_None);
+    //     ImGui::SliderFloat("Spec Pwr", &materials[materials_index].material.shininess, 1.0f, 64.0f, "%.1f", ImGuiSliderFlags_None);
+    //     ImGui::PopID();
+    // }
 
     ImGui::End();
 }

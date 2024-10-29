@@ -5,7 +5,7 @@
 #include "batteries/materials.h"
 #include "batteries/pass.h"
 
-#include "shadow_map.glsl.h"
+#include "shadow.glsl.h"
 
 struct Shadow final : public batteries::Pass
 {
@@ -36,7 +36,7 @@ struct Shadow final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = shadow_map_vs,
+                    .source = shadow_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -48,7 +48,7 @@ struct Shadow final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = shadow_map_fs,
+                    .source = shadow_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
@@ -76,8 +76,8 @@ struct Shadow final : public batteries::Pass
                     },
                 },
             }),
-            // .index_type = SG_INDEXTYPE_UINT16,
-            .index_type = SG_INDEXTYPE_NONE,
+            .index_type = SG_INDEXTYPE_UINT16,
+            // .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,
             .colors = {
@@ -88,7 +88,7 @@ struct Shadow final : public batteries::Pass
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "shadowmap-pipeline",
+            .label = "shadow-pipeline",
         });
     }
 };

@@ -14,6 +14,7 @@ set(BATTERIES_FILES
     materials.h
     math.h
     mesh.h
+    model.cpp
     model.h
     pass.h
     postprocess.h

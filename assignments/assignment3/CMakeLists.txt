@@ -1,6 +1,4 @@
 set(ASSIGNMENT_FILES
-    assignment3.cpp
-    assignment3.h
     blinnphong.h
     geometry.h
     scene.cpp

@@ -4,12 +4,11 @@
 #include "shadow.h"
 
 #include "batteries/gizmo.h"
-#include "batteries/skybox.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/materials.h"
-
-#include "assignment2.h"
+#include "batteries/model.h"
+#include "batteries/shape.h"
 
 class Scene final : public batteries::Scene
 {
@@ -25,11 +24,12 @@ private:
   Depth depth;
   Shadow shadow;
 
-  assignment2::Model suzanne;
+  batteries::Model suzanne;
   batteries::Gizmo gizmo;
-  batteries::Skybox skybox;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;
+  batteries::shape_t plane;
+  batteries::shape_t ortho_wireframe;
 };

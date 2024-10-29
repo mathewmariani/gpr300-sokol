@@ -1,6 +1,4 @@
 set(ASSIGNMENT_FILES
-    assignment2.cpp
-    assignment2.h
     depth.h
     scene.cpp
     scene.h
