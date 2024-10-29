@@ -5,11 +5,11 @@
 
 // batteries
 #include "pass.h"
+#include "shape.h"
 #include "shapes.glsl.h"
 
 // sokol
 #include "sokol/sokol_gfx.h"
-#include "sokol/sokol_shape.h"
 
 namespace batteries
 {
@@ -27,6 +27,7 @@ namespace batteries
         };
 
         sg_bindings bindings;
+        batteries::shape_t sphere;
 
         Gizmo()
         {
@@ -73,40 +74,11 @@ namespace batteries
                 .label = "gizmo-pipeline",
             });
 
-            // generate shape geometries
-            sshape_vertex_t vertices[30] = {0}; // (slices + 1) * (stacks + 1);
-            uint16_t indices[90] = {0};         // ((2 * slices * stacks) - (2 * slices)) * 3;
-            sshape_buffer_t buf = {
-                .vertices.buffer = SSHAPE_RANGE(vertices),
-                .indices.buffer = SSHAPE_RANGE(indices),
-            };
-            const sshape_sphere_t shape = {
-                .radius = 0.125f,
-                .slices = 5,
-                .stacks = 4,
-            };
-            buf = sshape_build_sphere(&buf, &shape);
-            assert(buf.valid);
-
-            // one vertex/index-buffer-pair for all shapes
-            sphere = sshape_element_range(&buf);
-            const sg_buffer_desc vbuf_desc = sshape_vertex_buffer_desc(&buf);
-            const sg_buffer_desc ibuf_desc = sshape_index_buffer_desc(&buf);
+            sphere = batteries::BuildSphere(0.125f, 5, 4);
             bindings = (sg_bindings){
-                .vertex_buffers[0] = sg_make_buffer(&vbuf_desc),
-                .index_buffer = sg_make_buffer(&ibuf_desc),
+                .vertex_buffers[0] = sphere.vertex_buffer,
+                .index_buffer = sphere.index_buffer,
             };
         }
-
-        void Render(const vs_params_t &vs_params, const fs_params_t &fs_params)
-        {
-            sg_apply_pipeline(pipeline);
-            sg_apply_bindings(&bindings);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE_REF(vs_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE_REF(fs_params));
-            sg_draw(sphere.base_element, sphere.num_elements, 1);
-        }
-
-        sshape_element_range_t sphere;
     };
 }
