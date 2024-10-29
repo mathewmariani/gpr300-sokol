@@ -103,7 +103,7 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    gizmo_pass_action = (sg_pass_action){
+    gizmo_pass_action = {
         .colors[0].load_action = SG_LOADACTION_DONTCARE,
         .depth.load_action = SG_LOADACTION_DONTCARE,
     };
@@ -220,7 +220,7 @@ void Scene::Render(void)
         sg_apply_bindings(&gizmo.bindings);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-        sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+        sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
     }
     sg_end_pass();
 

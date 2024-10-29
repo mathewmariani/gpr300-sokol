@@ -4,7 +4,7 @@
 #include "batteries/lights.h"
 #include "batteries/pass.h"
 
-#include "lighting_pass.glsl.h"
+#include "blinnphong.glsl.h"
 
 #define MAX_LIGHTS (64)
 
@@ -35,10 +35,10 @@ struct BlinnPhong final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = lighting_pass_vs,
+                    .source = blinnphong_vs,
                 },
                 .fs = {
-                    .source = lighting_pass_fs,
+                    .source = blinnphong_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
@@ -77,7 +77,7 @@ struct BlinnPhong final : public batteries::Pass
                 },
             }),
             .depth = {
-                .pixel_format = SG_PIXELFORMAT_DEPTH_STENCIL,
+                .pixel_format = SG_PIXELFORMAT_DEPTH,
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = false,
             },
