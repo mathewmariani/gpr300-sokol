@@ -2,7 +2,7 @@
 # update the required sokol headers
 
 # repo url
-IMGUI_PREFIX="https://raw.githubusercontent.com/ocornut/imgui/1dfbb10"
+IMGUI_PREFIX="https://raw.githubusercontent.com/ocornut/imgui/master"
 
 # headers
 IMGUI_CONFIG_H="$IMGUI_PREFIX/imconfig.h"
