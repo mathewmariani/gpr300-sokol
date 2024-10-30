@@ -14,6 +14,6 @@ namespace batteries
 
     Model() = default;
 
-    void Load(const std::string &path);
+    virtual void Load(const std::string &path);
   };
 }
