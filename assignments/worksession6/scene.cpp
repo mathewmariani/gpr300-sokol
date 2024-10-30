@@ -79,9 +79,8 @@ void Scene::Render(void)
         for (auto i = 0; i < island.mesh.groups.size(); i++)
         {
             auto group = island.mesh.groups[i];
-
             // update bindings
-            sg_bindings bindings = (sg_bindings){
+            auto bindings = (sg_bindings){
                 .vertex_buffers[0] = island.mesh.vertex_buffer,
                 .fs.images[0] = island.textures[i].image,
                 .fs.samplers = island.mesh.sampler,
@@ -98,9 +97,8 @@ void Scene::Render(void)
         for (auto i = 0; i < sea.mesh.groups.size(); i++)
         {
             auto group = sea.mesh.groups[i];
-
             // update bindings
-            sg_bindings bindings = (sg_bindings){
+            auto bindings = (sg_bindings){
                 .vertex_buffers[0] = sea.mesh.vertex_buffer,
                 .fs.images[0] = sea.textures[i].image,
                 .fs.samplers = sea.mesh.sampler,
@@ -117,9 +115,8 @@ void Scene::Render(void)
         for (auto i = 0; i < lights.mesh.groups.size(); i++)
         {
             auto group = lights.mesh.groups[i];
-
             // update bindings
-            sg_bindings bindings = (sg_bindings){
+            auto bindings = (sg_bindings){
                 .vertex_buffers[0] = lights.mesh.vertex_buffer,
                 .fs.images[0] = lights.textures[i].image,
                 .fs.samplers = lights.mesh.sampler,

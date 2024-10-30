@@ -29,5 +29,5 @@ void main()
   // use the albedo to as the base color
   vec4 object_color = texture(albedo, texcoords).rgba;
 
-  FragColor = vec4(vec4(light_color, 1.0));
+  FragColor = vec4(object_color * vec4(light_color, 1.0));
 }

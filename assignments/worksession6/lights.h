@@ -9,9 +9,9 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "windwaker_windowlights.glsl.h"
+#include "lights.glsl.h"
 
-struct WindowLightsPass final : public batteries::Pass
+struct LightsPass final : public batteries::Pass
 {
     typedef struct
     {
@@ -24,7 +24,7 @@ struct WindowLightsPass final : public batteries::Pass
         nintendo::Palette palette;
     } fs_params_t;
 
-    WindowLightsPass()
+    LightsPass()
     {
         pipeline = sg_make_pipeline({
             .layout = {
@@ -36,7 +36,7 @@ struct WindowLightsPass final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = windwaker_windowlights_vs,
+                    .source = lights_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -47,7 +47,7 @@ struct WindowLightsPass final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = windwaker_windowlights_fs,
+                    .source = lights_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
@@ -74,13 +74,13 @@ struct WindowLightsPass final : public batteries::Pass
             }),
             .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
-            .cull_mode = SG_CULLMODE_BACK,
+            .cull_mode = SG_CULLMODE_FRONT,
             .depth = {
                 .pixel_format = SG_PIXELFORMAT_DEPTH,
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "windwaker-windowlights-pipeline",
+            .label = "windwaker-lights-pipeline",
         });
     }
 };

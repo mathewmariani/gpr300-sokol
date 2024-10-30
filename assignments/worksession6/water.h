@@ -9,9 +9,9 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "windwaker_sea.glsl.h"
+#include "water.glsl.h"
 
-struct SeaPass final : public batteries::Pass
+struct WaterPass final : public batteries::Pass
 {
     typedef struct
     {
@@ -24,7 +24,7 @@ struct SeaPass final : public batteries::Pass
         nintendo::Palette palette;
     } fs_params_t;
 
-    SeaPass()
+    WaterPass()
     {
         pipeline = sg_make_pipeline({
             .layout = {
@@ -36,7 +36,7 @@ struct SeaPass final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = windwaker_sea_vs,
+                    .source = water_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -47,7 +47,7 @@ struct SeaPass final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = windwaker_sea_fs,
+                    .source = water_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
@@ -77,10 +77,10 @@ struct SeaPass final : public batteries::Pass
             .cull_mode = SG_CULLMODE_BACK,
             .depth = {
                 .pixel_format = SG_PIXELFORMAT_DEPTH,
-                .compare = SG_COMPAREFUNC_LESS_EQUAL,
+                .compare = SG_COMPAREFUNC_LESS,
                 .write_enabled = true,
             },
-            .label = "windwaker-sea-pipeline",
+            .label = "windwaker-water-pipeline",
         });
     }
 };

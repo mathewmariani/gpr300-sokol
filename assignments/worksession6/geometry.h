@@ -9,7 +9,7 @@
 #include "glm/glm.hpp"
 
 // shader
-#include "windwaker_geometry.glsl.h"
+#include "geometry.glsl.h"
 
 struct GeometryPass final : public batteries::Pass
 {
@@ -36,7 +36,7 @@ struct GeometryPass final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = windwaker_geometry_vs,
+                    .source = geometry_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -47,7 +47,7 @@ struct GeometryPass final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = windwaker_geometry_fs,
+                    .source = geometry_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
