@@ -10,6 +10,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/assignments")
 #defines
 add_definitions(-DSOKOL_NO_DEPRECATED)
 
+# suppress warnings
+add_compile_options(-Wno-c99-designator)
+add_compile_options(-Wno-reorder-init-list)
+
 # platform selection
 if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
   add_definitions(-DSOKOL_GLES3)
