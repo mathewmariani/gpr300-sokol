@@ -32,7 +32,8 @@ Scene::Scene()
 
     suzanne.Load("assets/suzanne.obj");
 
-    plane = batteries::BuildPlane();
+    plane = batteries::CreatePlane(100.0f, 100.0f, 1);
+    plane.transform.position = {0.0f, -2.0f, 0.0f};
     ortho_wireframe = batteries::BuildPlane();
 
     // create an sokol-imgui wrapper for the shadow map
@@ -80,9 +81,8 @@ void Scene::Render(void)
         .view_proj = light_view_proj,
         .model = suzanne.transform.matrix(),
     };
-    const Shadow::vs_params_t vs_shadow_params = {
+    Shadow::vs_params_t vs_shadow_params = {
         .view_proj = view_proj,
-        .model = suzanne.transform.matrix(),
         .light_view_proj = light_view_proj,
     };
     const Shadow::fs_params_t fs_shadow_params = {
@@ -112,7 +112,7 @@ void Scene::Render(void)
         // create bindings
         auto bindings = (sg_bindings){
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            // .index_buffer = suzanne.mesh.index_buffer,
+            .index_buffer = suzanne.mesh.index_buffer,
         };
 
         sg_apply_bindings(bindings);
@@ -123,8 +123,6 @@ void Scene::Render(void)
     sg_begin_pass(&framebuffer.pass);
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(shadow.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
     // render suzanne
     if (suzanne.loaded)
     {
@@ -137,29 +135,35 @@ void Scene::Render(void)
                 .samplers[0] = depthbuffer.sampler,
             },
         };
+        vs_shadow_params.model = suzanne.transform.matrix(),
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
         sg_apply_bindings(bindings);
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
     // create bindings
     auto bindings = (sg_bindings){
-        .vertex_buffers[0] = plane.vertex_buffer,
-        .index_buffer = plane.index_buffer,
+        .vertex_buffers[0] = plane.mesh.vertex_buffer,
+        .index_buffer = plane.mesh.index_buffer,
         .fs = {
             .images[0] = depthbuffer.depth,
             .samplers[0] = depthbuffer.sampler,
         },
     };
+    vs_shadow_params.model = plane.transform.matrix(),
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
     sg_apply_bindings(&bindings);
-    sg_draw(plane.draw.base_element, plane.draw.num_elements, 1);
+    sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();
 
     // render light sources
-    sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_bindings(&gizmo.bindings);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
-    sg_end_pass();
+    // sg_apply_pipeline(gizmo.pipeline);
+    // sg_apply_bindings(&gizmo.bindings);
+    // sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    // sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    // sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
+    // sg_end_pass();
 
     // render framebuffer
     sg_begin_pass(&pass);

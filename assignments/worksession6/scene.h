@@ -3,8 +3,8 @@
 #include "nintendo.h"
 
 #include "geometry.h"
-#include "sea.h"
-#include "windowlights.h"
+#include "lights.h"
+#include "water.h"
 
 #include "batteries/scene.h"
 
@@ -20,8 +20,8 @@ public:
 
 private:
   GeometryPass geometrypass;
-  SeaPass seapass;
-  WindowLightsPass windowlightspass;
+  LightsPass lightspass;
+  WaterPass waterpass;
 
   nintendo::Model island;
   nintendo::Model sea;

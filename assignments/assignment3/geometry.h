@@ -49,7 +49,7 @@ struct Geometry final : public batteries::Pass
                     .source = geometry_fs,
                 },
             }),
-            .index_type = SG_INDEXTYPE_NONE,
+            .index_type = SG_INDEXTYPE_UINT16,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,
             .sample_count = 1,

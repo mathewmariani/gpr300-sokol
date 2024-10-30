@@ -57,18 +57,18 @@ void Scene::Render(void)
     const GeometryPass::fs_params_t fs_geometry_params = {
         .palette = std::get<nintendo::Palette>(island_palette[island_palette_index]),
     };
-    const SeaPass::vs_params_t vs_sea_params = {
+    const WaterPass::vs_params_t vs_water_params = {
         .view_proj = view_proj,
         .model = sea.transform.matrix(),
     };
-    const SeaPass::fs_params_t fs_sea_params = {
+    const WaterPass::fs_params_t fs_water_params = {
         .palette = std::get<nintendo::Palette>(window_palette[window_palette_index]),
     };
-    const WindowLightsPass::vs_params_t vs_windowlights_params = {
+    const LightsPass::vs_params_t vs_lights_params = {
         .view_proj = view_proj,
         .model = lights.transform.matrix(),
     };
-    const WindowLightsPass::fs_params_t fs_windowlights_params = {
+    const LightsPass::fs_params_t fs_lights_params = {
         .palette = std::get<nintendo::Palette>(window_palette[1]),
     };
 
@@ -104,9 +104,9 @@ void Scene::Render(void)
                 .fs.samplers = sea.mesh.sampler,
             };
             // apply windwaker island pipeline and uniforms
-            sg_apply_pipeline(seapass.pipeline);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_sea_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_sea_params));
+            sg_apply_pipeline(waterpass.pipeline);
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
+            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
             sg_apply_bindings(bindings);
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }
@@ -122,9 +122,9 @@ void Scene::Render(void)
                 .fs.samplers = lights.mesh.sampler,
             };
             // apply windwaker island pipeline and uniforms
-            sg_apply_pipeline(windowlightspass.pipeline);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_windowlights_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_windowlights_params));
+            sg_apply_pipeline(lightspass.pipeline);
+            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_lights_params));
+            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lights_params));
             sg_apply_bindings(bindings);
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }

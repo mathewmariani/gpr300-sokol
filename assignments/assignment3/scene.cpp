@@ -173,10 +173,8 @@ void Scene::Render(void)
     {
         // create bindings
         auto bindings = (sg_bindings){
-            .vertex_buffers = {
-                [0] = suzanne.mesh.vertex_buffer,
-                [1] = instance_buffer,
-            },
+            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
+            .index_buffer = suzanne.mesh.index_buffer,
         };
 
         sg_apply_bindings(bindings);
@@ -189,9 +187,7 @@ void Scene::Render(void)
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
     // create bindings
     auto bindings = (sg_bindings){
-        .vertex_buffers = {
-            [0] = framebuffer.vertex_buffer,
-        },
+        .vertex_buffers[0] = framebuffer.vertex_buffer,
         .fs = {
             .images = {
                 [0] = geometrybuffer.position_img,

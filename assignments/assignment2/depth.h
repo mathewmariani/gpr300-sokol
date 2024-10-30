@@ -42,7 +42,7 @@ struct Depth final : public batteries::Pass
                     .source = depth_fs,
                 },
             }),
-            .index_type = SG_INDEXTYPE_NONE,
+            .index_type = SG_INDEXTYPE_UINT16,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_FRONT,
             .colors[0].pixel_format = SG_PIXELFORMAT_NONE,

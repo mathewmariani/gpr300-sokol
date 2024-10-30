@@ -26,10 +26,10 @@ private:
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;
+  batteries::Shape plane;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;
-  batteries::shape_t plane;
   batteries::shape_t ortho_wireframe;
 };
