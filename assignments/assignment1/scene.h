@@ -5,6 +5,7 @@
 // effects
 #include "blur.h"
 #include "chromaticaberration.h"
+#include "crt.h"
 #include "grayscale.h"
 #include "inverse.h"
 
@@ -29,6 +30,7 @@ private:
   BlinnPhong blinnphong;
   BlurRenderer blurRenderer;
   ChromaticAberrationRenderer chromaticAberrationRenderer;
+  CRTRenderer crtRenderer;
   GrayScaleRenderer grayscaleRenderer;
   InverseRenderer inverseRenderer;
 

@@ -22,12 +22,12 @@ static std::vector<std::string> post_processing_effects = {
 
 Scene::Scene()
 {
-    ambient = (batteries::ambient_t){
+    ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = (batteries::light_t){
+    light = {
         .brightness = 1.0f,
         .color = {1.0f, 1.0f, 1.0f},
     };
@@ -102,7 +102,7 @@ void Scene::Render(void)
     sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.base_element, gizmo.sphere.num_elements, 1);
+    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
 
     sg_end_pass();
 
@@ -126,6 +126,10 @@ void Scene::Render(void)
         break;
     case 4:
         sg_apply_pipeline(chromaticAberrationRenderer.pipeline);
+        sg_apply_bindings(&framebuffer.bindings);
+        break;
+    case 5:
+        sg_apply_pipeline(crtRenderer.pipeline);
         sg_apply_bindings(&framebuffer.bindings);
         break;
     default:
