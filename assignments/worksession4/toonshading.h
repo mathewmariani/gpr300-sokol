@@ -4,7 +4,7 @@
 #include "batteries/lights.h"
 #include "batteries/pass.h"
 
-#include "toon_shadowing.glsl.h"
+#include "toonshading.glsl.h"
 
 struct ToonShading final : public batteries::Pass
 {
@@ -38,7 +38,7 @@ struct ToonShading final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = toon_shadowing_vs,
+                    .source = toonshading_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -49,7 +49,7 @@ struct ToonShading final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = toon_shadowing_fs,
+                    .source = toonshading_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),

@@ -5,7 +5,7 @@
 #include "batteries/shape.h"
 #include "batteries/texture.h"
 
-#include "sunshine_water.glsl.h"
+#include "water.glsl.h"
 
 struct Water final : public batteries::Pass
 {
@@ -48,7 +48,7 @@ struct Water final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = sunshine_water_vs,
+                    .source = water_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -60,7 +60,7 @@ struct Water final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = sunshine_water_fs,
+                    .source = water_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
