@@ -20,6 +20,7 @@ set(BATTERIES_FILES
     postprocess.h
     scene.cpp
     scene.h
+    shape.cpp
     shape.h
     skybox.cpp
     skybox.h

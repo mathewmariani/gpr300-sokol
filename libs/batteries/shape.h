@@ -5,6 +5,7 @@
 #include "sokol/sokol_shape.h"
 
 // batteries
+#include "mesh.h"
 #include "transform.h"
 
 #include <vector>
@@ -18,6 +19,14 @@ namespace batteries
     sg_buffer vertex_buffer;
     sg_buffer index_buffer;
   };
+
+  struct Shape
+  {
+    Transform transform;
+    Mesh mesh;
+  };
+
+  Shape CreatePlane(float width, float height, int subdivisions);
 
   static shape_t BuildPlane(float width, float height, uint16_t tiles)
   {
