@@ -1,7 +1,9 @@
 #include "scene.h"
 
+// batteries
 #include "batteries/math.h"
 
+// imgui
 #include "imgui/imgui.h"
 #include "sokol/sokol_imgui.h"
 
@@ -212,11 +214,16 @@ void Scene::Render(void)
         const batteries::Gizmo::fs_params_t fs_gizmo_params = {
             .color = instance_light_data.color[i],
         };
+        // render light sources
+        auto bindings = (sg_bindings){
+            .vertex_buffers[0] = sphere.mesh.vertex_buffer,
+            .index_buffer = sphere.mesh.index_buffer,
+        };
         sg_apply_pipeline(gizmo.pipeline);
-        sg_apply_bindings(&gizmo.bindings);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-        sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
+        sg_draw(0, sphere.mesh.indices.size(), 1);
+        sg_end_pass();
     }
     sg_end_pass();
 

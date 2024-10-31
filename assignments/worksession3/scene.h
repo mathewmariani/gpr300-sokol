@@ -1,8 +1,10 @@
 #pragma once
 
-#include "water.h"
-
+// batteries
 #include "batteries/scene.h"
+#include "batteries/shape.h"
+
+#include "water.h"
 
 class Scene final : public batteries::Scene
 {
@@ -16,5 +18,5 @@ public:
 
 private:
   Water water;
-  Water::water_t water_obj;
+  batteries::Shape plane;
 };

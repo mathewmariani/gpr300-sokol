@@ -3,6 +3,7 @@
 #include "water.h"
 
 #include "batteries/scene.h"
+#include "batteries/shape.h"
 
 class Scene final : public batteries::Scene
 {
@@ -16,5 +17,5 @@ public:
 
 private:
   Water water;
-  batteries::shape_t plane;
+  batteries::Shape plane;
 };

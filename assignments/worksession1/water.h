@@ -2,8 +2,9 @@
 
 // batteries
 #include "batteries/pass.h"
-#include "batteries/shape.h"
-#include "batteries/texture.h"
+
+// glm
+#include "glm/glm.hpp"
 
 #include "water.glsl.h"
 
@@ -42,12 +43,10 @@ struct Water final : public batteries::Pass
     {
         pipeline = sg_make_pipeline({
             .layout = {
-                .buffers[0] = sshape_vertex_buffer_layout_state(),
                 .attrs = {
-                    [0] = sshape_position_vertex_attr_state(),
-                    [1] = sshape_normal_vertex_attr_state(),
-                    [2] = sshape_texcoord_vertex_attr_state(),
-                    [3] = sshape_color_vertex_attr_state(),
+                    [0].format = SG_VERTEXFORMAT_FLOAT3,
+                    [1].format = SG_VERTEXFORMAT_FLOAT3,
+                    [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
             .shader = sg_make_shader({

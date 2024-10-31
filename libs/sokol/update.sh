@@ -14,7 +14,6 @@ SOKOL_TIME_H="$SOKOL_PREFIX/sokol_time.h"
 
 # utils
 SOKOL_IMGUI_H="$SOKOL_PREFIX/util/sokol_imgui.h"
-SOKOL_SHAPE_H="$SOKOL_PREFIX/util/sokol_shape.h"
 
 # license
 SOKOL_LICENSE="$SOKOL_PREFIX/LICENSE"
@@ -32,7 +31,6 @@ curl $SOKOL_TIME_H > $OUTPUT/sokol_time.h
 
 # utils
 curl $SOKOL_IMGUI_H > $OUTPUT/sokol_imgui.h
-curl $SOKOL_SHAPE_H > $OUTPUT/sokol_shape.h
 
 # license
 curl $SOKOL_LICENSE > $OUTPUT/LICENSE

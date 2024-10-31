@@ -1,12 +1,13 @@
 #pragma once
 
-
-#include "nintendo.h"
-#include "pbr.h"
-
+// batteries
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/gizmo.h"
+#include "batteries/shape.h"
+
+#include "nintendo.h"
+#include "pbr.h"
 
 class Scene final : public batteries::Scene
 {
@@ -23,6 +24,7 @@ private:
   std::vector<nintendo::Model> models;
 
   batteries::Gizmo gizmo;
+  batteries::Shape sphere;
   batteries::ambient_t ambient;
   batteries::light_t light;
 };

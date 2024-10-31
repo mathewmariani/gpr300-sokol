@@ -1,13 +1,15 @@
 #pragma once
 
-#include "worksession5.h"
-#include "blinnphong.h"
-#include "transition.h"
-
+// batteries
 #include "batteries/gizmo.h"
 #include "batteries/scene.h"
 #include "batteries/model.h"
 #include "batteries/texture.h"
+#include "batteries/shape.h"
+
+#include "worksession5.h"
+#include "blinnphong.h"
+#include "transition.h"
 
 class Scene final : public batteries::Scene
 {
@@ -26,6 +28,7 @@ private:
   worksession5::Model suzanne;
   batteries::Texture gradients[3];
   batteries::Gizmo gizmo;
+  batteries::Shape sphere;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;

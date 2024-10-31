@@ -32,9 +32,9 @@ Scene::Scene()
 
     suzanne.Load("assets/suzanne.obj");
 
+    sphere = batteries::CreateSphere(5.0f, 2);
     plane = batteries::CreatePlane(100.0f, 100.0f, 1);
     plane.transform.position = {0.0f, -2.0f, 0.0f};
-    ortho_wireframe = batteries::BuildPlane();
 
     // create an sokol-imgui wrapper for the shadow map
     auto ui_smp = sg_make_sampler({
@@ -142,28 +142,29 @@ void Scene::Render(void)
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
     // create bindings
-    auto bindings = (sg_bindings){
+    vs_shadow_params.model = plane.transform.matrix(),
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
+    sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,
         .fs = {
             .images[0] = depthbuffer.depth,
             .samplers[0] = depthbuffer.sampler,
         },
-    };
-    vs_shadow_params.model = plane.transform.matrix(),
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
-    sg_apply_bindings(&bindings);
+    });
     sg_draw(0, plane.mesh.indices.size(), 1);
-    sg_end_pass();
 
     // render light sources
-    // sg_apply_pipeline(gizmo.pipeline);
-    // sg_apply_bindings(&gizmo.bindings);
-    // sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    // sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    // sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
-    // sg_end_pass();
+    sg_apply_pipeline(gizmo.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_apply_bindings({
+        .vertex_buffers[0] = sphere.mesh.vertex_buffer,
+        .index_buffer = sphere.mesh.index_buffer,
+    });
+    sg_draw(0, sphere.mesh.indices.size(), 1);
+    sg_end_pass();
 
     // render framebuffer
     sg_begin_pass(&pass);

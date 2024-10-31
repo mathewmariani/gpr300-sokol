@@ -1,8 +1,10 @@
 #include "scene.h"
 
-#include "imgui/imgui.h"
+// batteries
+#include "batteries/assets.h"
 
-#include "batteries/texture.h"
+// imgui
+#include "imgui/imgui.h"
 
 static uint8_t cubemap_buffer[1024 * 1024 * 10];
 sg_image mipmap_img;
@@ -47,7 +49,7 @@ Scene::Scene()
         });
     };
 
-    water_obj.plane = batteries::BuildPlane();
+    plane = batteries::CreatePlane(400.0f, 400.0f, 1);
     init_water_texture();
 }
 
@@ -67,7 +69,7 @@ void Scene::Render(void)
     // initialize uniform data
     const Water::vs_params_t vs_water_params = {
         .view_proj = view_proj,
-        .model = water_obj.plane.transform.matrix(),
+        .model = plane.transform.matrix(),
         .camera_pos = camera.position,
     };
     const Water::fs_params_t fs_water_params = {
@@ -86,15 +88,15 @@ void Scene::Render(void)
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
     // create bindings
     auto bindings = (sg_bindings){
-        .vertex_buffers[0] = water_obj.plane.vertex_buffer,
-        .index_buffer = water_obj.plane.index_buffer,
+        .vertex_buffers[0] = plane.mesh.vertex_buffer,
+        .index_buffer = plane.mesh.index_buffer,
         .fs = {
             .images[0] = mipmap_img,
             .samplers[0] = mimap_smp,
         },
     };
     sg_apply_bindings(&bindings);
-    sg_draw(water_obj.plane.draw.base_element, water_obj.plane.draw.num_elements, 1);
+    sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();
 
     // render framebuffer

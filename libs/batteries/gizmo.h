@@ -5,11 +5,7 @@
 
 // batteries
 #include "pass.h"
-#include "shape.h"
-#include "shapes.glsl.h"
-
-// sokol
-#include "sokol/sokol_gfx.h"
+#include "gizmo.glsl.h"
 
 namespace batteries
 {
@@ -26,15 +22,19 @@ namespace batteries
             glm::vec3 color;
         };
 
-        sg_bindings bindings;
-        batteries::shape_t sphere;
-
         Gizmo()
         {
             pipeline = sg_make_pipeline({
+                .layout = {
+                    .attrs = {
+                        [0].format = SG_VERTEXFORMAT_FLOAT3,
+                        [1].format = SG_VERTEXFORMAT_FLOAT3,
+                        [2].format = SG_VERTEXFORMAT_FLOAT2,
+                    },
+                },
                 .shader = sg_make_shader({
                     .vs = {
-                        .source = shapes_vs,
+                        .source = gizmo_vs,
                         .uniform_blocks[0] = {
                             .layout = SG_UNIFORMLAYOUT_NATIVE,
                             .size = sizeof(vs_params_t),
@@ -45,7 +45,7 @@ namespace batteries
                         },
                     },
                     .fs = {
-                        .source = shapes_fs,
+                        .source = gizmo_fs,
                         .uniform_blocks[0] = {
                             .layout = SG_UNIFORMLAYOUT_NATIVE,
                             .size = sizeof(fs_params_t),
@@ -55,15 +55,6 @@ namespace batteries
                         },
                     },
                 }),
-                .layout = {
-                    .buffers[0] = sshape_vertex_buffer_layout_state(),
-                    .attrs = {
-                        [0] = sshape_position_vertex_attr_state(),
-                        [1] = sshape_normal_vertex_attr_state(),
-                        [2] = sshape_texcoord_vertex_attr_state(),
-                        [3] = sshape_color_vertex_attr_state(),
-                    },
-                },
                 .index_type = SG_INDEXTYPE_UINT16,
                 .cull_mode = SG_CULLMODE_NONE,
                 .depth = {
@@ -73,12 +64,6 @@ namespace batteries
                 },
                 .label = "gizmo-pipeline",
             });
-
-            sphere = batteries::BuildSphere(0.125f, 5, 4);
-            bindings = (sg_bindings){
-                .vertex_buffers[0] = sphere.vertex_buffer,
-                .index_buffer = sphere.index_buffer,
-            };
         }
     };
 }

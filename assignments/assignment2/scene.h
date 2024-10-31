@@ -1,14 +1,15 @@
 #pragma once
 
-#include "depth.h"
-#include "shadow.h"
-
+// batteries
 #include "batteries/gizmo.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/shape.h"
+
+#include "depth.h"
+#include "shadow.h"
 
 class Scene final : public batteries::Scene
 {
@@ -27,9 +28,9 @@ private:
   batteries::Model suzanne;
   batteries::Gizmo gizmo;
   batteries::Shape plane;
+  batteries::Shape sphere;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;
-  batteries::shape_t ortho_wireframe;
 };

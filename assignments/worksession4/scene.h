@@ -1,12 +1,14 @@
 #pragma once
 
-#include "nintendo.h"
-#include "toonshading.h"
-
+// batteries
 #include "batteries/gizmo.h"
 #include "batteries/lights.h"
 #include "batteries/texture.h"
 #include "batteries/scene.h"
+#include "batteries/shape.h"
+
+#include "nintendo.h"
+#include "toonshading.h"
 
 class Scene final : public batteries::Scene
 {
@@ -24,6 +26,7 @@ private:
 
   batteries::Texture zatoon;
   batteries::Gizmo gizmo;
+  batteries::Shape sphere;
   batteries::ambient_t ambient;
   batteries::light_t light;
 };

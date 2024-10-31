@@ -35,6 +35,8 @@ Scene::Scene()
     gradients[1].Load("assets/transitions/gradient2.png");
     gradients[2].Load("assets/transitions/gradient3.png");
 
+    sphere = batteries::CreateSphere(5.0f, 2);
+
     sampler = sg_make_sampler({
         .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
         .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
@@ -102,27 +104,29 @@ void Scene::Render(void)
         sg_apply_bindings(bindings);
         sg_draw(0, suzanne.mesh.num_faces * 3, 1);
     }
+
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
+    sg_apply_bindings({
+        .vertex_buffers[0] = sphere.mesh.vertex_buffer,
+        .index_buffer = sphere.mesh.index_buffer,
+    });
+    sg_draw(0, sphere.mesh.indices.size(), 1);
     sg_end_pass();
 
     // render framebuffer
     sg_begin_pass(&pass);
     sg_apply_pipeline(transition.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(transition.settings.fs_params));
-    // create bindings
-    auto bindings = (sg_bindings){
+    sg_apply_bindings({
         .vertex_buffers[0] = framebuffer.vertex_buffer,
         .fs = {
             .images[0] = gradients[0].image,
             .samplers[0] = sampler,
         },
-    };
-    sg_apply_bindings(&bindings);
+    });
     sg_draw(0, 6, 1);
 }
 

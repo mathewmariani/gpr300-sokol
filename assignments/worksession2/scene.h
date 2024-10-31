@@ -1,9 +1,11 @@
 #pragma once
 
-#include "terrain.h"
-
-#include "batteries/texture.h"
+// batteries
 #include "batteries/scene.h"
+#include "batteries/shape.h"
+#include "batteries/texture.h"
+
+#include "terrain.h"
 
 class Scene final : public batteries::Scene
 {
@@ -18,5 +20,5 @@ public:
 private:
   Terrain terrain;
   batteries::Texture heightmap;
-  batteries::shape_t plane;
+  batteries::Shape plane;
 };

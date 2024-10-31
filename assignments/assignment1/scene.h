@@ -1,20 +1,19 @@
 #pragma once
 
-#include "blinnphong.h"
-
-// effects
-#include "blur.h"
-#include "chromaticaberration.h"
-#include "crt.h"
-#include "grayscale.h"
-#include "inverse.h"
-
 // batteries
 #include "batteries/gizmo.h"
 #include "batteries/lights.h"
 #include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/scene.h"
+#include "batteries/shape.h"
+
+#include "blinnphong.h"
+#include "blur.h"
+#include "chromaticaberration.h"
+#include "crt.h"
+#include "grayscale.h"
+#include "inverse.h"
 
 class Scene final : public batteries::Scene
 {
@@ -36,6 +35,7 @@ private:
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;
+  batteries::Shape sphere;
   batteries::ambient_t ambient;
   batteries::light_t light;
   batteries::material_t material;

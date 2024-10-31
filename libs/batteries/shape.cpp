@@ -2,23 +2,69 @@
 #include "shape.h"
 #include "vertex.h"
 
+// glm
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
+// https://github.com/ewinebrenner/gpr300-sp24-template/blob/main/core/ew/procGen.cpp
 namespace batteries
 {
+  static void createCubeFace(glm::vec3 normal, float size, Shape *shape)
+  {
+    auto startVertex = shape->mesh.vertices.size() / 8;               // 8 floats per vertex
+    auto a = glm::normalize(glm::vec3(normal.z, normal.x, normal.y)); // U axis
+    auto b = glm::cross(normal, a);                                   // V axis
+    for (auto i = 0; i < 4; i++)
+    {
+      auto col = i % 2;
+      auto row = i / 2;
+
+      auto pos = normal * size * 0.5f;
+      pos += (a * ((float)col - 0.5f) + b * ((float)row - 0.5f)) * size;
+
+      auto uv = glm::vec2(col, row);
+
+      shape->mesh.vertices.push_back(pos.x);    // p.x
+      shape->mesh.vertices.push_back(pos.y);    // p.y
+      shape->mesh.vertices.push_back(pos.z);    // p.z
+      shape->mesh.vertices.push_back(normal.x); // n.x
+      shape->mesh.vertices.push_back(normal.y); // n.y
+      shape->mesh.vertices.push_back(normal.z); // n.z
+      shape->mesh.vertices.push_back(uv.x);     // t.x
+      shape->mesh.vertices.push_back(uv.y);     // t.y
+    }
+
+    // Corrected indices for counter-clockwise winding
+    shape->mesh.indices.push_back(startVertex);
+    shape->mesh.indices.push_back(startVertex + 1);
+    shape->mesh.indices.push_back(startVertex + 2);
+    shape->mesh.indices.push_back(startVertex + 2);
+    shape->mesh.indices.push_back(startVertex + 3);
+    shape->mesh.indices.push_back(startVertex);
+  }
+
+  Shape CreateCube(float size)
+  {
+    Shape shape;
+    shape.mesh.vertices.reserve(6 * 4 * 8);              // 6 faces x 4 vertices x 8 floats
+    shape.mesh.indices.reserve(36);                      // 6 faces x 6 indices
+    createCubeFace({+0.0f, +0.0f, +1.0f}, size, &shape); // Front
+    createCubeFace({+1.0f, +0.0f, +0.0f}, size, &shape); // Right
+    createCubeFace({+0.0f, +1.0f, +0.0f}, size, &shape); // Top
+    createCubeFace({-1.0f, +0.0f, +0.0f}, size, &shape); // Left
+    createCubeFace({+0.0f, -1.0f, +0.0f}, size, &shape); // Bottom
+    createCubeFace({+0.0f, +0.0f, -1.0f}, size, &shape); // Back
+    return shape;
+  }
+
   Shape CreatePlane(float width, float height, int subdivisions)
   {
-    // VERTICES
     Shape shape;
+    // VERTICES
     for (auto row = 0; row <= subdivisions; row++)
     {
       for (auto col = 0; col <= subdivisions; col++)
       {
-        vertex_t v;
-        // v.uv.x = ((float)col / subdivisions);
-        // v.uv.y = ((float)row / subdivisions);
-        // v.pos.x = -width/2 + width * v.uv.x;
-        // v.pos.y = 0;
-        // v.pos.z = height/2 -height * v.uv.y;
-        // v.normal = glm::vec3(0, 1, 0);
         shape.mesh.vertices.push_back(-width / 2 + width * ((float)col / subdivisions));  // p.x
         shape.mesh.vertices.push_back(0);                                                 // p.y
         shape.mesh.vertices.push_back(height / 2 - height * ((float)row / subdivisions)); // p.z
@@ -65,4 +111,65 @@ namespace batteries
 
     return shape;
   }
+
+  Shape CreateSphere(float radius, int subdivisions)
+  {
+    Shape shape;
+    // Vertex generation
+    float thetaStep = glm::two_pi<float>() / subdivisions;
+    float phiStep = glm::pi<float>() / subdivisions;
+    for (int row = 0; row <= subdivisions; row++)
+    {
+      float phi = row * phiStep;
+      for (int col = 0; col <= subdivisions; col++)
+      {
+        float theta = thetaStep * col;
+        shape.mesh.vertices.push_back(cosf(theta) * sinf(phi) * radius);   // p.x
+        shape.mesh.vertices.push_back(cosf(phi) * radius);                 // p.y
+        shape.mesh.vertices.push_back(sinf(theta) * sinf(phi) * radius);   // p.z
+        shape.mesh.vertices.push_back(cosf(theta) * sinf(phi));            // n.x
+        shape.mesh.vertices.push_back(cosf(phi));                          // n.y
+        shape.mesh.vertices.push_back(sinf(theta) * sinf(phi));            // n.z
+        shape.mesh.vertices.push_back((float)col / subdivisions);          // t.x
+        shape.mesh.vertices.push_back(1.0f - ((float)row / subdivisions)); // t.y
+      }
+    }
+
+    // Indices for top cap
+    unsigned int columns = subdivisions + 1;
+    for (int i = 0; i < subdivisions; i++)
+    {
+      shape.mesh.indices.push_back(i + 1); // Side vertex
+      shape.mesh.indices.push_back(0);     // Top pole
+      shape.mesh.indices.push_back(i);     // Next side vertex
+    }
+
+    // Indices for the body
+    for (int row = 1; row < subdivisions; row++)
+    {
+      for (int col = 0; col < subdivisions; col++)
+      {
+        unsigned int start = row * columns + col;
+        shape.mesh.indices.push_back(start);           // Current vertex
+        shape.mesh.indices.push_back(start + 1);       // Next column
+        shape.mesh.indices.push_back(start + columns); // Next row
+
+        shape.mesh.indices.push_back(start + columns);     // Next row
+        shape.mesh.indices.push_back(start + 1);           // Next column
+        shape.mesh.indices.push_back(start + columns + 1); // Diagonal to next row, next column
+      }
+    }
+
+    // Indices for bottom cap
+    unsigned int poleStart = columns * subdivisions;
+    for (int i = 0; i < subdivisions; i++)
+    {
+      shape.mesh.indices.push_back(poleStart + i);       // Side vertex
+      shape.mesh.indices.push_back(poleStart + i + 1);   // Next side vertex
+      shape.mesh.indices.push_back(poleStart + columns); // Bottom pole
+    }
+
+    return shape;
+  }
+
 }

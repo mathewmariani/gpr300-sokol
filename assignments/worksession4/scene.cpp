@@ -1,4 +1,6 @@
 #include "scene.h"
+
+// imgui
 #include "imgui/imgui.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
@@ -38,6 +40,7 @@ Scene::Scene()
     }
 
     zatoon.Load("assets/windwaker/ZAToon.png");
+    sphere = batteries::CreateSphere(5.0f, 2);
 }
 
 Scene::~Scene()
@@ -105,12 +108,16 @@ void Scene::Render(void)
         sg_apply_bindings(bindings);
         sg_draw(0, model.mesh.num_faces * 3, 1);
     }
+
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_bindings(&gizmo.bindings);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
-    sg_draw(gizmo.sphere.draw.base_element, gizmo.sphere.draw.num_elements, 1);
+    sg_apply_bindings({
+        .vertex_buffers[0] = sphere.mesh.vertex_buffer,
+        .index_buffer = sphere.mesh.index_buffer,
+    });
+    sg_draw(0, sphere.mesh.indices.size(), 1);
     sg_end_pass();
 
     // render framebuffer

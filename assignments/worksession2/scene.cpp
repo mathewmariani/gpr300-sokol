@@ -1,7 +1,9 @@
 #include "scene.h"
 
+// batteries
 #include "batteries/assets.h"
 
+// imgui
 #include "imgui/imgui.h"
 
 static struct
@@ -22,7 +24,7 @@ Scene::Scene()
     });
 
     heightmap.Load("assets/heightmaps/heightmap.png");
-    plane = batteries::BuildPlane(50.0f, 50.0f, 100);
+    plane = batteries::CreatePlane(50.0f, 50.0f, 100);
 }
 
 Scene::~Scene()
@@ -51,8 +53,8 @@ void Scene::Render(void)
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_terrain_params));
     // create bindings
     auto bindings = (sg_bindings){
-        .vertex_buffers[0] = plane.vertex_buffer,
-        .index_buffer = plane.index_buffer,
+        .vertex_buffers[0] = plane.mesh.vertex_buffer,
+        .index_buffer = plane.mesh.index_buffer,
         .vs = {
             .images[0] = heightmap.image,
             .samplers[0] = sampler,
@@ -63,7 +65,7 @@ void Scene::Render(void)
         },
     };
     sg_apply_bindings(&bindings);
-    sg_draw(plane.draw.base_element, plane.draw.num_elements, 1);
+    sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();
 
     // render framebuffer
