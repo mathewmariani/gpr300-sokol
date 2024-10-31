@@ -26,7 +26,7 @@ const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/a
 
 // helper functions
 function _copyDirectory(source: string, destination: string) {
-  fs.cp(source, destination, { recursive: true }, (err) => { if (err) { console.error(`Error copying directory from ${source} to ${destination}:`, err); } });
+  fs.cp(source, destination, { recursive: true, force: true }, (err) => { if (err) { console.error(`Error copying directory from ${source} to ${destination}:`, err); } });
 }
 function _copyFile(source: string, destination: string) {
   fs.copyFile(source, destination, (err) => { if (err) { console.error(`Error copying file from ${source} to ${destination}:`, err); } });
@@ -70,6 +70,9 @@ function _buildWebsite() {
   }
   if (!fs.existsSync("website/demos")) {
     fs.mkdirSync("website/demos", { recursive: true });
+  }
+  if (!fs.existsSync("website/assets")) {
+    fs.mkdirSync("website/assets", { recursive: true });
   }
 
   _buildAssignments();
