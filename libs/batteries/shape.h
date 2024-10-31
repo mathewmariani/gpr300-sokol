@@ -1,16 +1,18 @@
 #pragma once
 
-// sokol
-#include "sokol/sokol_shape.h"
-
 // batteries
+#include "mesh.h"
 #include "transform.h"
 
 namespace batteries
 {
-  struct shape_t
+  struct Shape
   {
-    transform_t transform;
-    sshape_element_range_t draw;
+    Transform transform;
+    Mesh mesh;
   };
+
+  Shape CreateCube(float size);
+  Shape CreatePlane(float width, float height, int subdivisions);
+  Shape CreateSphere(float radius, int subdivisions);
 }

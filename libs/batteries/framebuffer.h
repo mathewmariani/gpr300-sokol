@@ -3,20 +3,22 @@
 // sokol
 #include "sokol/sokol_gfx.h"
 
+// batteries
+#include "batteries/postprocess.h"
+
+#include <functional>
+
 namespace batteries
 {
-  struct framebuffer_t
+  struct Framebuffer
   {
-    sg_attachments attachments;
+    sg_pass pass;
+    sg_pipeline pipeline;
+    sg_bindings bindings;
     sg_image color;
     sg_image depth;
-    sg_sampler sampler;
+    sg_buffer vertex_buffer;
 
-    sg_pass pass;
-    sg_pass_action action;
-    sg_pipeline pip;
-    sg_bindings bind;
+    Framebuffer(void);
   };
-
-  void create_framebuffer(framebuffer_t *framebuffer, int width, int height);
 }

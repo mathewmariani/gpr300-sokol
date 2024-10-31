@@ -1,16 +1,19 @@
 #pragma once
 
 // batteries
+#include "assets.h"
 #include "transform.h"
-#include "vertex.h"
-
-#include <vector>
+#include "mesh.h"
 
 namespace batteries
 {
-  struct model_t
+  struct Model : public batteries::Asset
   {
-    mesh_t mesh;
-    transform_t transform;
+    Mesh mesh;
+    Transform transform;
+
+    Model() = default;
+
+    virtual void Load(const std::string &path);
   };
 }

@@ -52,12 +52,12 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 0][] - Physically Based Rendering (PBR)
 *   [worksession 1][] - Windwaker Ocean
 *   [worksession 2][] - Landmass Generation
+*   [worksession 3][] - Super Mario Sunshine Water
 *   [worksession 4][] - Toon Shading
 *   [worksession 5][] - Transition Sequences
 *   [worksession 6][] - Complex Geometries
 
 <!-- Future Work Sessions:
-*   [worksession 3][] - Super Mario Sunshine Water
 *   [worksession 4][] - Mandelbrot Set
 -->
 
@@ -73,6 +73,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [Foundations of Game Engine Development - Rendering]: https://foundationsofgameenginedev.com/#fged2
 [OpenGL45]: https://www.khronos.org/files/opengl45-quick-reference-card.pdf
 [OpenGLES3]: https://www.khronos.org/files/opengles3-quick-reference-card.pdf
+[math review]: math.html
+[data representation]: data.html
 [assignment 0]: assignment0.html
 [assignment 1]: assignment1.html
 [assignment 2]: assignment2.html

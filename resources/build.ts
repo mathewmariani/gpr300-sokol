@@ -5,6 +5,10 @@ import Mustache from "mustache";
 import hljs from "highlight.js"
 import { globSync } from "glob";
 
+// args
+const args = process.argv.slice(2);
+
+// initialize markdown
 hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
 hljs.registerLanguage("glsl", require("highlight.js/lib/languages/glsl"));
 const md = Markdown({ html: true }).use(require('markdown-it-highlightjs'), { hljs })
@@ -16,6 +20,21 @@ const header = fs.readFileSync("resources/mustache/header.mustache", "utf8");
 const footer = fs.readFileSync("resources/mustache/footer.mustache", "utf8");
 const demo = fs.readFileSync("resources/mustache/demo.mustache", "utf8");
 
+const content_path = "resources/content";
+const assignments_path = "resources/content/assignments";
+const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
+
+// helper functions
+function _copyDirectory(source: string, destination: string) {
+  fs.cp(source, destination, { recursive: true, force: true }, (err) => { if (err) { console.error(`Error copying directory from ${source} to ${destination}:`, err); } });
+}
+function _copyFile(source: string, destination: string) {
+  fs.copyFile(source, destination, (err) => { if (err) { console.error(`Error copying file from ${source} to ${destination}:`, err); } });
+}
+function _writeFile(destination: string, content: string) {
+  fs.writeFile(destination, content, (err) => { if (err) { console.error(`Error writting file to ${destination}:`, err); } });
+}
+
 // builds a single page
 function _buildPage(body: string) {
   // render markdown to html
@@ -26,11 +45,19 @@ function _buildPage(body: string) {
   return Mustache.render(page, view, partials);
 }
 
-function _copyDirectory(source: string, destination: string) {
-  fs.cp(source, destination, { recursive: true }, (err) => {
-    if (err) {
-      console.error(`Error copying from ${source} to ${destination}:`, err);
-    }
+function _buildAssignments() {
+  console.log("Building assignments...");
+
+  // glob all .md files
+  const md_glob = globSync(`${assignments_path}/*.md`);
+  md_glob.forEach((file: string) => {
+    const name = path.parse(file).name;
+    const body = fs.readFileSync(file, "utf8");
+    const page = Mustache.render(body, { demo: demo });
+    const content = Mustache.render(_buildPage(page), { script: `demos/${name}.js` });
+
+    // copy to output
+    _writeFile(`website/${name}.html`, content);
   });
 }
 
@@ -41,45 +68,40 @@ function _buildWebsite() {
   if (!fs.existsSync("website")) {
     fs.mkdirSync("website");
   }
-  if (!fs.existsSync("website/demo")) {
-    fs.mkdirSync("website/demo", { recursive: true });
+  if (!fs.existsSync("website/demos")) {
+    fs.mkdirSync("website/demos", { recursive: true });
+  }
+  if (!fs.existsSync("website/assets")) {
+    fs.mkdirSync("website/assets", { recursive: true });
   }
 
-  // glob all .md files
-  const md_glob = globSync("resources/content/*.md");
-  md_glob.forEach((file: string) => {
-    try {
-      const name = path.parse(file).name;
-      const body = fs.readFileSync(file, "utf8");
-      const page = _buildPage(body);
-      const content = md.render(page);
+  _buildAssignments();
 
-      fs.writeFile(`website/${name}.html`, content, (err) => {
-        if (err) {
-          console.error("Error writing file:", err);
-        }
-      });
-    } catch (err) {
-      console.error("Error processing file:", err);
-    }
+  // glob all .md files
+  const md_glob = globSync(`${content_path}/*.md`);
+  md_glob.forEach((file: string) => {
+    const name = path.parse(file).name;
+    const body = fs.readFileSync(file, "utf8");
+    const content = md.render(_buildPage(body));
+
+    // copy to output
+    _writeFile(`website/${name}.html`, content);
   });
 
   // glob all .wasm files
-  const wasm_glob = globSync("build/assignments/Release/*.wasm");
+  const wasm_glob = globSync(`${build_path}/*.wasm`);
   wasm_glob.forEach((file: string) => {
     const name = path.parse(file).name;
-    let demo_page = Mustache.render(demo, { name: name, script: `${name}.js` })
 
-    // render .html, and copy .js .wasm
-    fs.writeFile(`website/demo/${name}.html`, demo_page, (err) => { if (err) { console.error("Error writing file:", err); } });
-    fs.copyFile(`build/assignments/Release/${name}.js`, `website/demo/${name}.js`, (err) => { if (err) { console.error("Error copying file:", err); } });
-    fs.copyFile(`build/assignments/Release/${name}.wasm`, `website/demo/${name}.wasm`, (err) => { if (err) { console.error("Error copying file:", err); } });
+    // copy to output
+    _copyFile(`${build_path}/${name}.js`, `website/demos/${name}.js`);
+    _copyFile(`${build_path}/${name}.wasm`, `website/demos/${name}.wasm`);
   });
 
-  // copy assets to output
+  // copy to output
   _copyDirectory("resources/images", "website/images");
   _copyDirectory("resources/assets", "website/assets");
-  _copyDirectory("assignments/assets", "website/demo/assets");
+  _copyDirectory("assignments/assets", "website/assets");
 }
 
 // main.js
