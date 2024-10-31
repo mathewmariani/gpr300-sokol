@@ -1,0 +1,17 @@
+# Blender 3.5.0 MTL File: 'None'
+# www.blender.org
+
+newmtl togezoshell_mt
+Ka 0.588 0.588 0.588
+Kd 0.588 0.588 0.588
+Ke 0 0 0
+illum 2
+Ks 0.9 0.9 0.9
+Ns 2
+d 1
+Tr 0
+map_Ka assets/smashbros/togezoshell/togezoshell_ao.png
+map_Kd assets/smashbros/togezoshell/togezoshell_col.png
+map_Ks assets/smashbros/togezoshell/togezoshell_mtl.png
+map_Ke assets/smashbros/togezoshell/togezoshell_rgh.png
+map_Kt assets/smashbros/togezoshell/togezoshell_spc.png
