@@ -177,7 +177,10 @@ void Scene::Render(void)
     if (suzanne.loaded)
     {
         sg_apply_bindings({
-            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
+            .vertex_buffers = {
+                [0] = suzanne.mesh.vertex_buffer,
+                [1] = instance_buffer,
+            },
             .index_buffer = suzanne.mesh.index_buffer,
         });
         sg_draw(0, suzanne.mesh.indices.size(), num_instances);
