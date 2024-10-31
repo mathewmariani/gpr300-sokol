@@ -79,17 +79,17 @@ void Scene::Render(void)
         for (auto i = 0; i < island.mesh.groups.size(); i++)
         {
             auto group = island.mesh.groups[i];
-            // update bindings
-            auto bindings = (sg_bindings){
-                .vertex_buffers[0] = island.mesh.vertex_buffer,
-                .fs.images[0] = island.textures[i].image,
-                .fs.samplers = island.mesh.sampler,
-            };
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(geometrypass.pipeline);
             sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_geometry_params));
-            sg_apply_bindings(bindings);
+            sg_apply_bindings({
+                .vertex_buffers[0] = island.mesh.vertex_buffer,
+                .fs = {
+                    .images[0] = island.textures[i].image,
+                    .samplers = island.mesh.sampler,
+                },
+            });
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }
 
@@ -97,17 +97,17 @@ void Scene::Render(void)
         for (auto i = 0; i < sea.mesh.groups.size(); i++)
         {
             auto group = sea.mesh.groups[i];
-            // update bindings
-            auto bindings = (sg_bindings){
-                .vertex_buffers[0] = sea.mesh.vertex_buffer,
-                .fs.images[0] = sea.textures[i].image,
-                .fs.samplers = sea.mesh.sampler,
-            };
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(waterpass.pipeline);
             sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
-            sg_apply_bindings(bindings);
+            sg_apply_bindings({
+                .vertex_buffers[0] = sea.mesh.vertex_buffer,
+                .fs = {
+                    .images[0] = sea.textures[i].image,
+                    .samplers = sea.mesh.sampler,
+                },
+            });
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }
 
@@ -115,17 +115,15 @@ void Scene::Render(void)
         for (auto i = 0; i < lights.mesh.groups.size(); i++)
         {
             auto group = lights.mesh.groups[i];
-            // update bindings
-            auto bindings = (sg_bindings){
-                .vertex_buffers[0] = lights.mesh.vertex_buffer,
-                .fs.images[0] = lights.textures[i].image,
-                .fs.samplers = lights.mesh.sampler,
-            };
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(lightspass.pipeline);
             sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_lights_params));
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lights_params));
-            sg_apply_bindings(bindings);
+            sg_apply_bindings((sg_bindings){
+                .vertex_buffers[0] = lights.mesh.vertex_buffer,
+                .fs.images[0] = lights.textures[i].image,
+                .fs.samplers = lights.mesh.sampler,
+            });
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }
     }

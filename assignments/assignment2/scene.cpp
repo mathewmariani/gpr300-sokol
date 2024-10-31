@@ -32,7 +32,9 @@ Scene::Scene()
 
     suzanne.Load("assets/suzanne.obj");
 
-    sphere = batteries::CreateSphere(5.0f, 2);
+    sphere = batteries::CreateSphere(1.0f, 4);
+    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
+
     plane = batteries::CreatePlane(100.0f, 100.0f, 1);
     plane.transform.position = {0.0f, -2.0f, 0.0f};
 
@@ -93,7 +95,7 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
-        .model = glm::translate(glm::mat4(1.0f), light.position),
+        .model = glm::translate(sphere.transform.matrix(), light.position),
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
@@ -116,7 +118,7 @@ void Scene::Render(void)
         };
 
         sg_apply_bindings(bindings);
-        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
+        sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
     sg_end_pass();
 

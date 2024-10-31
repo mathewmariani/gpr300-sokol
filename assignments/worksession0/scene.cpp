@@ -26,7 +26,8 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    sphere = batteries::CreateSphere(5.0f, 2);
+    sphere = batteries::CreateSphere(1.0f, 4);
+    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
     auto size = model_paths.size();
     models.resize(size);
@@ -69,7 +70,7 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
-        .model = glm::translate(glm::mat4(1.0f), light.position),
+        .model = glm::translate(sphere.transform.matrix(), light.position),
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,

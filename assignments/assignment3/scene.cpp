@@ -117,6 +117,9 @@ Scene::Scene()
 
     suzanne.Load("assets/suzanne.obj");
 
+    sphere = batteries::CreateSphere(1.0f, 4);
+    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
+
     auto dbg_smp = sg_make_sampler({
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
@@ -173,22 +176,18 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        // create bindings
-        auto bindings = (sg_bindings){
+        sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
-        };
-
-        sg_apply_bindings(bindings);
-        sg_draw(0, suzanne.mesh.num_faces * 3, num_instances);
+        });
+        sg_draw(0, suzanne.mesh.indices.size(), num_instances);
     }
     sg_end_pass();
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(blinnphong.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
-    // create bindings
-    auto bindings = (sg_bindings){
+    sg_apply_bindings({
         .vertex_buffers[0] = framebuffer.vertex_buffer,
         .fs = {
             .images = {
@@ -198,12 +197,13 @@ void Scene::Render(void)
             },
             .samplers[0] = geometrybuffer.sampler,
         },
-    };
-    sg_apply_bindings(bindings);
+    });
     sg_draw(0, 6, 1);
     sg_end_pass();
 
     sg_begin_pass({.action = gizmo_pass_action, .attachments = gizmo_attachments});
+    // render light sources
+    sg_apply_pipeline(gizmo.pipeline);
     for (auto i = 0; i < num_instances; i++)
     {
         // initialize uniform data
@@ -214,16 +214,13 @@ void Scene::Render(void)
         const batteries::Gizmo::fs_params_t fs_gizmo_params = {
             .color = instance_light_data.color[i],
         };
-        // render light sources
-        auto bindings = (sg_bindings){
-            .vertex_buffers[0] = sphere.mesh.vertex_buffer,
-            .index_buffer = sphere.mesh.index_buffer,
-        };
-        sg_apply_pipeline(gizmo.pipeline);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+        sg_apply_bindings({
+            .vertex_buffers[0] = sphere.mesh.vertex_buffer,
+            .index_buffer = sphere.mesh.index_buffer,
+        });
         sg_draw(0, sphere.mesh.indices.size(), 1);
-        sg_end_pass();
     }
     sg_end_pass();
 

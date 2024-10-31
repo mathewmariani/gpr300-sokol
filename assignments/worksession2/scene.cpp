@@ -51,8 +51,7 @@ void Scene::Render(void)
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(terrain.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_terrain_params));
-    // create bindings
-    auto bindings = (sg_bindings){
+    sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,
         .vs = {
@@ -63,8 +62,7 @@ void Scene::Render(void)
             .images[0] = heightmap.image,
             .samplers[0] = sampler,
         },
-    };
-    sg_apply_bindings(&bindings);
+    });
     sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();
 

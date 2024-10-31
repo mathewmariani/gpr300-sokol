@@ -35,7 +35,8 @@ Scene::Scene()
     gradients[1].Load("assets/transitions/gradient2.png");
     gradients[2].Load("assets/transitions/gradient3.png");
 
-    sphere = batteries::CreateSphere(5.0f, 2);
+    sphere = batteries::CreateSphere(1.0f, 4);
+    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
     sampler = sg_make_sampler({
         .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
@@ -78,7 +79,7 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
-        .model = glm::translate(glm::mat4(1.0f), light.position),
+        .model = glm::translate(sphere.transform.matrix(), light.position),
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
@@ -95,14 +96,11 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        // create bindings
-        auto bindings = (sg_bindings){
+        sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            // .index_buffer = suzanne.mesh.index_buffer,
-        };
-
-        sg_apply_bindings(bindings);
-        sg_draw(0, suzanne.mesh.num_faces * 3, 1);
+            .index_buffer = suzanne.mesh.index_buffer,
+        });
+        sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
 
     // render light sources

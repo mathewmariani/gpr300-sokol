@@ -40,7 +40,7 @@ Scene::Scene()
             .buffer_ptr = cubemap_buffer,
             .buffer_offset = 1024 * 1024,
         });
-        mimap_smp = sg_make_sampler((sg_sampler_desc){
+        mimap_smp = sg_make_sampler({
             .min_filter = SG_FILTER_LINEAR,
             .mag_filter = SG_FILTER_LINEAR,
             .mipmap_filter = SG_FILTER_LINEAR,
@@ -86,16 +86,14 @@ void Scene::Render(void)
     sg_apply_pipeline(water.pipeline);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
     sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
-    // create bindings
-    auto bindings = (sg_bindings){
+    sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,
         .fs = {
             .images[0] = mipmap_img,
             .samplers[0] = mimap_smp,
         },
-    };
-    sg_apply_bindings(&bindings);
+    });
     sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();
 
