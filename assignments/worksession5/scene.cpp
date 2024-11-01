@@ -64,7 +64,7 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
-    const auto view_proj = camera.projection() * camera.view();
+    const auto view_proj = camera.Projection() * camera.View();
 
     // initialize uniform data
     const BlinnPhong::vs_params_t vs_blinnphong_params = {
@@ -83,9 +83,6 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
-    };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
     sg_begin_pass(&framebuffer.pass);

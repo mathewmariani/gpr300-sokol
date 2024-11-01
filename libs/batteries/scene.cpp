@@ -44,11 +44,11 @@ namespace batteries
     }
 
     // update camera
-    camera_controller.update(&camera, dt);
+    cameracontroller.Update(camera, dt);
   }
 
   void Scene::Event(const sapp_event *event)
   {
-    camera_controller.event(event);
+    cameracontroller.Event(event);
   }
 }

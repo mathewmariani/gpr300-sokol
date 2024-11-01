@@ -105,5 +105,12 @@ void frame(void)
 void event(const sapp_event *event)
 {
   simgui_handle_event(event);
+
+  // if imgui wants to consume an event, we won't allow the scene to process it.
+  if (ImGui::GetIO().WantCaptureMouse && (event->type == SAPP_EVENTTYPE_MOUSE_DOWN || event->type == SAPP_EVENTTYPE_MOUSE_MOVE))
+  {
+    return;
+  }
+
   scene->Event(event);
 }

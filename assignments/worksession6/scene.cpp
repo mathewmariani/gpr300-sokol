@@ -47,7 +47,7 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
-    const auto view_proj = camera.projection() * camera.view();
+    const auto view_proj = camera.Projection() * camera.View();
 
     // initialize uniform data
     const GeometryPass::vs_params_t vs_geometry_params = {
@@ -138,6 +138,7 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
 

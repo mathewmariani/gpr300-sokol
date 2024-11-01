@@ -82,7 +82,7 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
-    const auto view_proj = camera.projection() * camera.view();
+    const auto view_proj = camera.Projection() * camera.View();
 
     // initialize uniform data
     const BlinnPhong::vs_params_t vs_blinnphong_params = {
@@ -101,9 +101,6 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
-    };
-    const batteries::Skybox::vs_params_t vs_skybox_params = {
-        .view_proj = camera.projection() * glm::mat4(glm::mat3(camera.view())),
     };
 
     sg_begin_pass(&framebuffer.pass);
@@ -142,6 +139,8 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
@@ -180,7 +179,6 @@ void Scene::Debug(void)
         ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &light.color[0]);
     }
-
     // ImGui::Checkbox("Enable Material", &state.material_enabled);
     // ImGui::PopStyleColor(1);
     // if (state.material_enabled)
