@@ -29,7 +29,7 @@ namespace batteries
     float nearPlane = 0.01f;
     float farPlane = 1000000.0f;
     float orthoHeight = 6.0f;
-    float aspectRatio = 1.77f;
+    float aspectRatio = 1.33f;
   };
 
   class CameraController
@@ -45,8 +45,6 @@ namespace batteries
   private:
     // control options
     float movement_speed = 100.0f;
-    float aim_speed = 1.0f;
-    float zoom_speed = 0.1f;
     float smoothing_factor = 1.0f;
     // control attributes
     float yaw = -90.0f;

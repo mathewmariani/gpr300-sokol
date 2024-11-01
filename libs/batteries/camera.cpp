@@ -11,6 +11,15 @@
 
 #include <algorithm>
 
+namespace
+{
+  static float t = 0.0f;
+  static glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, float t)
+  {
+    return a + t * (b - a);
+  }
+}
+
 namespace batteries
 {
   Camera::Camera()
@@ -33,12 +42,6 @@ namespace batteries
 
   CameraController::CameraController()
   {
-  }
-
-  static float t = 0.0f;
-  glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, float t)
-  {
-    return a + t * (b - a);
   }
 
   void CameraController::Update(Camera &camera, float dt)
@@ -81,8 +84,9 @@ namespace batteries
 
   void CameraController::Event(const sapp_event *e)
   {
-    if (e->type == SAPP_EVENTTYPE_KEY_DOWN)
+    switch (e->type)
     {
+    case SAPP_EVENTTYPE_KEY_DOWN:
       if (e->key_code == SAPP_KEYCODE_W || e->key_code == SAPP_KEYCODE_UP)
       {
         move_forward = true;
@@ -99,9 +103,8 @@ namespace batteries
       {
         move_right = true;
       }
-    }
-    else if (e->type == SAPP_EVENTTYPE_KEY_UP)
-    {
+      break;
+    case SAPP_EVENTTYPE_KEY_UP:
       if (e->key_code == SAPP_KEYCODE_W || e->key_code == SAPP_KEYCODE_UP)
       {
         move_forward = false;
@@ -118,29 +121,27 @@ namespace batteries
       {
         move_right = false;
       }
-    }
-    else if (e->type == SAPP_EVENTTYPE_MOUSE_DOWN)
-    {
+      break;
+    case SAPP_EVENTTYPE_MOUSE_DOWN:
       if (e->mouse_button == SAPP_MOUSEBUTTON_LEFT)
       {
         enable_aim = true;
       }
-    }
-    else if (e->type == SAPP_EVENTTYPE_MOUSE_UP)
-    {
+      break;
+    case SAPP_EVENTTYPE_MOUSE_UP:
       if (e->mouse_button == SAPP_MOUSEBUTTON_LEFT)
       {
         enable_aim = false;
       }
-    }
-    if (e->type == SAPP_EVENTTYPE_MOUSE_MOVE)
-    {
+      break;
+    case SAPP_EVENTTYPE_MOUSE_MOVE:
       if (enable_aim)
       {
         yaw += e->mouse_dx;
         pitch -= e->mouse_dy;
         pitch = glm::clamp(min_pitch, pitch, max_pitch);
       }
+      break;
     }
   }
 
@@ -150,9 +151,7 @@ namespace batteries
 
     // ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position.x, camera.position.y, camera.position.z);
     ImGui::SliderFloat("movement_speed", &movement_speed, 0.0f, 100.0f);
-    ImGui::SliderFloat("smoothing_factor", &aim_speed, 0.0f, 1.0f);
-    ImGui::SliderFloat("aim_speed", &aim_speed, 0.0f, 100.0f);
-    ImGui::SliderFloat("zoom_speed", &zoom_speed, 0.0f, 100.0f);
+    ImGui::SliderFloat("smoothing_factor", &smoothing_factor, 0.0f, 1.0f);
 
     ImGui::End();
   }
