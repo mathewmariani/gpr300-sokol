@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vertex.h"
+
 // sokol
 #include "sokol/sokol_gfx.h"
 
@@ -22,7 +24,7 @@ namespace batteries
     sg_buffer index_buffer;
     sg_sampler sampler;
 
-    std::vector<float> vertices;
+    std::vector<vertex_t> vertices;
     std::vector<uint16_t> indices;
     std::vector<Groups> groups;
     int num_faces = 0;

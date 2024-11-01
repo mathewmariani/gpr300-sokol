@@ -15,7 +15,7 @@ namespace
         .type = SG_BUFFERTYPE_VERTEXBUFFER,
         .data = {
             .ptr = shape->mesh.vertices.data(),
-            .size = shape->mesh.vertices.size() * sizeof(float),
+            .size = shape->mesh.vertices.size() * sizeof(batteries::vertex_t),
         },
         .label = "mesh-vertices",
     });
@@ -49,23 +49,20 @@ namespace batteries
 
       auto uv = glm::vec2(col, row);
 
-      shape->mesh.vertices.push_back(pos.x);    // p.x
-      shape->mesh.vertices.push_back(pos.y);    // p.y
-      shape->mesh.vertices.push_back(pos.z);    // p.z
-      shape->mesh.vertices.push_back(normal.x); // n.x
-      shape->mesh.vertices.push_back(normal.y); // n.y
-      shape->mesh.vertices.push_back(normal.z); // n.z
-      shape->mesh.vertices.push_back(uv.x);     // t.x
-      shape->mesh.vertices.push_back(uv.y);     // t.y
-    }
+      shape->mesh.vertices.push_back({
+          .position = {pos.x, pos.y, pos.z},
+          .normal = {normal.x, normal.y, normal.z},
+          .texcoord = {uv.x, uv.y},
+      });
 
-    // Indices
-    shape->mesh.indices.push_back(startVertex);
-    shape->mesh.indices.push_back(startVertex + 1);
-    shape->mesh.indices.push_back(startVertex + 3);
-    shape->mesh.indices.push_back(startVertex + 3);
-    shape->mesh.indices.push_back(startVertex + 2);
-    shape->mesh.indices.push_back(startVertex);
+      // Indices
+      shape->mesh.indices.push_back(startVertex);
+      shape->mesh.indices.push_back(startVertex + 1);
+      shape->mesh.indices.push_back(startVertex + 3);
+      shape->mesh.indices.push_back(startVertex + 3);
+      shape->mesh.indices.push_back(startVertex + 2);
+      shape->mesh.indices.push_back(startVertex);
+    }
   }
 
   Shape CreateCube(float size)
@@ -91,14 +88,15 @@ namespace batteries
     {
       for (auto col = 0; col <= subdivisions; col++)
       {
-        shape.mesh.vertices.push_back(-width / 2 + width * ((float)col / subdivisions));  // p.x
-        shape.mesh.vertices.push_back(0);                                                 // p.y
-        shape.mesh.vertices.push_back(height / 2 - height * ((float)row / subdivisions)); // p.z
-        shape.mesh.vertices.push_back(0.0f);                                              // n.x
-        shape.mesh.vertices.push_back(1.0f);                                              // n.y
-        shape.mesh.vertices.push_back(0.0f);                                              // n.z
-        shape.mesh.vertices.push_back(((float)col / subdivisions));                       // t.x
-        shape.mesh.vertices.push_back(((float)row / subdivisions));                       // t.y
+        shape.mesh.vertices.push_back({
+            .position = {
+                -width / 2 + width * ((float)col / subdivisions),
+                0,
+                height / 2 - height * ((float)row / subdivisions),
+            },
+            .normal = {0.0f, 1.0f, 0.0f},
+            .texcoord = {((float)col / subdivisions), ((float)row / subdivisions)},
+        });
       }
     }
     // INDICES
@@ -132,14 +130,11 @@ namespace batteries
       for (auto col = 0; col <= subdivisions; col++)
       {
         float theta = thetaStep * col;
-        shape.mesh.vertices.push_back(cosf(theta) * sinf(phi) * radius);  // p.x
-        shape.mesh.vertices.push_back(cosf(phi) * radius);                // p.y
-        shape.mesh.vertices.push_back(sinf(theta) * sinf(phi) * radius);  // p.z
-        shape.mesh.vertices.push_back(cosf(theta) * sinf(phi));           // n.x
-        shape.mesh.vertices.push_back(cosf(phi));                         // n.y
-        shape.mesh.vertices.push_back(sinf(theta) * sinf(phi));           // n.z
-        shape.mesh.vertices.push_back((float)col / subdivisions);         // t.x
-        shape.mesh.vertices.push_back(1.0 - ((float)row / subdivisions)); // t.y
+        shape.mesh.vertices.push_back({
+            .position = {cosf(theta) * sinf(phi) * radius, cosf(phi) * radius, sinf(theta) * sinf(phi) * radius},
+            .normal = {cosf(theta) * sinf(phi), cosf(phi), sinf(theta) * sinf(phi)},
+            .texcoord = {(float)col / subdivisions, 1.0f - ((float)row / subdivisions)},
+        });
       }
     }
 
