@@ -10,7 +10,6 @@ SOKOL_FETCH_H="$SOKOL_PREFIX/sokol_fetch.h"
 SOKOL_GFX_H="$SOKOL_PREFIX/sokol_gfx.h"
 SOKOL_GLUE_H="$SOKOL_PREFIX/sokol_glue.h"
 SOKOL_LOG_H="$SOKOL_PREFIX/sokol_log.h"
-SOKOL_TIME_H="$SOKOL_PREFIX/sokol_time.h"
 
 # utils
 SOKOL_IMGUI_H="$SOKOL_PREFIX/util/sokol_imgui.h"
@@ -27,7 +26,6 @@ curl $SOKOL_FETCH_H > $OUTPUT/sokol_fetch.h
 curl $SOKOL_GFX_H > $OUTPUT/sokol_gfx.h
 curl $SOKOL_GLUE_H > $OUTPUT/sokol_glue.h
 curl $SOKOL_LOG_H > $OUTPUT/sokol_log.h
-curl $SOKOL_TIME_H > $OUTPUT/sokol_time.h
 
 # utils
 curl $SOKOL_IMGUI_H > $OUTPUT/sokol_imgui.h
