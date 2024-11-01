@@ -60,6 +60,8 @@ void Scene::Update(float dt)
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
+
+    sphere.transform.position = light.position;
 }
 
 void Scene::Render(void)
@@ -79,7 +81,7 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
-        .model = glm::translate(sphere.transform.matrix(), light.position),
+        .model = sphere.transform.matrix(),
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,

@@ -66,7 +66,9 @@ void Scene::Update(float dt)
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
+
     ambient.direction = glm::normalize(glm::vec3(0.0f, 0.0f, 0.0f) - light.position);
+    sphere.transform.position = light.position;
 }
 
 void Scene::Render(void)
@@ -95,7 +97,7 @@ void Scene::Render(void)
     };
     const batteries::Gizmo::vs_params_t vs_gizmo_params = {
         .view_proj = view_proj,
-        .model = glm::translate(sphere.transform.matrix(), light.position),
+        .model = sphere.transform.matrix(),
     };
     const batteries::Gizmo::fs_params_t fs_gizmo_params = {
         .color = light.color,
@@ -108,13 +110,10 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        // create bindings
-        auto bindings = (sg_bindings){
+        sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
-        };
-
-        sg_apply_bindings(bindings);
+        });
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
     sg_end_pass();
@@ -125,19 +124,17 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        // create bindings
-        auto bindings = (sg_bindings){
+        vs_shadow_params.model = suzanne.transform.matrix(),
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
+        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
+        sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
             .fs = {
                 .images[0] = depthbuffer.depth,
                 .samplers[0] = depthbuffer.sampler,
             },
-        };
-        vs_shadow_params.model = suzanne.transform.matrix(),
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
-        sg_apply_bindings(bindings);
+        });
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
     // create bindings

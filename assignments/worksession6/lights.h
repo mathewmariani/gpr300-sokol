@@ -72,7 +72,7 @@ struct LightsPass final : public batteries::Pass
                     },
                 },
             }),
-            .index_type = SG_INDEXTYPE_NONE,
+            .index_type = SG_INDEXTYPE_UINT16,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_FRONT,
             .depth = {
