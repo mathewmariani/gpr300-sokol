@@ -4,7 +4,6 @@
 #include "depthbuffer.h"
 #include "framebuffer.h"
 #include "geometrybuffer.h"
-#include "skybox.h"
 
 namespace batteries
 {
@@ -22,8 +21,8 @@ namespace batteries
   protected:
     sg_pass pass;
 
-    batteries::camera_t camera;
-    batteries::camera_controller_t camera_controller;
+    batteries::Camera camera;
+    batteries::CameraController cameracontroller;
 
     batteries::Framebuffer framebuffer;
     batteries::Depthbuffer depthbuffer;

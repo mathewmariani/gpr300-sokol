@@ -63,7 +63,7 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
-    const auto view_proj = camera.projection() * camera.view();
+    const auto view_proj = camera.Projection() * camera.View();
 
     // initialize uniform data
     const Water::vs_params_t vs_water_params = {
