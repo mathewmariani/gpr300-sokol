@@ -72,7 +72,7 @@ struct GeometryPass final : public batteries::Pass
                     },
                 },
             }),
-            .index_type = SG_INDEXTYPE_UINT16,
+            .index_type = SG_INDEXTYPE_NONE,
             .face_winding = SG_FACEWINDING_CCW,
             .cull_mode = SG_CULLMODE_BACK,
             .depth = {

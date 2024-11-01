@@ -95,7 +95,7 @@ void Scene::Render(void)
     {
         sg_apply_bindings({
             .vertex_buffers[0] = model.mesh.vertex_buffer,
-            .index_buffer = model.mesh.index_buffer,
+            // .index_buffer = model.mesh.index_buffer,
             .fs = {
                 .images = {
                     [0] = model.albedo.image,
