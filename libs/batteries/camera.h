@@ -58,5 +58,6 @@ namespace batteries
     bool move_backward = false;
     bool move_left = false;
     bool move_right = false;
+    float t = 0.0f;
   };
 }

@@ -11,17 +11,13 @@
 
 #include <algorithm>
 
-namespace
+namespace batteries
 {
-  static float t = 0.0f;
   static glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, float t)
   {
     return a + t * (b - a);
   }
-}
 
-namespace batteries
-{
   Camera::Camera()
       : position{0.0f, 0.0f, 5.0f}, world_up{0.0f, 1.0f, 0.0f}, front{0.0f, 0.0f, -1.0f}, up{0.0f, 1.0f, 0.0f}, right{1.0f, 0.0f, 0.0f}
   {
@@ -141,6 +137,8 @@ namespace batteries
         pitch -= e->mouse_dy;
         pitch = glm::clamp(min_pitch, pitch, max_pitch);
       }
+      break;
+    default:
       break;
     }
   }

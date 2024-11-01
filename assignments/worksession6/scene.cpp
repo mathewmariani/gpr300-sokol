@@ -124,8 +124,10 @@ void Scene::Render(void)
             sg_apply_bindings({
                 .vertex_buffers[0] = lights.mesh.vertex_buffer,
                 .index_buffer = lights.mesh.index_buffer,
-                .fs.images[0] = lights.textures[i].image,
-                .fs.samplers = lights.mesh.sampler,
+                .fs = {
+                    .images[0] = lights.textures[i].image,
+                    .samplers = lights.mesh.sampler,
+                },
             });
             sg_draw(group.index_offset, group.face_count * 3, 1);
         }
