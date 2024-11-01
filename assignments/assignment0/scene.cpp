@@ -139,6 +139,8 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
@@ -177,7 +179,6 @@ void Scene::Debug(void)
         ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &light.color[0]);
     }
-
     // ImGui::Checkbox("Enable Material", &state.material_enabled);
     // ImGui::PopStyleColor(1);
     // if (state.material_enabled)

@@ -6,6 +6,11 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/transform.hpp"
 
+// imgui
+#include "imgui/imgui.h"
+
+#include <algorithm>
+
 namespace batteries
 {
   Camera::Camera()
@@ -30,24 +35,41 @@ namespace batteries
   {
   }
 
+  static float t = 0.0f;
+  glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, float t)
+  {
+    return a + t * (b - a);
+  }
+
   void CameraController::Update(Camera &camera, float dt)
   {
     auto velocity = movement_speed * dt;
+    auto target_position = camera.position; // Start with the current position
+
     if (move_forward)
     {
-      camera.position += camera.front * velocity;
+      target_position += camera.front * velocity;
     }
     if (move_backward)
     {
-      camera.position -= camera.front * velocity;
+      target_position -= camera.front * velocity;
     }
     if (move_left)
     {
-      camera.position -= camera.right * velocity;
+      target_position -= camera.right * velocity;
     }
     if (move_right)
     {
-      camera.position += camera.right * velocity;
+      target_position += camera.right * velocity;
+    }
+
+    if (!move_forward && !move_backward && !move_left && !move_right)
+    {
+      t = 0.0f;
+    }
+    else
+    {
+      camera.position = lerp(camera.position, target_position, std::min(t + smoothing_factor * dt, 1.0f));
     }
 
     camera.front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -120,5 +142,18 @@ namespace batteries
         pitch = glm::clamp(min_pitch, pitch, max_pitch);
       }
     }
+  }
+
+  void CameraController::Debug(void)
+  {
+    ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    // ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position.x, camera.position.y, camera.position.z);
+    ImGui::SliderFloat("movement_speed", &movement_speed, 0.0f, 100.0f);
+    ImGui::SliderFloat("smoothing_factor", &aim_speed, 0.0f, 1.0f);
+    ImGui::SliderFloat("aim_speed", &aim_speed, 0.0f, 100.0f);
+    ImGui::SliderFloat("zoom_speed", &zoom_speed, 0.0f, 100.0f);
+
+    ImGui::End();
   }
 }

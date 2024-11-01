@@ -40,11 +40,14 @@ namespace batteries
     void Update(Camera &camera, float dt);
     void Event(const sapp_event *e);
 
+    void Debug(void);
+
   private:
     // control options
-    float movement_speed = 0.005f;
+    float movement_speed = 100.0f;
     float aim_speed = 1.0f;
     float zoom_speed = 0.1f;
+    float smoothing_factor = 1.0f;
     // control attributes
     float yaw = -90.0f;
     float pitch = 0.0f;
@@ -52,10 +55,10 @@ namespace batteries
     float min_pitch = -89.0f;
     float max_pitch = 89.0f;
     // control state
-    bool enable_aim;
-    bool move_forward;
-    bool move_backward;
-    bool move_left;
-    bool move_right;
+    bool enable_aim = false;
+    bool move_forward = false;
+    bool move_backward = false;
+    bool move_left = false;
+    bool move_right = false;
   };
 }
