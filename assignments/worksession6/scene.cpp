@@ -85,7 +85,7 @@ void Scene::Render(void)
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_geometry_params));
             sg_apply_bindings({
                 .vertex_buffers[0] = island.mesh.vertex_buffer,
-                .index_buffers = island.mesh.index_buffer,
+                .index_buffer = island.mesh.index_buffer,
                 .fs = {
                     .images[0] = island.textures[i].image,
                     .samplers = island.mesh.sampler,
@@ -104,7 +104,7 @@ void Scene::Render(void)
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
             sg_apply_bindings({
                 .vertex_buffers[0] = sea.mesh.vertex_buffer,
-                .index_buffers = sea.mesh.index_buffer,
+                .index_buffer = sea.mesh.index_buffer,
                 .fs = {
                     .images[0] = sea.textures[i].image,
                     .samplers = sea.mesh.sampler,
@@ -121,9 +121,9 @@ void Scene::Render(void)
             sg_apply_pipeline(lightspass.pipeline);
             sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_lights_params));
             sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lights_params));
-            sg_apply_bindings((sg_bindings){
+            sg_apply_bindings({
                 .vertex_buffers[0] = lights.mesh.vertex_buffer,
-                .index_buffers = lights.mesh.index_buffer,
+                .index_buffer = lights.mesh.index_buffer,
                 .fs.images[0] = lights.textures[i].image,
                 .fs.samplers = lights.mesh.sampler,
             });
