@@ -47,7 +47,7 @@ void Scene::Update(float dt)
     batteries::Scene::Update(dt);
 
     static auto ry = 0.0f;
-    ry += dt;
+    ry += time.frame * time.factor;
 
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -89,7 +89,7 @@ void Scene::Render(void)
         // create bindings
         auto bindings = (sg_bindings){
             .vertex_buffers[0] = model.mesh.vertex_buffer,
-            // .index_buffer = suzanne.mesh.index_buffer,
+            .index_buffer = model.mesh.index_buffer,
             .fs = {
                 .images = {
                     [0] = model.col.image,

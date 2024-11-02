@@ -1,5 +1,8 @@
 #include "nintendo.h"
 
+// batteries
+#include "batteries/vertex.h"
+
 // fastobj
 #include "fast_obj/fast_obj.h"
 
@@ -67,7 +70,7 @@ namespace nintendo
         .type = SG_BUFFERTYPE_VERTEXBUFFER,
         .data = {
             .ptr = mesh->vertices.data(),
-            .size = mesh->vertices.size() * sizeof(float),
+            .size = mesh->vertices.size() * sizeof(batteries::vertex_t),
         },
         .label = "mesh-vertices",
     });
