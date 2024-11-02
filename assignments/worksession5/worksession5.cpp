@@ -13,19 +13,23 @@ namespace worksession5
     mesh->num_faces = obj->face_count;
     for (auto i = 0; i < obj->face_count * 3; ++i)
     {
-      auto vertex = obj->indices[i];
-      // vertex
-      mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 0));
-      mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 1));
-      mesh->vertices.push_back(*((obj->positions + vertex.p * 3) + 2));
-      // normals
-      mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 0));
-      mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 1));
-      mesh->vertices.push_back(*((obj->normals + vertex.n * 3) + 2));
-      // texcoords
-      mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 0));
-      mesh->vertices.push_back(*((obj->texcoords + vertex.t * 2) + 1));
-
+      auto indices = obj->indices[i];
+      mesh->vertices.push_back({
+          .position{
+              *((obj->positions + indices.p * 3) + 0),
+              *((obj->positions + indices.p * 3) + 1),
+              *((obj->positions + indices.p * 3) + 2),
+          },
+          .normal = {
+              *((obj->normals + indices.n * 3) + 0),
+              *((obj->normals + indices.n * 3) + 1),
+              *((obj->normals + indices.n * 3) + 2),
+          },
+          .texcoord = {
+              *((obj->texcoords + indices.t * 2) + 0),
+              *((obj->texcoords + indices.t * 2) + 1),
+          },
+      });
       mesh->indices.push_back(i);
     }
 

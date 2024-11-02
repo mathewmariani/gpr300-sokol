@@ -14,18 +14,22 @@ namespace batteries
     for (auto i = 0; i < obj->face_count * 3; ++i)
     {
       auto indices = obj->indices[i];
-      // vertex
-      mesh->vertices.push_back(*((obj->positions + indices.p * 3) + 0));
-      mesh->vertices.push_back(*((obj->positions + indices.p * 3) + 1));
-      mesh->vertices.push_back(*((obj->positions + indices.p * 3) + 2));
-      // normals
-      mesh->vertices.push_back(*((obj->normals + indices.n * 3) + 0));
-      mesh->vertices.push_back(*((obj->normals + indices.n * 3) + 1));
-      mesh->vertices.push_back(*((obj->normals + indices.n * 3) + 2));
-      // texcoords
-      mesh->vertices.push_back(*((obj->texcoords + indices.t * 2) + 0));
-      mesh->vertices.push_back(*((obj->texcoords + indices.t * 2) + 1));
-
+      mesh->vertices.push_back({
+          .position{
+              *((obj->positions + indices.p * 3) + 0),
+              *((obj->positions + indices.p * 3) + 1),
+              *((obj->positions + indices.p * 3) + 2),
+          },
+          .normal = {
+              *((obj->normals + indices.n * 3) + 0),
+              *((obj->normals + indices.n * 3) + 1),
+              *((obj->normals + indices.n * 3) + 2),
+          },
+          .texcoord = {
+              *((obj->texcoords + indices.t * 2) + 0),
+              *((obj->texcoords + indices.t * 2) + 1),
+          },
+      });
       mesh->indices.push_back(i);
     }
 
@@ -34,7 +38,7 @@ namespace batteries
         .type = SG_BUFFERTYPE_VERTEXBUFFER,
         .data = {
             .ptr = mesh->vertices.data(),
-            .size = mesh->vertices.size() * sizeof(float),
+            .size = mesh->vertices.size() * sizeof(vertex_t),
         },
         .label = "mesh-vertices",
     });
