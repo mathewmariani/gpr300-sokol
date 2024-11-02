@@ -47,7 +47,7 @@ void Scene::Update(float dt)
     batteries::Scene::Update(dt);
 
     static auto ry = 0.0f;
-    ry += dt;
+    ry += time.frame * time.factor;
 
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
