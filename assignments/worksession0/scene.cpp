@@ -89,7 +89,7 @@ void Scene::Render(void)
         // create bindings
         auto bindings = (sg_bindings){
             .vertex_buffers[0] = model.mesh.vertex_buffer,
-            // .index_buffer = suzanne.mesh.index_buffer,
+            .index_buffer = model.mesh.index_buffer,
             .fs = {
                 .images = {
                     [0] = model.col.image,
