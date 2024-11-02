@@ -68,7 +68,8 @@ namespace batteries
     }
     else
     {
-      camera.position = lerp(camera.position, target_position, std::min(t + smoothing_factor * dt, 1.0f));
+      t = std::min(t + smoothing_factor * dt, 1.0f);
+      camera.position = lerp(camera.position, target_position, t);
     }
 
     camera.front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
