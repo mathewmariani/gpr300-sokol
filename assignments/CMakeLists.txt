@@ -4,6 +4,9 @@ add_subdirectory(assignment1)
 add_subdirectory(assignment2)
 add_subdirectory(assignment3)
 
+# demos
+add_subdirectory(demo0)
+
 # work sessions
 add_subdirectory(worksession0)
 add_subdirectory(worksession1)
