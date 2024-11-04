@@ -4,6 +4,7 @@
 static struct
 {
     float angle;
+    bool normal;
     glm::quat yRotationQuaternion;
     glm::quat xRotationQuaternion;
 } state;
@@ -36,15 +37,16 @@ void Scene::Render(void)
     const auto view_proj = camera.Projection() * camera.View();
 
     // initialize uniform data
-    const BlinnPhong::vs_params_t vs_blinnphong_params = {
+    const Normals::vs_params_t vs_normals_params = {
         .view_proj = view_proj,
         .model = suzanne.transform.matrix(),
+        .normals = state.normal,
     };
 
     // render to framebuffer
     sg_begin_pass(&framebuffer.pass);
-    sg_apply_pipeline(blinnphong.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_blinnphong_params));
+    sg_apply_pipeline(normals.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_normals_params));
     if (suzanne.loaded)
     {
         sg_apply_bindings({
@@ -72,6 +74,11 @@ void Scene::Debug(void)
     if (ImGui::CollapsingHeader("Camera"))
     {
         ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+    }
+
+    if (ImGui::Button("Normals"))
+    {
+        state.normal = !state.normal;
     }
 
     ImGui::End();
