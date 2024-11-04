@@ -15,6 +15,7 @@ struct Normals final : public batteries::Pass
     {
         glm::mat4 view_proj;
         glm::mat4 model;
+        bool normals;
     };
 
     Normals()
@@ -36,6 +37,7 @@ struct Normals final : public batteries::Pass
                         .uniforms = {
                             [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                             [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                            [2] = {.name = "normals", .type = SG_UNIFORMTYPE_INT},
                         },
                     },
                 },

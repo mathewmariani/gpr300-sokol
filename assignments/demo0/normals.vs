@@ -8,6 +8,7 @@ layout(location = 2) in vec2 in_texcoord;
 // uniforms
 uniform mat4 view_proj;
 uniform mat4 model;
+uniform bool normal;
 
 // varyings
 out vec3 vs_position;
@@ -17,9 +18,9 @@ out vec2 vs_texcoord;
 void main()
 {
   vs_position = in_position;
+  // vs_normal = normal ? in_normal : (model * vec4(in_normal, 0.0)).xyz;
   vs_normal = in_normal;
   vs_texcoord = in_texcoord;
 
-  // fragNormal = (mWorld * vec4(vertNormal, 0.0)).xyz;
   gl_Position = view_proj * model * vec4(in_position, 1.0);
 }
