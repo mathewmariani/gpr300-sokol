@@ -6,7 +6,7 @@
 #include "batteries/pass.h"
 
 // glm
-#include "glm/glm.hpp"
+#include "glm/mat4x4.hpp"
 
 // shader
 #include "water.glsl.h"

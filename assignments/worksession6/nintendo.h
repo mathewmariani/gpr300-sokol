@@ -5,7 +5,7 @@
 #include "batteries/texture.h"
 
 // glm
-#include "glm/glm.hpp"
+#include "glm/vec3.hpp"
 
 namespace nintendo
 {

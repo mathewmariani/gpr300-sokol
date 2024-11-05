@@ -1,10 +1,7 @@
 #include "camera.h"
 
 // glm
-#define GLM_FORCE_SWIZZLE
 #include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/gtx/transform.hpp"
 
 // imgui
 #include "imgui/imgui.h"

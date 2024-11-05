@@ -5,7 +5,7 @@
 #include "transition.glsl.h"
 
 // glm
-#include "glm/glm.hpp"
+#include "glm/vec3.hpp"
 
 struct Transition final : public batteries::PostProcessEffectSettings
 {
