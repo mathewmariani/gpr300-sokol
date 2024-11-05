@@ -49,8 +49,15 @@ Scene::Scene()
         });
     };
 
-    plane = batteries::CreatePlane(400.0f, 400.0f, 1);
     init_water_texture();
+    plane = batteries::CreatePlane(400.0f, 400.0f, 1);
+
+    cameracontroller.Configure({
+        .mode = (int)batteries::CameraController::Mode::Orbit,
+        .pitch = 30.0f,
+        .yaw = 0.0f,
+        .distance = 10.0f,
+    });
 }
 
 Scene::~Scene()
@@ -106,6 +113,8 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);

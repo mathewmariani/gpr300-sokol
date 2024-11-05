@@ -28,6 +28,8 @@ namespace batteries
         .factor = 1.0f,
         .paused = false,
     };
+
+    cameracontroller.SetCamera(&camera);
   }
 
   Scene::~Scene()
@@ -44,7 +46,7 @@ namespace batteries
     }
 
     // update camera
-    cameracontroller.Update(camera, dt);
+    cameracontroller.Update(dt);
   }
 
   void Scene::Event(const sapp_event *event)

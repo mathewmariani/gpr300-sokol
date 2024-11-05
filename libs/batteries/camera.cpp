@@ -17,6 +17,13 @@ namespace
   {
     return a + t * (b - a);
   }
+
+  static glm::vec3 euclidean(float yaw, float pitch)
+  {
+    const float y = glm::radians(yaw);
+    const float p = glm::radians(pitch);
+    return {cosf(p) * cosf(y), sinf(p), cosf(p) * sinf(y)};
+  }
 }
 
 namespace batteries
@@ -39,14 +46,24 @@ namespace batteries
                : glm::perspective(glm::radians(fov), aspect, nearz, farz);
   }
 
-  static glm::vec3 _cam_euclidean(float yaw, float pitch)
+  void CameraController::SetCamera(Camera *camera)
   {
-    const float y = glm::radians(yaw);
-    const float p = glm::radians(pitch);
-    return {cosf(p) * cosf(y), sinf(p), cosf(p) * sinf(y)};
+    this->camera = camera;
   }
 
-  void CameraController::Update(Camera &camera, float dt)
+  void CameraController::SetMode(const Mode mode)
+  {
+    this->mode = mode;
+  }
+
+  void CameraController::Configure(const camera_desc &desc)
+  {
+    distance = desc.distance;
+    yaw = desc.yaw;
+    pitch = desc.pitch;
+  }
+
+  void CameraController::Update(float dt)
   {
     switch (mode)
     {
@@ -55,30 +72,30 @@ namespace batteries
       auto velocity = movement_speed * dt;
       if (move_forward)
       {
-        camera.position += camera.front * velocity;
+        camera->position += camera->front * velocity;
       }
       if (move_backward)
       {
-        camera.position -= camera.front * velocity;
+        camera->position -= camera->front * velocity;
       }
       if (move_left)
       {
-        camera.position -= camera.right * velocity;
+        camera->position -= camera->right * velocity;
       }
       if (move_right)
       {
-        camera.position += camera.right * velocity;
+        camera->position += camera->right * velocity;
       }
 
-      camera.front = _cam_euclidean(yaw, pitch);
-      camera.right = glm::normalize(glm::cross(camera.front, {0.0f, 1.0f, 0.0f}));
-      camera.up = glm::normalize(glm::cross(camera.right, camera.front));
-      camera.center = camera.position + camera.front;
+      camera->front = euclidean(yaw, pitch);
+      camera->right = glm::normalize(glm::cross(camera->front, {0.0f, 1.0f, 0.0f}));
+      camera->up = glm::normalize(glm::cross(camera->right, camera->front));
+      camera->center = camera->position + camera->front;
     }
     case Mode::Orbit:
     {
-      camera.center = {0.0f, 0.0f, 0.0f};
-      camera.position = camera.center + _cam_euclidean(yaw, pitch) * distance;
+      camera->center = {0.0f, 0.0f, 0.0f};
+      camera->position = camera->center + euclidean(yaw, pitch) * distance;
     }
     }
   }
@@ -155,7 +172,10 @@ namespace batteries
   {
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    // ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position.x, camera.position.y, camera.position.z);
+    ImGui::Text("Position: %.2f, %.2f, %.2f", camera->position.x, camera->position.y, camera->position.z);
+    ImGui::Text("Pitch: %.2f", pitch);
+    ImGui::Text("Yaw: %.2f", yaw);
+    ImGui::Text("Distance: %.2f", distance);
     ImGui::SliderFloat("movement_speed", &movement_speed, 0.0f, 100.0f);
     ImGui::SliderFloat("smoothing_factor", &smoothing_factor, 0.0f, 1.0f);
 

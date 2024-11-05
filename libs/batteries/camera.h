@@ -33,23 +33,37 @@ namespace batteries
     float farz = 100.0f;
   };
 
+  struct camera_desc
+  {
+    int mode;
+    float distance;
+    float yaw;
+    float pitch;
+  };
+
   class CameraController
   {
   public:
-    enum class Mode
+    enum class Mode : int
     {
-      Free,
-      Orbit
+      Free = 0,
+      Orbit = 1,
     };
 
   public:
     CameraController() = default;
 
-    void Update(Camera &camera, float dt);
+    void Configure(const camera_desc &desc);
+    void SetCamera(Camera *camera);
+    void SetMode(const Mode mode);
+
+    void Update(float dt);
     void Event(const sapp_event *e);
     void Debug(void);
 
   private:
+    Camera *camera;
+
     // control options
     float movement_speed = 5.0f;
     float smoothing_factor = 1.0f;
