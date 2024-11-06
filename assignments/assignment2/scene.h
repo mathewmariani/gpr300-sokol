@@ -4,9 +4,9 @@
 #include "batteries/gizmo.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
-#include "batteries/materials.h"
 #include "batteries/model.h"
 #include "batteries/shape.h"
+#include "batteries/texture.h"
 
 #include "depth.h"
 #include "shadow.h"
@@ -29,11 +29,10 @@ private:
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;
-  batteries::Shape plane;
   batteries::Shape cube;
   batteries::Shape sphere;
+  batteries::Texture dungeon_texture;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::material_t material;
 };

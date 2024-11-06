@@ -8,8 +8,9 @@ static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 static struct
 {
     simgui_image_t depth_buffer;
-    simgui_image_t shadow_map;
 } debug;
+
+sg_sampler dungeon_sampler;
 
 Scene::Scene()
 {
@@ -23,23 +24,22 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    material = {
-        .ambient = {0.5f, 0.5f, 0.5f},
-        .diffuse = {0.5f, 0.5f, 0.5f},
-        .specular = {0.5f, 0.5f, 0.5f},
-        .shininess = 128.0f,
-    },
-
     suzanne.Load("assets/suzanne.obj");
+    dungeon_texture.Load("assets/windwaker/Txe_Ecube_yoko_9.png");
 
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
-    plane = batteries::CreatePlane(100.0f, 100.0f, 1);
-    plane.transform.position = {0.0f, -2.0f, 0.0f};
-
-    cube = batteries::CreateCube(6.0f);
+    cube = batteries::CreateCube(7.0f);
     cube.transform.position = {0.0f, 0.0f, 0.0f};
+
+    dungeon_sampler = sg_make_sampler({
+        .min_filter = SG_FILTER_LINEAR,
+        .mag_filter = SG_FILTER_LINEAR,
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+        .label = "dungeon-sampler",
+    });
 
     // create an sokol-imgui wrapper for the shadow map
     auto ui_smp = sg_make_sampler({
@@ -94,7 +94,6 @@ void Scene::Render(void)
         .light_view_proj = light_view_proj,
     };
     const Shadow::fs_params_t fs_shadow_params = {
-        .material = material,
         .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
@@ -105,7 +104,6 @@ void Scene::Render(void)
         .light_view_proj = light_view_proj,
     };
     const Dungeon::fs_params_t fs_dungeon_params = {
-        .material = material,
         .light = light,
         .ambient = ambient,
         .camera_position = camera.position,
@@ -159,8 +157,14 @@ void Scene::Render(void)
         .vertex_buffers[0] = cube.mesh.vertex_buffer,
         .index_buffer = cube.mesh.index_buffer,
         .fs = {
-            .images[0] = depthbuffer.depth,
-            .samplers[0] = depthbuffer.sampler,
+            .images = {
+                [0] = dungeon_texture.image,
+                [1] = depthbuffer.depth,
+            },
+            .samplers = {
+                [0] = dungeon_sampler,
+                [1] = depthbuffer.sampler,
+            },
         },
     });
     sg_draw(0, cube.mesh.indices.size(), 1);
@@ -185,15 +189,12 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
     auto window_size = ImGui::GetWindowSize();
 
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
-
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
-    }
+    ImGui::Checkbox("Paused", &time.paused);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     if (ImGui::CollapsingHeader("Ambient"))
     {
@@ -210,9 +211,6 @@ void Scene::Debug(void)
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Depth Buffer");
     ImGui::Image(simgui_imtextureid(debug.depth_buffer), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::EndChild();
-    ImGui::BeginChild("Shadow Map");
-    ImGui::Image(simgui_imtextureid(debug.shadow_map), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }

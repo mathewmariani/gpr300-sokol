@@ -3,12 +3,6 @@
 precision highp float;
 precision highp sampler2DShadow;
 
-struct Material {
-  vec3 ambient;
-  vec3 diffuse;
-  vec3 specular;
-  float shininess;
-};
 struct Ambient {
   float intensity;
   vec3 color;
@@ -28,7 +22,6 @@ in vec3 vs_normal;
 in vec4 vs_light_proj_pos;
 
 // uniforms
-uniform Material material;
 uniform Ambient ambient;
 uniform Light light;
 uniform vec3 camera_position;

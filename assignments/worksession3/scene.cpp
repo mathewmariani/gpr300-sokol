@@ -51,13 +51,6 @@ Scene::Scene()
 
     init_water_texture();
     plane = batteries::CreatePlane(400.0f, 400.0f, 1);
-
-    cameracontroller.Configure({
-        .mode = (int)batteries::CameraController::Mode::Orbit,
-        .pitch = 30.0f,
-        .yaw = 0.0f,
-        .distance = 10.0f,
-    });
 }
 
 Scene::~Scene()

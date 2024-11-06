@@ -18,7 +18,6 @@ struct Dungeon final : public batteries::Pass
 
     struct fs_params_t
     {
-        batteries::material_t material;
         batteries::light_t light;
         batteries::ambient_t ambient;
         glm::vec3 camera_position;
@@ -53,26 +52,36 @@ struct Dungeon final : public batteries::Pass
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
                         .uniforms = {
-                            [0] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [1] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [2] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                            [4] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
-                            [5] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [6] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [7] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                            [8] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [9] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [10] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [0] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
+                            [1] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [2] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [5] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [6] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
-                    .images[0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
-                    .samplers[0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
-                    .image_sampler_pairs[0] = {
-                        .glsl_name = "shadow_map",
-                        .image_slot = 0,
-                        .sampler_slot = 0,
-                        .used = true,
+                    .images = {
+                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                        [1] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
+                    },
+                    .samplers = {
+                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                        [1] = {.used = true, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
+                    },
+                    .image_sampler_pairs = {
+                        [0] = {
+                            .glsl_name = "albedo",
+                            .image_slot = 0,
+                            .sampler_slot = 0,
+                            .used = true,
+                        },
+                        [1] = {
+                            .glsl_name = "shadow_map",
+                            .image_slot = 1,
+                            .sampler_slot = 1,
+                            .used = true,
+                        },
                     },
                 },
             }),

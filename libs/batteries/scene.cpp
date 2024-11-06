@@ -30,6 +30,12 @@ namespace batteries
     };
 
     cameracontroller.SetCamera(&camera);
+    cameracontroller.Configure({
+        .mode = (int)batteries::CameraController::Mode::Orbit,
+        .pitch = 30.0f,
+        .yaw = 90.0f,
+        .distance = 10.0f,
+    });
   }
 
   Scene::~Scene()
@@ -39,10 +45,10 @@ namespace batteries
   void Scene::Update(float dt)
   {
     // update internal timer
-    time.frame = dt;
+    time.frame = time.paused ? 0.0f : dt * time.factor;
     if (!time.paused)
     {
-      time.absolute += time.frame * time.factor;
+      time.absolute += time.frame;
     }
 
     // update camera
