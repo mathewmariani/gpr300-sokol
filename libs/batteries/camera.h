@@ -4,7 +4,8 @@
 #include "sokol/sokol_app.h"
 
 // glm
-#include "glm/glm.hpp"
+#include "glm/mat4x4.hpp"
+#include "glm/vec3.hpp"
 
 namespace batteries
 {
@@ -18,46 +19,74 @@ namespace batteries
 
   public:
     glm::vec3 position;
-    glm::vec3 world_up;
     glm::vec3 front;
     glm::vec3 up;
     glm::vec3 right;
+    glm::vec3 center;
 
   private:
     bool orthographic = false;
-    float fov = 60.0f;
-    float nearPlane = 0.01f;
-    float farPlane = 1000000.0f;
     float orthoHeight = 6.0f;
-    float aspectRatio = 1.33f;
+
+    float fov = 60.0f;
+    float nearz = 0.01f;
+    float farz = 100.0f;
+  };
+
+  struct camera_desc
+  {
+    int mode;
+    float distance;
+    float yaw;
+    float pitch;
   };
 
   class CameraController
   {
   public:
-    CameraController();
+    enum class Mode : int
+    {
+      Free = 0,
+      Orbit = 1,
+    };
 
-    void Update(Camera &camera, float dt);
+  public:
+    CameraController() = default;
+
+    void Configure(const camera_desc &desc);
+    void SetCamera(Camera *camera);
+    void SetMode(const Mode mode);
+
+    void Update(float dt);
     void Event(const sapp_event *e);
-
     void Debug(void);
 
   private:
+    Camera *camera;
+
     // control options
-    float movement_speed = 100.0f;
+    float movement_speed = 5.0f;
     float smoothing_factor = 1.0f;
-    // control attributes
+    float t = 0.0f;
+
+    Mode mode = Mode::Free;
+
+    float min_pitch = -89.0f;
+    float max_pitch = +89.0f;
+    float min_dist = 2.0f;
+    float max_dist = 30.0f;
+    float distance = 5.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;
     float zoom = 45.0f;
-    float min_pitch = -89.0f;
-    float max_pitch = 89.0f;
-    // control state
-    bool enable_aim = false;
     bool move_forward = false;
     bool move_backward = false;
     bool move_left = false;
     bool move_right = false;
-    float t = 0.0f;
+
+    struct
+    {
+      float dampening = 0.25f;
+    } settings;
   };
 }

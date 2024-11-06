@@ -1,9 +1,7 @@
 #include "camera.h"
 
 // glm
-#define GLM_FORCE_SWIZZLE
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/quaternion.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/transform.hpp"
 
 // imgui
@@ -11,72 +9,95 @@
 
 #include <algorithm>
 
-namespace batteries
+namespace
 {
+  constexpr glm::vec3 world_up{0.0f, 1.0f, 0.0f};
+
   static glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, float t)
   {
     return a + t * (b - a);
   }
 
+  static glm::vec3 euclidean(float yaw, float pitch)
+  {
+    const float y = glm::radians(yaw);
+    const float p = glm::radians(pitch);
+    return {cosf(p) * cosf(y), sinf(p), cosf(p) * sinf(y)};
+  }
+}
+
+namespace batteries
+{
   Camera::Camera()
-      : position{0.0f, 0.0f, 5.0f}, world_up{0.0f, 1.0f, 0.0f}, front{0.0f, 0.0f, -1.0f}, up{0.0f, 1.0f, 0.0f}, right{1.0f, 0.0f, 0.0f}
+      : position{0.0f, 0.0f, 5.0f}, front{0.0f, 0.0f, -1.0f}, up{0.0f, 1.0f, 0.0f}, right{1.0f, 0.0f, 0.0f}, center{0.0f, 0.0f, 0.0f}
   {
   }
 
   glm::mat4 Camera::View() const
   {
-    auto target = position + front;
-    return glm::lookAt(position, target, up);
+    return glm::lookAt(position, center, up);
   }
 
   glm::mat4 Camera::Projection() const
   {
+    constexpr float aspect = 800.0f / 600.0f;
     return orthographic
-               ? glm::ortho(orthoHeight, aspectRatio, nearPlane, farPlane)
-               : glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
+               ? glm::ortho(orthoHeight, fov, nearz, farz)
+               : glm::perspective(glm::radians(fov), aspect, nearz, farz);
   }
 
-  CameraController::CameraController()
+  void CameraController::SetCamera(Camera *camera)
   {
+    this->camera = camera;
   }
 
-  void CameraController::Update(Camera &camera, float dt)
+  void CameraController::SetMode(const Mode mode)
   {
-    auto velocity = movement_speed * dt;
-    auto target_position = camera.position; // Start with the current position
+    this->mode = mode;
+  }
 
-    if (move_forward)
-    {
-      target_position += camera.front * velocity;
-    }
-    if (move_backward)
-    {
-      target_position -= camera.front * velocity;
-    }
-    if (move_left)
-    {
-      target_position -= camera.right * velocity;
-    }
-    if (move_right)
-    {
-      target_position += camera.right * velocity;
-    }
+  void CameraController::Configure(const camera_desc &desc)
+  {
+    distance = desc.distance;
+    yaw = desc.yaw;
+    pitch = desc.pitch;
+  }
 
-    if (!move_forward && !move_backward && !move_left && !move_right)
+  void CameraController::Update(float dt)
+  {
+    switch (mode)
     {
-      t = 0.0f;
-    }
-    else
+    case Mode::Free:
     {
-      t = std::min(t + smoothing_factor * dt, 1.0f);
-      camera.position = lerp(camera.position, target_position, t);
-    }
+      auto velocity = movement_speed * dt;
+      if (move_forward)
+      {
+        camera->position += camera->front * velocity;
+      }
+      if (move_backward)
+      {
+        camera->position -= camera->front * velocity;
+      }
+      if (move_left)
+      {
+        camera->position -= camera->right * velocity;
+      }
+      if (move_right)
+      {
+        camera->position += camera->right * velocity;
+      }
 
-    camera.front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    camera.front.y = sin(glm::radians(pitch));
-    camera.front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    camera.right = glm::normalize(glm::cross(camera.front, camera.world_up));
-    camera.up = glm::normalize(glm::cross(camera.right, camera.front));
+      camera->front = euclidean(yaw, pitch);
+      camera->right = glm::normalize(glm::cross(camera->front, {0.0f, 1.0f, 0.0f}));
+      camera->up = glm::normalize(glm::cross(camera->right, camera->front));
+      camera->center = camera->position + camera->front;
+    }
+    case Mode::Orbit:
+    {
+      camera->center = {0.0f, 0.0f, 0.0f};
+      camera->position = camera->center + euclidean(yaw, pitch) * distance;
+    }
+    }
   }
 
   void CameraController::Event(const sapp_event *e)
@@ -122,20 +143,23 @@ namespace batteries
     case SAPP_EVENTTYPE_MOUSE_DOWN:
       if (e->mouse_button == SAPP_MOUSEBUTTON_LEFT)
       {
-        enable_aim = true;
+        sapp_lock_mouse(true);
       }
       break;
     case SAPP_EVENTTYPE_MOUSE_UP:
       if (e->mouse_button == SAPP_MOUSEBUTTON_LEFT)
       {
-        enable_aim = false;
+        sapp_lock_mouse(false);
       }
       break;
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+      distance = glm::clamp(min_dist, distance + (e->scroll_y * 0.5f), max_dist);
+      break;
     case SAPP_EVENTTYPE_MOUSE_MOVE:
-      if (enable_aim)
+      if (sapp_mouse_locked())
       {
-        yaw += e->mouse_dx;
-        pitch -= e->mouse_dy;
+        yaw += e->mouse_dx * settings.dampening;
+        pitch -= e->mouse_dy * settings.dampening;
         pitch = glm::clamp(min_pitch, pitch, max_pitch);
       }
       break;
@@ -148,7 +172,10 @@ namespace batteries
   {
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    // ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position.x, camera.position.y, camera.position.z);
+    ImGui::Text("Position: %.2f, %.2f, %.2f", camera->position.x, camera->position.y, camera->position.z);
+    ImGui::Text("Pitch: %.2f", pitch);
+    ImGui::Text("Yaw: %.2f", yaw);
+    ImGui::Text("Distance: %.2f", distance);
     ImGui::SliderFloat("movement_speed", &movement_speed, 0.0f, 100.0f);
     ImGui::SliderFloat("smoothing_factor", &smoothing_factor, 0.0f, 1.0f);
 

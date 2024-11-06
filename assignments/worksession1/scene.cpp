@@ -50,6 +50,13 @@ Scene::Scene()
 
     init_water_texture();
     plane = batteries::CreatePlane(400.0f, 400.0f, 10);
+
+    cameracontroller.Configure({
+        .mode = (int)batteries::CameraController::Mode::Orbit,
+        .pitch = 30.0f,
+        .yaw = 0.0f,
+        .distance = 10.0f,
+    });
 }
 
 Scene::~Scene()
@@ -117,7 +124,8 @@ void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    ImGui::Checkbox("Paused", &time.paused);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     if (ImGui::CollapsingHeader("Camera"))
     {

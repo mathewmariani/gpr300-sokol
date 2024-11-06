@@ -5,9 +5,9 @@
 #include "batteries/materials.h"
 #include "batteries/pass.h"
 
-#include "shadow.glsl.h"
+#include "dungeon.glsl.h"
 
-struct Shadow final : public batteries::Pass
+struct Dungeon final : public batteries::Pass
 {
     struct vs_params_t
     {
@@ -23,7 +23,7 @@ struct Shadow final : public batteries::Pass
         glm::vec3 camera_position;
     };
 
-    Shadow()
+    Dungeon()
     {
         pipeline = sg_make_pipeline({
             .layout = {
@@ -35,7 +35,7 @@ struct Shadow final : public batteries::Pass
             },
             .shader = sg_make_shader({
                 .vs = {
-                    .source = shadow_vs,
+                    .source = dungeon_vs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
@@ -47,7 +47,7 @@ struct Shadow final : public batteries::Pass
                     },
                 },
                 .fs = {
-                    .source = shadow_fs,
+                    .source = dungeon_fs,
                     .uniform_blocks[0] = {
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
@@ -61,19 +61,33 @@ struct Shadow final : public batteries::Pass
                             [6] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
-                    .images[0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
-                    .samplers[0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
-                    .image_sampler_pairs[0] = {
-                        .glsl_name = "shadow_map",
-                        .image_slot = 0,
-                        .sampler_slot = 0,
-                        .used = true,
+                    .images = {
+                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                        [1] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
+                    },
+                    .samplers = {
+                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                        [1] = {.used = true, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
+                    },
+                    .image_sampler_pairs = {
+                        [0] = {
+                            .glsl_name = "albedo",
+                            .image_slot = 0,
+                            .sampler_slot = 0,
+                            .used = true,
+                        },
+                        [1] = {
+                            .glsl_name = "shadow_map",
+                            .image_slot = 1,
+                            .sampler_slot = 1,
+                            .used = true,
+                        },
                     },
                 },
             }),
             .index_type = SG_INDEXTYPE_UINT16,
             .face_winding = SG_FACEWINDING_CCW,
-            .cull_mode = SG_CULLMODE_BACK,
+            .cull_mode = SG_CULLMODE_FRONT,
             .colors = {
                 [0].pixel_format = SG_PIXELFORMAT_RGBA8,
             },
@@ -82,7 +96,7 @@ struct Shadow final : public batteries::Pass
                 .compare = SG_COMPAREFUNC_LESS_EQUAL,
                 .write_enabled = true,
             },
-            .label = "shadow-pipeline",
+            .label = "dungeon-pipeline",
         });
     }
 };

@@ -239,7 +239,8 @@ void Scene::Debug(void)
     auto size = ImGui::GetWindowSize();
 
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    ImGui::Checkbox("Paused", &time.paused);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     if (ImGui::CollapsingHeader("Camera"))
     {

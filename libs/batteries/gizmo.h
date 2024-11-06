@@ -1,11 +1,11 @@
 #pragma once
 
-// glm
-#include "glm/glm.hpp"
-
 // batteries
 #include "pass.h"
 #include "gizmo.glsl.h"
+
+// glm
+#include "glm/mat4x4.hpp"
 
 namespace batteries
 {
