@@ -10,6 +10,7 @@
 
 #include "depth.h"
 #include "shadow.h"
+#include "dungeon.h"
 
 class Scene final : public batteries::Scene
 {
@@ -24,10 +25,12 @@ public:
 private:
   Depth depth;
   Shadow shadow;
+  Dungeon dungeon;
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;
   batteries::Shape plane;
+  batteries::Shape cube;
   batteries::Shape sphere;
 
   batteries::ambient_t ambient;

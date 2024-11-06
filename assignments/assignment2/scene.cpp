@@ -38,6 +38,9 @@ Scene::Scene()
     plane = batteries::CreatePlane(100.0f, 100.0f, 1);
     plane.transform.position = {0.0f, -2.0f, 0.0f};
 
+    cube = batteries::CreateCube(6.0f);
+    cube.transform.position = {0.0f, 0.0f, 0.0f};
+
     // create an sokol-imgui wrapper for the shadow map
     auto ui_smp = sg_make_sampler({
         .min_filter = SG_FILTER_NEAREST,
@@ -85,11 +88,23 @@ void Scene::Render(void)
         .view_proj = light_view_proj,
         .model = suzanne.transform.matrix(),
     };
-    Shadow::vs_params_t vs_shadow_params = {
+    const Shadow::vs_params_t vs_shadow_params = {
+        .model = suzanne.transform.matrix(),
         .view_proj = view_proj,
         .light_view_proj = light_view_proj,
     };
     const Shadow::fs_params_t fs_shadow_params = {
+        .material = material,
+        .light = light,
+        .ambient = ambient,
+        .camera_position = camera.position,
+    };
+    const Shadow::vs_params_t vs_dungeon_params = {
+        .model = cube.transform.matrix(),
+        .view_proj = view_proj,
+        .light_view_proj = light_view_proj,
+    };
+    const Dungeon::fs_params_t fs_dungeon_params = {
         .material = material,
         .light = light,
         .ambient = ambient,
@@ -124,7 +139,6 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        vs_shadow_params.model = suzanne.transform.matrix(),
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
         sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
         sg_apply_bindings({
@@ -137,19 +151,19 @@ void Scene::Render(void)
         });
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
-    // create bindings
-    vs_shadow_params.model = plane.transform.matrix(),
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
+
+    sg_apply_pipeline(dungeon.pipeline);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_dungeon_params));
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_dungeon_params));
     sg_apply_bindings({
-        .vertex_buffers[0] = plane.mesh.vertex_buffer,
-        .index_buffer = plane.mesh.index_buffer,
+        .vertex_buffers[0] = cube.mesh.vertex_buffer,
+        .index_buffer = cube.mesh.index_buffer,
         .fs = {
             .images[0] = depthbuffer.depth,
             .samplers[0] = depthbuffer.sampler,
         },
     });
-    sg_draw(0, plane.mesh.indices.size(), 1);
+    sg_draw(0, cube.mesh.indices.size(), 1);
 
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
