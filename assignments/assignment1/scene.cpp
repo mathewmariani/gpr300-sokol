@@ -48,7 +48,7 @@ void Scene::Update(float dt)
     batteries::Scene::Update(dt);
 
     static auto ry = 0.0f;
-    ry += time.frame * time.factor;
+    ry += time.frame;
 
     // sugar: rotate light
     const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -144,7 +144,8 @@ void Scene::Render(void)
 void Scene::Debug(void)
 {
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 1.0f);
+    ImGui::Checkbox("Paused", &time.paused);
+    ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     if (ImGui::CollapsingHeader("Camera"))
     {
