@@ -14,7 +14,7 @@ sg_attachments gizmo_attachments;
 sg_pass_action gizmo_pass_action;
 sg_buffer instance_buffer;
 static glm::mat4 instance_data[max_instances];
-static auto num_instances = 9;
+static auto num_instances = 64;
 
 static struct
 {
@@ -209,10 +209,11 @@ void Scene::Render(void)
     sg_apply_pipeline(gizmo.pipeline);
     for (auto i = 0; i < num_instances; i++)
     {
+        sphere.transform.position = glm::vec3(instance_light_data.position[i]);
         // initialize uniform data
         const batteries::Gizmo::vs_params_t vs_gizmo_params = {
             .view_proj = view_proj,
-            .model = glm::translate(glm::mat4(1.0f), glm::vec3(instance_light_data.position[i])),
+            .model = sphere.transform.matrix(),
         };
         const batteries::Gizmo::fs_params_t fs_gizmo_params = {
             .color = instance_light_data.color[i],
