@@ -2,37 +2,32 @@ cmake_minimum_required(VERSION 3.5)
 
 project(gpr300)
 
-# macros
-include("extra/cmake/macros.cmake")
-
+set(THIRDPARTY_DIR libs)
+set(ASSIGNMENTS_DIR assignments)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/assignments")
-
-#defines
-add_definitions(-DSOKOL_NO_DEPRECATED)
 
 # suppress warnings
 add_compile_options(-Wno-c99-designator)
 add_compile_options(-Wno-reorder-init-list)
 
-# platform selection
-if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
-  add_definitions(-DSOKOL_GLES3)
-elseif (CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  add_definitions(-DSOKOL_GLCORE)
-endif()
+# macros
+include("extra/cmake/macros.cmake")
+include("extra/cmake/batteries.cmake")
+include("extra/cmake/fast_obj.cmake")
+include("extra/cmake/glm.cmake")
+include("extra/cmake/imgui.cmake")
+include("extra/cmake/sokol.cmake")
+include("extra/cmake/stb.cmake")
 
 # libraries
-include_directories(libs)
-add_subdirectory(libs)
-set_property(DIRECTORY libs PROPERTY FOLDER "libs")
+include_directories(${THIRDPARTY_DIR})
 
 # assignments
-add_subdirectory(assignments)
-set_property(DIRECTORY assignments PROPERTY FOLDER "assignments")
+add_subdirectory(${ASSIGNMENTS_DIR})
+set_property(DIRECTORY ${ASSIGNMENTS_DIR} PROPERTY FOLDER "assignments")
 
 # assets
 execute_process(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
   "${CMAKE_SOURCE_DIR}/assignments/assets"
-  "${CMAKE_BINARY_DIR}/assignments/${CMAKE_BUILD_TYPE}/assets"
-)
+  "${CMAKE_BINARY_DIR}/assignments/${CMAKE_BUILD_TYPE}/assets")

@@ -1,6 +1,0 @@
-add_subdirectory(batteries)
-add_subdirectory(fast_obj)
-add_subdirectory(glm)
-add_subdirectory(imgui)
-add_subdirectory(sokol)
-add_subdirectory(stb)
