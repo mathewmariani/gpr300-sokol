@@ -22,7 +22,7 @@ struct Terrain final : public batteries::Pass
 
     Terrain()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -30,49 +30,42 @@ struct Terrain final : public batteries::Pass
                     [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = island_generator_vs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = island_generator_vs,
+                .fragment_func.source = island_generator_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                            [2] = {.name = "cameraPos", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "landmass.scale", .type = SG_UNIFORMTYPE_FLOAT},
-                        },
-                    },
-                    .images = {
-                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
-                    },
-                    .samplers = {
-                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
-                    },
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .used = true,
-                            .glsl_name = "heightmap",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                            [1] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                            [2] = {.glsl_name = "cameraPos", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.glsl_name = "landmass.scale", .type = SG_UNIFORMTYPE_FLOAT},
                         },
                     },
                 },
-                .fs = {
-                    .source = island_generator_fs,
-                    .images = {
-                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                .images = {
+                    [0] = {.stage = SG_SHADERSTAGE_VERTEX, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                    [1] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                },
+                .samplers = {
+                    [0] = {.stage = SG_SHADERSTAGE_VERTEX, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                    [1] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                },
+                .image_sampler_pairs = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
+                        .glsl_name = "heightmap",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
                     },
-                    .samplers = {
-                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
-                    },
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .used = true,
-                            .glsl_name = "heightmap",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
-                        },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "heightmap",
+                        .image_slot = 1,
+                        .sampler_slot = 1,
                     },
                 },
             }),

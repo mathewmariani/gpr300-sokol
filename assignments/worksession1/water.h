@@ -19,19 +19,11 @@ struct Water final : public batteries::Pass
         glm::vec3 camera_pos;
         float scale;
         float strength;
-        float tiling;
         float time;
-        glm::vec3 color;
-        glm::vec2 direction;
-        float top_scale;
-        float bottom_scale;
-        float lod_bias;
     };
 
     struct fs_params_t
     {
-        float scale;
-        float strength;
         float tiling;
         float time;
         glm::vec3 color;
@@ -43,7 +35,7 @@ struct Water final : public batteries::Pass
 
     Water()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -51,43 +43,50 @@ struct Water final : public batteries::Pass
                     [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = water_vs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = water_vs,
+                .fragment_func.source = water_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                            [2] = {.name = "cameraPos", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "wave.scale", .type = SG_UNIFORMTYPE_FLOAT},
-                            [4] = {.name = "wave.strength", .type = SG_UNIFORMTYPE_FLOAT},
-                            [5] = {.name = "wave.tiling", .type = SG_UNIFORMTYPE_FLOAT},
-                            [6] = {.name = "wave.time", .type = SG_UNIFORMTYPE_FLOAT},
-                            [7] = {.name = "wave.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [8] = {.name = "wave.direction", .type = SG_UNIFORMTYPE_FLOAT2},
-                            [9] = {.name = "Ts", .type = SG_UNIFORMTYPE_FLOAT},
-                            [10] = {.name = "Bs", .type = SG_UNIFORMTYPE_FLOAT},
-                            [11] = {.name = "lod_bias", .type = SG_UNIFORMTYPE_FLOAT},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                            [1] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                            [2] = {.glsl_name = "cameraPos", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.glsl_name = "scale", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.glsl_name = "strength", .type = SG_UNIFORMTYPE_FLOAT},
+                            [5] = {.glsl_name = "time", .type = SG_UNIFORMTYPE_FLOAT},
+                        },
+                    },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .layout = SG_UNIFORMLAYOUT_NATIVE,
+                        .size = sizeof(fs_params_t),
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "tiling", .type = SG_UNIFORMTYPE_FLOAT},
+                            [1] = {.glsl_name = "time", .type = SG_UNIFORMTYPE_FLOAT},
+                            [2] = {.glsl_name = "color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.glsl_name = "direction", .type = SG_UNIFORMTYPE_FLOAT2},
+                            [4] = {.glsl_name = "Ts", .type = SG_UNIFORMTYPE_FLOAT},
+                            [5] = {.glsl_name = "Bs", .type = SG_UNIFORMTYPE_FLOAT},
+                            [6] = {.glsl_name = "lod_bias", .type = SG_UNIFORMTYPE_FLOAT},
                         },
                     },
                 },
-                .fs = {
-                    .source = water_fs,
-                    .images = {
-                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
-                    },
-                    .samplers = {
-                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
-                    },
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .used = true,
-                            .glsl_name = "water_texture",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
-                        },
+                .images = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                },
+                .samplers = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                },
+                .image_sampler_pairs = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "water_texture",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
                     },
                 },
             }),

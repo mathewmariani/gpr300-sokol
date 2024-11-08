@@ -62,14 +62,14 @@ namespace batteries
             }),
         };
 
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT2,
                     [1].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
+            .shader = sg_make_shader((sg_shader_desc){
                 .vertex_func.source = no_post_process_vs,
                 .fragment_func.source = no_post_process_fs,
                 .images[0] = {.stage = SG_SHADERSTAGE_FRAGMENT},

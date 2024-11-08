@@ -80,16 +80,8 @@ void Scene::Render(void)
         .scale = debug.scale,
         .strength = debug.strength,
         .time = (float)time.absolute,
-        .color = debug.color,
-        .direction = debug.direction,
-        .tiling = debug.tiling,
-        .top_scale = debug.top_scale,
-        .bottom_scale = debug.bottom_scale,
-        .lod_bias = debug.lod_bias,
     };
     const Water::fs_params_t fs_water_params = {
-        .scale = debug.scale,
-        .strength = debug.strength,
         .time = (float)time.absolute,
         .color = debug.color,
         .direction = debug.direction,
@@ -102,6 +94,7 @@ void Scene::Render(void)
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(water.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_water_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_water_params));
     sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,

@@ -26,53 +26,56 @@ struct BlinnPhong final : public batteries::Pass
 
     BlinnPhong()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT2,
                     [1].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = blinnphong_vs,
-                },
-                .fs = {
-                    .source = blinnphong_fs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = blinnphong_vs,
+                .fragment_func.source = blinnphong_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [1] = {.name = "lights.color", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
-                            [2] = {.name = "lights.position", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
-                            [3] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                            [4] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [5] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [6] = {.name = "num_instances", .type = SG_UNIFORMTYPE_INT},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [1] = {.glsl_name = "lights.color", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
+                            [2] = {.glsl_name = "lights.position", .type = SG_UNIFORMTYPE_FLOAT4, .array_count = MAX_LIGHTS},
+                            [3] = {.glsl_name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.glsl_name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [5] = {.glsl_name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [6] = {.glsl_name = "num_instances", .type = SG_UNIFORMTYPE_INT},
                         },
                     },
-                    .images = {[0].used = true, [1].used = true, [2].used = true},
-                    .samplers = {[0].used = true},
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .glsl_name = "g_position",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
-                            .used = true,
-                        },
-                        [1] = {
-                            .glsl_name = "g_normal",
-                            .image_slot = 1,
-                            .sampler_slot = 0,
-                            .used = true,
-                        },
-                        [2] = {
-                            .glsl_name = "g_albedo",
-                            .image_slot = 2,
-                            .sampler_slot = 0,
-                            .used = true,
-                        },
+                },
+                .images = {
+                    [0].stage = SG_SHADERSTAGE_FRAGMENT,
+                    [1].stage = SG_SHADERSTAGE_FRAGMENT,
+                    [2].stage = SG_SHADERSTAGE_FRAGMENT,
+                },
+                .samplers = {[0].stage = SG_SHADERSTAGE_FRAGMENT},
+                .image_sampler_pairs = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "g_position",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
+                    },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "g_normal",
+                        .image_slot = 1,
+                        .sampler_slot = 0,
+                    },
+                    [2] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "g_albedo",
+                        .image_slot = 2,
+                        .sampler_slot = 0,
                     },
                 },
             }),

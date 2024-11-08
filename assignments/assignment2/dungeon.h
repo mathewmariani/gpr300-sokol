@@ -25,7 +25,7 @@ struct Dungeon final : public batteries::Pass
 
     Dungeon()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -33,55 +33,55 @@ struct Dungeon final : public batteries::Pass
                     [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = dungeon_vs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = dungeon_vs,
+                .fragment_func.source = dungeon_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                            [2] = {.name = "light_view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                            [1] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                            [2] = {.glsl_name = "light_view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                        },
+                    },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .layout = SG_UNIFORMLAYOUT_NATIVE,
+                        .size = sizeof(fs_params_t),
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
+                            [1] = {.glsl_name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [2] = {.glsl_name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.glsl_name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.glsl_name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [5] = {.glsl_name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [6] = {.glsl_name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
                 },
-                .fs = {
-                    .source = dungeon_fs,
-                    .uniform_blocks[0] = {
-                        .layout = SG_UNIFORMLAYOUT_NATIVE,
-                        .size = sizeof(fs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
-                            [1] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [2] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                            [4] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [5] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [6] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
-                        },
+                .images = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                    [1] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
+                },
+                .samplers = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                    [1] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
+                },
+                .image_sampler_pairs = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "albedo",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
                     },
-                    .images = {
-                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
-                        [1] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_DEPTH},
-                    },
-                    .samplers = {
-                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
-                        [1] = {.used = true, .sampler_type = SG_SAMPLERTYPE_COMPARISON},
-                    },
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .glsl_name = "albedo",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
-                            .used = true,
-                        },
-                        [1] = {
-                            .glsl_name = "shadow_map",
-                            .image_slot = 1,
-                            .sampler_slot = 1,
-                            .used = true,
-                        },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "shadow_map",
+                        .image_slot = 1,
+                        .sampler_slot = 1,
                     },
                 },
             }),

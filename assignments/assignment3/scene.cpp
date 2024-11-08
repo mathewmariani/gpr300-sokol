@@ -192,14 +192,12 @@ void Scene::Render(void)
     sg_apply_uniforms(0, SG_RANGE(fs_blinnphong_params));
     sg_apply_bindings({
         .vertex_buffers[0] = framebuffer.vertex_buffer,
-        .fs = {
-            .images = {
-                [0] = geometrybuffer.position_img,
-                [1] = geometrybuffer.normal_img,
-                [2] = geometrybuffer.color_img,
-            },
-            .samplers[0] = geometrybuffer.sampler,
+        .images = {
+            [0] = geometrybuffer.position_img,
+            [1] = geometrybuffer.normal_img,
+            [2] = geometrybuffer.color_img,
         },
+        .samplers[0] = geometrybuffer.sampler,
     });
     sg_draw(0, 6, 1);
     sg_end_pass();
@@ -219,7 +217,7 @@ void Scene::Render(void)
             .color = instance_light_data.color[i],
         };
         sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-        sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
+        sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
         sg_apply_bindings({
             .vertex_buffers[0] = sphere.mesh.vertex_buffer,
             .index_buffer = sphere.mesh.index_buffer,

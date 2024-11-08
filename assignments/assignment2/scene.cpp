@@ -138,33 +138,29 @@ void Scene::Render(void)
     if (suzanne.loaded)
     {
         sg_apply_uniforms(0, SG_RANGE(vs_shadow_params));
-        sg_apply_uniforms(0, SG_RANGE(fs_shadow_params));
+        sg_apply_uniforms(1, SG_RANGE(fs_shadow_params));
         sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
-            .fs = {
-                .images[0] = depthbuffer.depth,
-                .samplers[0] = depthbuffer.sampler,
-            },
+            .images[0] = depthbuffer.depth,
+            .samplers[0] = depthbuffer.sampler,
         });
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
 
     sg_apply_pipeline(dungeon.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_dungeon_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_dungeon_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_dungeon_params));
     sg_apply_bindings({
         .vertex_buffers[0] = cube.mesh.vertex_buffer,
         .index_buffer = cube.mesh.index_buffer,
-        .fs = {
-            .images = {
-                [0] = dungeon_texture.image,
-                [1] = depthbuffer.depth,
-            },
-            .samplers = {
-                [0] = dungeon_sampler,
-                [1] = depthbuffer.sampler,
-            },
+        .images = {
+            [0] = dungeon_texture.image,
+            [1] = depthbuffer.depth,
+        },
+        .samplers = {
+            [0] = dungeon_sampler,
+            [1] = depthbuffer.sampler,
         },
     });
     sg_draw(0, cube.mesh.indices.size(), 1);
@@ -172,7 +168,7 @@ void Scene::Render(void)
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

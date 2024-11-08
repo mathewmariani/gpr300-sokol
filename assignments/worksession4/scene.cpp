@@ -89,20 +89,18 @@ void Scene::Render(void)
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(toonshading.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_toon_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_toon_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_toon_params));
     // render suzanne
     if (model.loaded)
     {
         sg_apply_bindings({
             .vertex_buffers[0] = model.mesh.vertex_buffer,
             .index_buffer = model.mesh.index_buffer,
-            .fs = {
-                .images = {
-                    [0] = model.albedo.image,
-                    [1] = zatoon.image,
-                },
-                .samplers[0] = model.mesh.sampler,
+            .images = {
+                [0] = model.albedo.image,
+                [1] = zatoon.image,
             },
+            .samplers[0] = model.mesh.sampler,
         });
         sg_draw(0, model.mesh.num_faces * 3, 1);
     }
@@ -110,7 +108,7 @@ void Scene::Render(void)
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

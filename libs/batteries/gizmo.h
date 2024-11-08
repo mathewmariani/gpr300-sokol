@@ -24,7 +24,7 @@ namespace batteries
 
         Gizmo()
         {
-            pipeline = sg_make_pipeline({
+            pipeline = sg_make_pipeline((sg_pipeline_desc){
                 .layout = {
                     .attrs = {
                         [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -32,7 +32,7 @@ namespace batteries
                         [2].format = SG_VERTEXFORMAT_FLOAT2,
                     },
                 },
-                .shader = sg_make_shader({
+                .shader = sg_make_shader((sg_shader_desc){
                     .vertex_func.source = gizmo_vs,
                     .fragment_func.source = gizmo_fs,
                     .uniform_blocks = {

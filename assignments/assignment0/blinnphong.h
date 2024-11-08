@@ -26,7 +26,7 @@ struct BlinnPhong final : public batteries::Pass
 
     BlinnPhong()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -34,7 +34,7 @@ struct BlinnPhong final : public batteries::Pass
                     [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
+            .shader = sg_make_shader((sg_shader_desc){
                 .vertex_func.source = blinnphong_vs,
                 .fragment_func.source = blinnphong_fs,
                 .uniform_blocks = {

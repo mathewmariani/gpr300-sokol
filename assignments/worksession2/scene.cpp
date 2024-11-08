@@ -55,7 +55,7 @@ void Scene::Render(void)
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,
         .images = {[0] = heightmap.image, [1] = heightmap.image},
-        .samplers = {[0] = sampler, [0] = sampler},
+        .samplers = {[0] = sampler, [1] = sampler},
     });
     sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();

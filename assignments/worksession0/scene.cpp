@@ -82,7 +82,7 @@ void Scene::Render(void)
     // apply pbr pipeline and uniforms
     sg_apply_pipeline(pbr.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_pbr_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_pbr_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_pbr_params));
     // render suzanne
     if (model.loaded)
     {
@@ -106,7 +106,7 @@ void Scene::Render(void)
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
     sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

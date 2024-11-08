@@ -15,7 +15,7 @@ struct Geometry final : public batteries::Pass
 
     Geometry()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -34,19 +34,18 @@ struct Geometry final : public batteries::Pass
                     },
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = geometry_vs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = geometry_vs,
+                .fragment_func.source = geometry_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                         },
                     },
-                },
-                .fs = {
-                    .source = geometry_fs,
                 },
             }),
             .index_type = SG_INDEXTYPE_UINT16,
