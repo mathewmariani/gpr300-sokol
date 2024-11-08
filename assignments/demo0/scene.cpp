@@ -46,7 +46,7 @@ void Scene::Render(void)
     // render to framebuffer
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(normals.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_normals_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_normals_params));
     if (suzanne.loaded)
     {
         sg_apply_bindings({

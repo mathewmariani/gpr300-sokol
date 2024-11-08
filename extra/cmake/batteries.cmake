@@ -27,8 +27,6 @@ if(BUILD_WITH_BATTERIES)
     ${BATTERIES_DIR}/scene.h
     ${BATTERIES_DIR}/shape.cpp
     ${BATTERIES_DIR}/shape.h
-    ${BATTERIES_DIR}/skybox.cpp
-    ${BATTERIES_DIR}/skybox.h
     ${BATTERIES_DIR}/texture.h
     ${BATTERIES_DIR}/transform.h
     ${BATTERIES_DIR}/vertex.h)

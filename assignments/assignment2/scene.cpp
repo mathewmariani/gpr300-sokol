@@ -119,7 +119,7 @@ void Scene::Render(void)
     sg_begin_pass(&depthbuffer.pass);
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(depth.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_depth_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_depth_params));
     // render suzanne
     if (suzanne.loaded)
     {
@@ -137,8 +137,8 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
+        sg_apply_uniforms(0, SG_RANGE(vs_shadow_params));
+        sg_apply_uniforms(0, SG_RANGE(fs_shadow_params));
         sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
@@ -151,8 +151,8 @@ void Scene::Render(void)
     }
 
     sg_apply_pipeline(dungeon.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_dungeon_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_dungeon_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_dungeon_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_dungeon_params));
     sg_apply_bindings({
         .vertex_buffers[0] = cube.mesh.vertex_buffer,
         .index_buffer = cube.mesh.index_buffer,
@@ -171,8 +171,8 @@ void Scene::Render(void)
 
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

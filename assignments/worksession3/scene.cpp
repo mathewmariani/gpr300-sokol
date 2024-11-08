@@ -84,8 +84,8 @@ void Scene::Render(void)
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(water.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_water_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_water_params));
     sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,

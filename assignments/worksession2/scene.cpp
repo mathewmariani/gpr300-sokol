@@ -50,18 +50,12 @@ void Scene::Render(void)
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(terrain.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_terrain_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_terrain_params));
     sg_apply_bindings({
         .vertex_buffers[0] = plane.mesh.vertex_buffer,
         .index_buffer = plane.mesh.index_buffer,
-        .vs = {
-            .images[0] = heightmap.image,
-            .samplers[0] = sampler,
-        },
-        .fs = {
-            .images[0] = heightmap.image,
-            .samplers[0] = sampler,
-        },
+        .images = {[0] = heightmap.image, [1] = heightmap.image},
+        .samplers = {[0] = sampler, [0] = sampler},
     });
     sg_draw(0, plane.mesh.indices.size(), 1);
     sg_end_pass();

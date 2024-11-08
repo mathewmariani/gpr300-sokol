@@ -81,8 +81,8 @@ void Scene::Render(void)
             auto group = island.mesh.groups[i];
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(geometrypass.pipeline);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_geometry_params));
+            sg_apply_uniforms(0, SG_RANGE(vs_geometry_params));
+            sg_apply_uniforms(0, SG_RANGE(fs_geometry_params));
             sg_apply_bindings({
                 .vertex_buffers[0] = island.mesh.vertex_buffer,
                 .index_buffer = island.mesh.index_buffer,
@@ -100,8 +100,8 @@ void Scene::Render(void)
             auto group = sea.mesh.groups[i];
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(waterpass.pipeline);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_water_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_water_params));
+            sg_apply_uniforms(0, SG_RANGE(vs_water_params));
+            sg_apply_uniforms(0, SG_RANGE(fs_water_params));
             sg_apply_bindings({
                 .vertex_buffers[0] = sea.mesh.vertex_buffer,
                 .index_buffer = sea.mesh.index_buffer,
@@ -119,8 +119,8 @@ void Scene::Render(void)
             auto group = lights.mesh.groups[i];
             // apply windwaker island pipeline and uniforms
             sg_apply_pipeline(lightspass.pipeline);
-            sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_lights_params));
-            sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_lights_params));
+            sg_apply_uniforms(0, SG_RANGE(vs_lights_params));
+            sg_apply_uniforms(0, SG_RANGE(fs_lights_params));
             sg_apply_bindings({
                 .vertex_buffers[0] = lights.mesh.vertex_buffer,
                 .index_buffer = lights.mesh.index_buffer,

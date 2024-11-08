@@ -84,8 +84,8 @@ void Scene::Render(void)
 
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(blinnphong.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_blinnphong_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_blinnphong_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_blinnphong_params));
 
     // render suzanne
     if (suzanne.loaded)
@@ -99,8 +99,8 @@ void Scene::Render(void)
 
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

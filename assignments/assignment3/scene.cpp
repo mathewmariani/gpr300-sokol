@@ -172,7 +172,7 @@ void Scene::Render(void)
 
     sg_begin_pass(&geometrybuffer.pass);
     sg_apply_pipeline(geometry.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_geometry_params));
     // render suzanne
     if (suzanne.loaded)
     {
@@ -189,7 +189,7 @@ void Scene::Render(void)
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(blinnphong.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_blinnphong_params));
     sg_apply_bindings({
         .vertex_buffers[0] = framebuffer.vertex_buffer,
         .fs = {
@@ -218,8 +218,8 @@ void Scene::Render(void)
         const batteries::Gizmo::fs_params_t fs_gizmo_params = {
             .color = instance_light_data.color[i],
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+        sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+        sg_apply_uniforms(0, SG_RANGE(fs_gizmo_params));
         sg_apply_bindings({
             .vertex_buffers[0] = sphere.mesh.vertex_buffer,
             .index_buffer = sphere.mesh.index_buffer,

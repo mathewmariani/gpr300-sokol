@@ -35,34 +35,34 @@ struct BlinnPhong final : public batteries::Pass
                 },
             },
             .shader = sg_make_shader({
-                .vs = {
-                    .source = blinnphong_vs,
-                    .uniform_blocks[0] = {
+                .vertex_func.source = blinnphong_vs,
+                .fragment_func.source = blinnphong_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                            [1] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
                         },
                     },
-                },
-                .fs = {
-                    .source = blinnphong_fs,
-                    .uniform_blocks[0] = {
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(fs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [1] = {.name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [2] = {.name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [3] = {.name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
-                            [4] = {.name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
-                            [5] = {.name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [6] = {.name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [7] = {.name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
-                            [8] = {.name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [9] = {.name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [10] = {.name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "material.ambient", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [1] = {.glsl_name = "material.diffuse", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [2] = {.glsl_name = "material.specular", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [3] = {.glsl_name = "material.shininess", .type = SG_UNIFORMTYPE_FLOAT},
+                            [4] = {.glsl_name = "light.brightness", .type = SG_UNIFORMTYPE_FLOAT},
+                            [5] = {.glsl_name = "light.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [6] = {.glsl_name = "light.position", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [7] = {.glsl_name = "ambient.intensity", .type = SG_UNIFORMTYPE_FLOAT},
+                            [8] = {.glsl_name = "ambient.color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [9] = {.glsl_name = "ambient.direction", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [10] = {.glsl_name = "camera_position", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
                 },
