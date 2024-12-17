@@ -6,12 +6,8 @@
 #include "sokol/sokol_fetch.h"
 
 // libs
-#include "imgui/imgui.h"
 #include "stb/stb_image.h"
-
-// sokol-imgui
-#define SOKOL_IMGUI_IMPL
-#include "sokol/sokol_imgui.h"
+#include "dbgui/dbgui.h"
 
 // forward declare
 void init(void);
@@ -62,10 +58,7 @@ void init(void)
       .logger.func = slog_func,
   });
 
-  // setup sokol-imgui
-  simgui_setup({
-      .logger.func = slog_func,
-  });
+  __dbgui_setup();
 
   stbi_set_flip_vertically_on_load(true);
 
@@ -77,8 +70,8 @@ void cleanup(void)
   delete scene;
   scene = nullptr;
 
+  __dbgui_shutdown();
   sfetch_shutdown();
-  simgui_shutdown();
   sg_shutdown();
 }
 
@@ -89,28 +82,21 @@ void frame(void)
   const auto h = sapp_height();
 
   sfetch_dowork();
-  simgui_new_frame({w, h, t, sapp_dpi_scale()});
 
   scene->Update(t);
   scene->Render();
-  scene->Debug();
-
-  // draw ui
-  simgui_render();
 
   sg_end_pass();
   sg_commit();
+
+  // draw ui
+  __dbgui_begin();
+  scene->Debug();
+  __dbgui_end();
 }
 
 void event(const sapp_event *event)
 {
-  simgui_handle_event(event);
-
-  // if imgui wants to consume an event, we won't allow the scene to process it.
-  if (ImGui::GetIO().WantCaptureMouse && (event->type == SAPP_EVENTTYPE_MOUSE_DOWN || event->type == SAPP_EVENTTYPE_MOUSE_MOVE))
-  {
-    return;
-  }
-
+  __dbgui_event(event);
   scene->Event(event);
 }
