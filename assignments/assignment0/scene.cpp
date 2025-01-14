@@ -148,11 +148,6 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
-    }
-
     if (ImGui::CollapsingHeader("Material"))
     {
         if (ImGui::BeginCombo("Presets", materials[materials_index].name.c_str()))
@@ -171,28 +166,25 @@ void Scene::Debug(void)
             }
             ImGui::EndCombo();
         }
+
+        auto material = materials[materials_index].material;
+        ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
     }
+
     if (ImGui::CollapsingHeader("Ambient"))
     {
         ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &ambient.color[0]);
     }
+
     if (ImGui::CollapsingHeader("Light"))
     {
         ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &light.color[0]);
     }
-    // ImGui::Checkbox("Enable Material", &state.material_enabled);
-    // ImGui::PopStyleColor(1);
-    // if (state.material_enabled)
-    // {
-    //     ImGui::PushID("material");
-    //     ImGui::Separator();
-    //     ImGui::ColorEdit3("Diffuse", &materials[materials_index].material.diffuse.r, ImGuiColorEditFlags_None);
-    //     ImGui::ColorEdit3("Specular", &materials[materials_index].material.specular.r, ImGuiColorEditFlags_None);
-    //     ImGui::SliderFloat("Spec Pwr", &materials[materials_index].material.shininess, 1.0f, 64.0f, "%.1f", ImGuiSliderFlags_None);
-    //     ImGui::PopID();
-    // }
 
     ImGui::End();
 }

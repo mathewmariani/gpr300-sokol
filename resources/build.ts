@@ -13,16 +13,19 @@ hljs.registerLanguage("cpp", require("highlight.js/lib/languages/cpp"));
 hljs.registerLanguage("glsl", require("highlight.js/lib/languages/glsl"));
 const md = Markdown({ html: true }).use(require('markdown-it-highlightjs'), { hljs })
 
-// mustache partials
-const page = fs.readFileSync("resources/mustache/page.mustache", "utf8");
-const meta = fs.readFileSync("resources/mustache/meta.mustache", "utf8");
-const header = fs.readFileSync("resources/mustache/header.mustache", "utf8");
-const footer = fs.readFileSync("resources/mustache/footer.mustache", "utf8");
-const demo = fs.readFileSync("resources/mustache/demo.mustache", "utf8");
-
+// string constants
+const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
 const content_path = "resources/content";
 const assignments_path = "resources/content/assignments";
-const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
+const mustache_path = "resources/mustache/";
+const assets_path = "website/assets";
+
+// mustache partials
+const page = fs.readFileSync(`${mustache_path}/page.mustache`, "utf8");
+const meta = fs.readFileSync(`${mustache_path}/meta.mustache`, "utf8");
+const header = fs.readFileSync(`${mustache_path}/header.mustache`, "utf8");
+const footer = fs.readFileSync(`${mustache_path}/footer.mustache`, "utf8");
+const demo = fs.readFileSync(`${mustache_path}/demo.mustache`, "utf8");
 
 // helper functions
 function _copyDirectory(source: string, destination: string) {
