@@ -3685,8 +3685,9 @@ typedef struct sg_frame_stats {
     _SG_LOGITEM_XMACRO(GL_ARRAY_TEXTURES_NOT_SUPPORTED, "array textures not supported (gl)") \
     _SG_LOGITEM_XMACRO(GL_SHADER_COMPILATION_FAILED, "shader compilation failed (gl)") \
     _SG_LOGITEM_XMACRO(GL_SHADER_LINKING_FAILED, "shader linking failed (gl)") \
-    _SG_LOGITEM_XMACRO(GL_VERTEX_ATTRIBUTE_NOT_FOUND_IN_SHADER, "vertex attribute not found in shader (gl)") \
-    _SG_LOGITEM_XMACRO(GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER, "image-sampler name not found in shader (gl)") \
+    _SG_LOGITEM_XMACRO(GL_VERTEX_ATTRIBUTE_NOT_FOUND_IN_SHADER, "vertex attribute not found in shader; NOTE: may be caused by GL driver's GLSL compiler removing unused globals") \
+    _SG_LOGITEM_XMACRO(GL_UNIFORMBLOCK_NAME_NOT_FOUND_IN_SHADER, "uniform block name not found in shader; NOTE: may be caused by GL driver's GLSL compiler removing unused globals") \
+    _SG_LOGITEM_XMACRO(GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER, "image-sampler name not found in shader; NOTE: may be caused by GL driver's GLSL compiler removing unused globals") \
     _SG_LOGITEM_XMACRO(GL_FRAMEBUFFER_STATUS_UNDEFINED, "framebuffer completeness check failed with GL_FRAMEBUFFER_UNDEFINED (gl)") \
     _SG_LOGITEM_XMACRO(GL_FRAMEBUFFER_STATUS_INCOMPLETE_ATTACHMENT, "framebuffer completeness check failed with GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT (gl)") \
     _SG_LOGITEM_XMACRO(GL_FRAMEBUFFER_STATUS_INCOMPLETE_MISSING_ATTACHMENT, "framebuffer completeness check failed with GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT (gl)") \
@@ -4249,6 +4250,18 @@ SOKOL_GFX_API_DECL sg_sampler_desc sg_query_sampler_defaults(const sg_sampler_de
 SOKOL_GFX_API_DECL sg_shader_desc sg_query_shader_defaults(const sg_shader_desc* desc);
 SOKOL_GFX_API_DECL sg_pipeline_desc sg_query_pipeline_defaults(const sg_pipeline_desc* desc);
 SOKOL_GFX_API_DECL sg_attachments_desc sg_query_attachments_defaults(const sg_attachments_desc* desc);
+// assorted query functions
+SOKOL_GFX_API_DECL size_t sg_query_buffer_size(sg_buffer buf);
+SOKOL_GFX_API_DECL sg_buffer_type sg_query_buffer_type(sg_buffer buf);
+SOKOL_GFX_API_DECL sg_usage sg_query_buffer_usage(sg_buffer buf);
+SOKOL_GFX_API_DECL sg_image_type sg_query_image_type(sg_image img);
+SOKOL_GFX_API_DECL int sg_query_image_width(sg_image img);
+SOKOL_GFX_API_DECL int sg_query_image_height(sg_image img);
+SOKOL_GFX_API_DECL int sg_query_image_num_slices(sg_image img);
+SOKOL_GFX_API_DECL int sg_query_image_num_mipmaps(sg_image img);
+SOKOL_GFX_API_DECL sg_pixel_format sg_query_image_pixelformat(sg_image img);
+SOKOL_GFX_API_DECL sg_usage sg_query_image_usage(sg_image img);
+SOKOL_GFX_API_DECL int sg_query_image_sample_count(sg_image img);
 
 // separate resource allocation and initialization (for async setup)
 SOKOL_GFX_API_DECL sg_buffer sg_alloc_buffer(void);
@@ -8756,6 +8769,10 @@ _SOKOL_PRIVATE sg_resource_state _sg_gl_create_shader(_sg_shader_t* shd, const s
             u->offset = (uint16_t) cur_uniform_offset;
             SOKOL_ASSERT(u_desc->glsl_name);
             u->gl_loc = glGetUniformLocation(gl_prog, u_desc->glsl_name);
+            if (u->gl_loc == -1) {
+                _SG_WARN(GL_UNIFORMBLOCK_NAME_NOT_FOUND_IN_SHADER);
+                _SG_LOGMSG(GL_UNIFORMBLOCK_NAME_NOT_FOUND_IN_SHADER, u_desc->glsl_name);
+            }
             cur_uniform_offset += u_size;
             ub->num_uniforms++;
         }
@@ -8794,7 +8811,7 @@ _SOKOL_PRIVATE sg_resource_state _sg_gl_create_shader(_sg_shader_t* shd, const s
             shd->gl.tex_slot[img_smp_index] = (int8_t)gl_tex_slot++;
         } else {
             shd->gl.tex_slot[img_smp_index] = -1;
-            _SG_ERROR(GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER);
+            _SG_WARN(GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER);
             _SG_LOGMSG(GL_IMAGE_SAMPLER_NAME_NOT_FOUND_IN_SHADER, img_smp_desc->glsl_name);
         }
     }
@@ -13805,8 +13822,7 @@ _SOKOL_PRIVATE WGPUVertexFormat _sg_wgpu_vertexformat(sg_vertex_format f) {
         case SG_VERTEXFORMAT_USHORT4N:      return WGPUVertexFormat_Unorm16x4;
         case SG_VERTEXFORMAT_HALF2:         return WGPUVertexFormat_Float16x2;
         case SG_VERTEXFORMAT_HALF4:         return WGPUVertexFormat_Float16x4;
-        // FIXME! UINT10_N2 (see https://github.com/gpuweb/gpuweb/issues/4275)
-        // case SG_VERTEXFORMAT_UINT10_N2:     return WGPUVertexFormat_Undefined;
+        case SG_VERTEXFORMAT_UINT10_N2:     return WGPUVertexFormat_Unorm10_10_10_2;
         default:
             SOKOL_UNREACHABLE;
             return WGPUVertexFormat_Force32;
@@ -19228,6 +19244,33 @@ SOKOL_API_IMPL sg_buffer_desc sg_query_buffer_desc(sg_buffer buf_id) {
     return desc;
 }
 
+SOKOL_API_IMPL size_t sg_query_buffer_size(sg_buffer buf_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, buf_id.id);
+    if (buf) {
+        return (size_t)buf->cmn.size;
+    }
+    return 0;
+}
+
+SOKOL_API_IMPL sg_buffer_type sg_query_buffer_type(sg_buffer buf_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, buf_id.id);
+    if (buf) {
+        return buf->cmn.type;
+    }
+    return _SG_BUFFERTYPE_DEFAULT;
+}
+
+SOKOL_API_IMPL sg_usage sg_query_buffer_usage(sg_buffer buf_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, buf_id.id);
+    if (buf) {
+        return buf->cmn.usage;
+    }
+    return _SG_USAGE_DEFAULT;
+}
+
 SOKOL_API_IMPL sg_image_desc sg_query_image_desc(sg_image img_id) {
     SOKOL_ASSERT(_sg.valid);
     sg_image_desc desc;
@@ -19245,6 +19288,79 @@ SOKOL_API_IMPL sg_image_desc sg_query_image_desc(sg_image img_id) {
         desc.sample_count = img->cmn.sample_count;
     }
     return desc;
+}
+
+SOKOL_API_IMPL sg_image_type sg_query_image_type(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.type;
+    }
+    return _SG_IMAGETYPE_DEFAULT;
+}
+
+SOKOL_API_IMPL int sg_query_image_width(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.width;
+    }
+    return 0;
+}
+
+SOKOL_API_IMPL int sg_query_image_height(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.height;
+    }
+    return 0;
+}
+
+SOKOL_API_IMPL int sg_query_image_num_slices(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.num_slices;
+    }
+    return 0;
+}
+
+SOKOL_API_IMPL int sg_query_image_num_mipmaps(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.num_mipmaps;
+    }
+    return 0;
+}
+
+SOKOL_API_IMPL sg_pixel_format sg_query_image_pixelformat(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.pixel_format;
+    }
+    return _SG_PIXELFORMAT_DEFAULT;
+}
+
+SOKOL_API_IMPL sg_usage sg_query_image_usage(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.usage;
+    }
+    return _SG_USAGE_DEFAULT;
+}
+
+SOKOL_API_IMPL int sg_query_image_sample_count(sg_image img_id) {
+    SOKOL_ASSERT(_sg.valid);
+    SOKOL_ASSERT(_sg.valid);
+    const _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        return img->cmn.sample_count;
+    }
+    return 0;
 }
 
 SOKOL_API_IMPL sg_sampler_desc sg_query_sampler_desc(sg_sampler smp_id) {
