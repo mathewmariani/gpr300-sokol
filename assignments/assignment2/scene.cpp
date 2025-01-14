@@ -1,13 +1,12 @@
 #include "scene.h"
-#include "imgui/imgui.h"
-
 #include "sokol/sokol_imgui.h"
+#include "imgui/imgui.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
 static struct
 {
-    simgui_image_t depth_buffer;
+    ImTextureID depth_buffer;
 } debug;
 
 sg_sampler dungeon_sampler;
@@ -41,18 +40,7 @@ Scene::Scene()
         .label = "dungeon-sampler",
     });
 
-    // create an sokol-imgui wrapper for the shadow map
-    auto ui_smp = sg_make_sampler({
-        .min_filter = SG_FILTER_NEAREST,
-        .mag_filter = SG_FILTER_NEAREST,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .label = "ui-sampler",
-    });
-    debug.depth_buffer = simgui_make_image({
-        .image = depthbuffer.depth,
-        .sampler = ui_smp,
-    });
+    debug.depth_buffer = simgui_imtextureid(depthbuffer.depth);
 }
 
 Scene::~Scene()
@@ -206,7 +194,7 @@ void Scene::Debug(void)
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Depth Buffer");
-    ImGui::Image(simgui_imtextureid(debug.depth_buffer), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.depth_buffer, window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }

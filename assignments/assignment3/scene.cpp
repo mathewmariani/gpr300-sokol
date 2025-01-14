@@ -18,10 +18,10 @@ static auto num_instances = 64;
 
 static struct
 {
-    simgui_image_t color_img;
-    simgui_image_t position_img;
-    simgui_image_t normal_img;
-    simgui_image_t depth_img;
+    ImTextureID color_img;
+    ImTextureID position_img;
+    ImTextureID normal_img;
+    ImTextureID depth_img;
 } debug;
 
 static void init_instance_data(void)
@@ -120,30 +120,10 @@ Scene::Scene()
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
-    auto dbg_smp = sg_make_sampler({
-        .min_filter = SG_FILTER_NEAREST,
-        .mag_filter = SG_FILTER_NEAREST,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .label = "ui-sampler",
-    });
-
-    debug.color_img = simgui_make_image({
-        .image = geometrybuffer.color_img,
-        .sampler = dbg_smp,
-    });
-    debug.position_img = simgui_make_image({
-        .image = geometrybuffer.position_img,
-        .sampler = dbg_smp,
-    });
-    debug.normal_img = simgui_make_image({
-        .image = geometrybuffer.normal_img,
-        .sampler = dbg_smp,
-    });
-    debug.depth_img = simgui_make_image({
-        .image = geometrybuffer.depth_img,
-        .sampler = dbg_smp,
-    });
+    debug.color_img = simgui_imtextureid(geometrybuffer.color_img);
+    debug.position_img = simgui_imtextureid(geometrybuffer.position_img);
+    debug.normal_img = simgui_imtextureid(geometrybuffer.normal_img);
+    debug.depth_img = simgui_imtextureid(geometrybuffer.depth_img);
 }
 
 Scene::~Scene()
@@ -249,10 +229,10 @@ void Scene::Debug(void)
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Offscreen Render");
-    ImGui::Image(simgui_imtextureid(debug.position_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.normal_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.color_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.depth_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.position_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.normal_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.color_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.depth_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }
