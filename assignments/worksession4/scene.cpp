@@ -39,7 +39,7 @@ Scene::Scene()
         models[i].transform.scale = glm::vec3(0.05f);
     }
 
-    zatoon.Load("assets/windwaker/ZAToon.png");
+    zatoon.Load("assets/windwaker/ZAtoon.png");
 
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
