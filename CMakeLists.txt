@@ -13,6 +13,7 @@ add_compile_options(-Wno-reorder-init-list)
 # macros
 include("extra/cmake/macros.cmake")
 include("extra/cmake/batteries.cmake")
+include("extra/cmake/dbgui.cmake")
 include("extra/cmake/fast_obj.cmake")
 include("extra/cmake/glm.cmake")
 include("extra/cmake/imgui.cmake")

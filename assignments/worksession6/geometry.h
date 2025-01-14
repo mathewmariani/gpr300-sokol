@@ -26,7 +26,7 @@ struct GeometryPass final : public batteries::Pass
 
     GeometryPass()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 .attrs = {
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -34,41 +34,41 @@ struct GeometryPass final : public batteries::Pass
                     [2].format = SG_VERTEXFORMAT_FLOAT2,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = geometry_vs,
-                    .uniform_blocks[0] = {
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = geometry_vs,
+                .fragment_func.source = geometry_fs,
+                .uniform_blocks = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_VERTEX,
                         .layout = SG_UNIFORMLAYOUT_NATIVE,
                         .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                            [1] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                        },
+                    },
+                    [1] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .layout = SG_UNIFORMLAYOUT_NATIVE,
+                        .size = sizeof(fs_params_t),
+                        .glsl_uniforms = {
+                            [0] = {.glsl_name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
+                            [1] = {.glsl_name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
                         },
                     },
                 },
-                .fs = {
-                    .source = geometry_fs,
-                    .uniform_blocks[0] = {
-                        .layout = SG_UNIFORMLAYOUT_NATIVE,
-                        .size = sizeof(fs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "palette.highlight", .type = SG_UNIFORMTYPE_FLOAT3},
-                            [1] = {.name = "palette.shadow", .type = SG_UNIFORMTYPE_FLOAT3},
-                        },
-                    },
-                    .images = {
-                        [0] = {.used = true, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
-                    },
-                    .samplers = {
-                        [0] = {.used = true, .sampler_type = SG_SAMPLERTYPE_FILTERING},
-                    },
-                    .image_sampler_pairs = {
-                        [0] = {
-                            .used = true,
-                            .glsl_name = "albedo",
-                            .image_slot = 0,
-                            .sampler_slot = 0,
-                        },
+                .images = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sample_type = SG_IMAGESAMPLETYPE_FLOAT},
+                },
+                .samplers = {
+                    [0] = {.stage = SG_SHADERSTAGE_FRAGMENT, .sampler_type = SG_SAMPLERTYPE_FILTERING},
+                },
+                .image_sampler_pairs = {
+                    [0] = {
+                        .stage = SG_SHADERSTAGE_FRAGMENT,
+                        .glsl_name = "albedo",
+                        .image_slot = 0,
+                        .sampler_slot = 0,
                     },
                 },
             }),

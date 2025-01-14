@@ -18,7 +18,7 @@ struct Depth final : public batteries::Pass
 
     Depth()
     {
-        pipeline = sg_make_pipeline({
+        pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
                 // need to provide vertex stride, because normal and texcoords components are skipped in shadow pass
                 .buffers[0].stride = 8 * sizeof(float),
@@ -26,20 +26,17 @@ struct Depth final : public batteries::Pass
                     [0].format = SG_VERTEXFORMAT_FLOAT3,
                 },
             },
-            .shader = sg_make_shader({
-                .vs = {
-                    .source = depth_vs,
-                    .uniform_blocks[0] = {
-                        .layout = SG_UNIFORMLAYOUT_NATIVE,
-                        .size = sizeof(vs_params_t),
-                        .uniforms = {
-                            [0] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
-                            [1] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                        },
+            .shader = sg_make_shader((sg_shader_desc){
+                .vertex_func.source = depth_vs,
+                .fragment_func.source = depth_fs,
+                .uniform_blocks[0] = {
+                    .stage = SG_SHADERSTAGE_VERTEX,
+                    .layout = SG_UNIFORMLAYOUT_NATIVE,
+                    .size = sizeof(vs_params_t),
+                    .glsl_uniforms = {
+                        [0] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                        [1] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
                     },
-                },
-                .fs = {
-                    .source = depth_fs,
                 },
             }),
             .index_type = SG_INDEXTYPE_UINT16,

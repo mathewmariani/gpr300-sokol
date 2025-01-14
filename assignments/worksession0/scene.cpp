@@ -81,8 +81,8 @@ void Scene::Render(void)
     sg_begin_pass(&framebuffer.pass);
     // apply pbr pipeline and uniforms
     sg_apply_pipeline(pbr.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_pbr_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_pbr_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_pbr_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_pbr_params));
     // render suzanne
     if (model.loaded)
     {
@@ -90,16 +90,14 @@ void Scene::Render(void)
         auto bindings = (sg_bindings){
             .vertex_buffers[0] = model.mesh.vertex_buffer,
             .index_buffer = model.mesh.index_buffer,
-            .fs = {
-                .images = {
-                    [0] = model.col.image,
-                    [1] = model.mtl.image,
-                    [2] = model.rgh.image,
-                    [3] = model.ao.image,
-                    [4] = model.spc.image,
-                },
-                .samplers[0] = model.mesh.sampler,
+            .images = {
+                [0] = model.col.image,
+                [1] = model.mtl.image,
+                [2] = model.rgh.image,
+                [3] = model.ao.image,
+                [4] = model.spc.image,
             },
+            .samplers[0] = model.mesh.sampler,
         };
         sg_apply_bindings(bindings);
         sg_draw(0, model.mesh.num_faces * 3, 1);
@@ -107,8 +105,8 @@ void Scene::Render(void)
 
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,

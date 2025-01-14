@@ -1,6 +1,6 @@
 #include "scene.h"
-#include "skybox.h"
 
+// sokol
 #include "sokol/sokol_glue.h"
 
 namespace batteries

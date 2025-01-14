@@ -1,13 +1,12 @@
 #include "scene.h"
-#include "imgui/imgui.h"
-
 #include "sokol/sokol_imgui.h"
+#include "imgui/imgui.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
 static struct
 {
-    simgui_image_t depth_buffer;
+    ImTextureID depth_buffer;
 } debug;
 
 sg_sampler dungeon_sampler;
@@ -41,18 +40,7 @@ Scene::Scene()
         .label = "dungeon-sampler",
     });
 
-    // create an sokol-imgui wrapper for the shadow map
-    auto ui_smp = sg_make_sampler({
-        .min_filter = SG_FILTER_NEAREST,
-        .mag_filter = SG_FILTER_NEAREST,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .label = "ui-sampler",
-    });
-    debug.depth_buffer = simgui_make_image({
-        .image = depthbuffer.depth,
-        .sampler = ui_smp,
-    });
+    debug.depth_buffer = simgui_imtextureid(depthbuffer.depth);
 }
 
 Scene::~Scene()
@@ -119,7 +107,7 @@ void Scene::Render(void)
     sg_begin_pass(&depthbuffer.pass);
     // apply blinnphong pipeline and uniforms
     sg_apply_pipeline(depth.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_depth_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_depth_params));
     // render suzanne
     if (suzanne.loaded)
     {
@@ -137,42 +125,38 @@ void Scene::Render(void)
     // render suzanne
     if (suzanne.loaded)
     {
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_shadow_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_shadow_params));
+        sg_apply_uniforms(0, SG_RANGE(vs_shadow_params));
+        sg_apply_uniforms(1, SG_RANGE(fs_shadow_params));
         sg_apply_bindings({
             .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
             .index_buffer = suzanne.mesh.index_buffer,
-            .fs = {
-                .images[0] = depthbuffer.depth,
-                .samplers[0] = depthbuffer.sampler,
-            },
+            .images[0] = depthbuffer.depth,
+            .samplers[0] = depthbuffer.sampler,
         });
         sg_draw(0, suzanne.mesh.indices.size(), 1);
     }
 
     sg_apply_pipeline(dungeon.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_dungeon_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_dungeon_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_dungeon_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_dungeon_params));
     sg_apply_bindings({
         .vertex_buffers[0] = cube.mesh.vertex_buffer,
         .index_buffer = cube.mesh.index_buffer,
-        .fs = {
-            .images = {
-                [0] = dungeon_texture.image,
-                [1] = depthbuffer.depth,
-            },
-            .samplers = {
-                [0] = dungeon_sampler,
-                [1] = depthbuffer.sampler,
-            },
+        .images = {
+            [0] = dungeon_texture.image,
+            [1] = depthbuffer.depth,
+        },
+        .samplers = {
+            [0] = dungeon_sampler,
+            [1] = depthbuffer.sampler,
         },
     });
     sg_draw(0, cube.mesh.indices.size(), 1);
 
     // render light sources
     sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
     sg_apply_bindings({
         .vertex_buffers[0] = sphere.mesh.vertex_buffer,
         .index_buffer = sphere.mesh.index_buffer,
@@ -210,7 +194,7 @@ void Scene::Debug(void)
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Depth Buffer");
-    ImGui::Image(simgui_imtextureid(debug.depth_buffer), window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.depth_buffer, window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }

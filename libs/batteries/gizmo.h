@@ -24,7 +24,7 @@ namespace batteries
 
         Gizmo()
         {
-            pipeline = sg_make_pipeline({
+            pipeline = sg_make_pipeline((sg_pipeline_desc){
                 .layout = {
                     .attrs = {
                         [0].format = SG_VERTEXFORMAT_FLOAT3,
@@ -32,25 +32,25 @@ namespace batteries
                         [2].format = SG_VERTEXFORMAT_FLOAT2,
                     },
                 },
-                .shader = sg_make_shader({
-                    .vs = {
-                        .source = gizmo_vs,
-                        .uniform_blocks[0] = {
+                .shader = sg_make_shader((sg_shader_desc){
+                    .vertex_func.source = gizmo_vs,
+                    .fragment_func.source = gizmo_fs,
+                    .uniform_blocks = {
+                        [0] = {
+                            .stage = SG_SHADERSTAGE_VERTEX,
                             .layout = SG_UNIFORMLAYOUT_NATIVE,
                             .size = sizeof(vs_params_t),
-                            .uniforms = {
-                                [0] = {.name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
-                                [1] = {.name = "model", .type = SG_UNIFORMTYPE_MAT4},
+                            .glsl_uniforms = {
+                                [0] = {.glsl_name = "view_proj", .type = SG_UNIFORMTYPE_MAT4},
+                                [1] = {.glsl_name = "model", .type = SG_UNIFORMTYPE_MAT4},
                             },
                         },
-                    },
-                    .fs = {
-                        .source = gizmo_fs,
-                        .uniform_blocks[0] = {
+                        [1] = {
+                            .stage = SG_SHADERSTAGE_FRAGMENT,
                             .layout = SG_UNIFORMLAYOUT_NATIVE,
                             .size = sizeof(fs_params_t),
-                            .uniforms = {
-                                [0] = {.name = "color", .type = SG_UNIFORMTYPE_FLOAT3},
+                            .glsl_uniforms = {
+                                [0] = {.glsl_name = "color", .type = SG_UNIFORMTYPE_FLOAT3},
                             },
                         },
                     },

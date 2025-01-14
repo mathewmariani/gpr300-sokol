@@ -32,19 +32,22 @@ uniform Ambient ambient;
 uniform Light light;
 uniform vec3 camera_position;
 
-vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
-{
+vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color) {
+  // normalize inputs
   vec3 view_dir = normalize(camera_position - frag_pos);
   vec3 light_dir = normalize(light_pos - frag_pos);
   vec3 halfway_dir = normalize(light_dir + view_dir);  
 
-  // diffuse
-  float diff = max(dot(light_dir, normal), 0.0);
-  vec3 diffuse = diff * light_color * material.diffuse;
+  // diffuse component
+  float ndotl = max(dot(normal, light_dir), 0.0);
+  vec3 diffuse = ndotl * light_color * material.diffuse;
 
-  // specular
-  float spec = pow(max(dot(normal, halfway_dir), 0.0), material.shininess);
-  vec3 specular = spec * light_color * material.specular;    
+  // specular component
+  float spec = 0.0;
+  if (ndotl > 0.0) {
+    spec = pow(max(dot(normal, halfway_dir), 0.0), material.shininess);
+  }
+  vec3 specular = spec * light_color * material.specular;
 
   return diffuse + specular;
 }
@@ -52,7 +55,7 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color)
 void main()
 {
   vec3 normal = normalize(vs_normal);
-  vec3 lighting = blinnPhong(normal, vs_position, light.position, light.color);
-  lighting += ambient.intensity * ambient.color * material.ambient;
-  FragColor = vec4(lighting, 1.0);
+  vec3 object_color = blinnPhong(normal, vs_position, light.position, light.color);
+  object_color += ambient.intensity * ambient.color * material.ambient;
+  FragColor = vec4(object_color, 1.0);
 }

@@ -14,14 +14,14 @@ sg_attachments gizmo_attachments;
 sg_pass_action gizmo_pass_action;
 sg_buffer instance_buffer;
 static glm::mat4 instance_data[max_instances];
-static auto num_instances = 9;
+static auto num_instances = 64;
 
 static struct
 {
-    simgui_image_t color_img;
-    simgui_image_t position_img;
-    simgui_image_t normal_img;
-    simgui_image_t depth_img;
+    ImTextureID color_img;
+    ImTextureID position_img;
+    ImTextureID normal_img;
+    ImTextureID depth_img;
 } debug;
 
 static void init_instance_data(void)
@@ -120,30 +120,10 @@ Scene::Scene()
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
-    auto dbg_smp = sg_make_sampler({
-        .min_filter = SG_FILTER_NEAREST,
-        .mag_filter = SG_FILTER_NEAREST,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .label = "ui-sampler",
-    });
-
-    debug.color_img = simgui_make_image({
-        .image = geometrybuffer.color_img,
-        .sampler = dbg_smp,
-    });
-    debug.position_img = simgui_make_image({
-        .image = geometrybuffer.position_img,
-        .sampler = dbg_smp,
-    });
-    debug.normal_img = simgui_make_image({
-        .image = geometrybuffer.normal_img,
-        .sampler = dbg_smp,
-    });
-    debug.depth_img = simgui_make_image({
-        .image = geometrybuffer.depth_img,
-        .sampler = dbg_smp,
-    });
+    debug.color_img = simgui_imtextureid(geometrybuffer.color_img);
+    debug.position_img = simgui_imtextureid(geometrybuffer.position_img);
+    debug.normal_img = simgui_imtextureid(geometrybuffer.normal_img);
+    debug.depth_img = simgui_imtextureid(geometrybuffer.depth_img);
 }
 
 Scene::~Scene()
@@ -172,7 +152,7 @@ void Scene::Render(void)
 
     sg_begin_pass(&geometrybuffer.pass);
     sg_apply_pipeline(geometry.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_geometry_params));
+    sg_apply_uniforms(0, SG_RANGE(vs_geometry_params));
     // render suzanne
     if (suzanne.loaded)
     {
@@ -189,17 +169,15 @@ void Scene::Render(void)
 
     sg_begin_pass(&framebuffer.pass);
     sg_apply_pipeline(blinnphong.pipeline);
-    sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_blinnphong_params));
+    sg_apply_uniforms(0, SG_RANGE(fs_blinnphong_params));
     sg_apply_bindings({
         .vertex_buffers[0] = framebuffer.vertex_buffer,
-        .fs = {
-            .images = {
-                [0] = geometrybuffer.position_img,
-                [1] = geometrybuffer.normal_img,
-                [2] = geometrybuffer.color_img,
-            },
-            .samplers[0] = geometrybuffer.sampler,
+        .images = {
+            [0] = geometrybuffer.position_img,
+            [1] = geometrybuffer.normal_img,
+            [2] = geometrybuffer.color_img,
         },
+        .samplers[0] = geometrybuffer.sampler,
     });
     sg_draw(0, 6, 1);
     sg_end_pass();
@@ -209,16 +187,17 @@ void Scene::Render(void)
     sg_apply_pipeline(gizmo.pipeline);
     for (auto i = 0; i < num_instances; i++)
     {
+        sphere.transform.position = glm::vec3(instance_light_data.position[i]);
         // initialize uniform data
         const batteries::Gizmo::vs_params_t vs_gizmo_params = {
             .view_proj = view_proj,
-            .model = glm::translate(glm::mat4(1.0f), glm::vec3(instance_light_data.position[i])),
+            .model = sphere.transform.matrix(),
         };
         const batteries::Gizmo::fs_params_t fs_gizmo_params = {
             .color = instance_light_data.color[i],
         };
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(vs_gizmo_params));
-        sg_apply_uniforms(SG_SHADERSTAGE_FS, 0, SG_RANGE(fs_gizmo_params));
+        sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
+        sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
         sg_apply_bindings({
             .vertex_buffers[0] = sphere.mesh.vertex_buffer,
             .index_buffer = sphere.mesh.index_buffer,
@@ -250,10 +229,10 @@ void Scene::Debug(void)
 
     ImGui::Begin("Offscreen Render");
     ImGui::BeginChild("Offscreen Render");
-    ImGui::Image(simgui_imtextureid(debug.position_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.normal_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.color_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::Image(simgui_imtextureid(debug.depth_img), size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.position_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.normal_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.color_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
+    ImGui::Image(debug.depth_img, size, {0.0f, 1.0f}, {1.0f, 0.0f});
     ImGui::EndChild();
     ImGui::End();
 }
