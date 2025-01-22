@@ -1,7 +1,7 @@
-# Assignment 2
-<p class="lead">Shadow Mapping</p>
-
-{{{ demo }}}
+---
+title: Assignment 2
+description: Shadow Mapping
+---
 
 #### Goal
 

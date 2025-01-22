@@ -71,28 +71,37 @@ Before working on any project it's important to understand the [development envi
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 
+<!-- contacts -->
 [@ewinebrenner]: https://github.com/ewinebrenner
+[sokol headers]: https://github.com/floooh/sokol
+
+<!-- reading -->
+[Foundations of Game Engine Development - Rendering]: https://foundationsofgameenginedev.com/#fged2
 [OpenGL SuperBible]: https://www.openglsuperbible.com/
 [LearnOpenGL]: https://learnopengl.com/
-[Foundations of Game Engine Development - Rendering]: https://foundationsofgameenginedev.com/#fged2
+
+<!-- references -->
 [OpenGL45]: https://www.khronos.org/files/opengl45-quick-reference-card.pdf
 [OpenGLES3]: https://www.khronos.org/files/opengles3-quick-reference-card.pdf
-[math review]: math.html
-[data representation]: data.html
-[assignment 0]: assignment0.html
-[assignment 1]: assignment1.html
-[assignment 2]: assignment2.html
-[assignment 3]: assignment3.html
-[assignment 4]: assignment4.html
-[assignment 5]: assignment5.html
-[worksession 0]: worksession0.html
-[worksession 1]: worksession1.html
-[worksession 2]: worksession2.html
-[worksession 3]: worksession3.html
-[worksession 4]: worksession4.html
-[worksession 5]: worksession5.html
-[worksession 6]: worksession6.html
-[development environment]: environment.html
-[FAQ]: faq.html
-[showcase]: showcase.html
-[sokol headers]: https://github.com/floooh/sokol
+
+<!-- pages -->
+[FAQ]: faq
+[showcase]: showcase
+[development environment]: environment
+
+<!-- assignments -->
+[assignment 0]: assignments/assignment0
+[assignment 1]: assignments/assignment1
+[assignment 2]: assignments/assignment2
+[assignment 3]: assignments/assignment3
+[assignment 4]: assignments/assignment4
+[assignment 5]: assignments/assignment5
+
+<!-- worksessions -->
+[worksession 0]: worksessions/worksession0
+[worksession 1]: worksessions/worksession1
+[worksession 2]: worksessions/worksession2
+[worksession 3]: worksessions/worksession3
+[worksession 4]: worksessions/worksession4
+[worksession 5]: worksessions/worksession5
+[worksession 6]: worksessions/worksession6

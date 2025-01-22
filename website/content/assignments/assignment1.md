@@ -1,7 +1,7 @@
-# Assignment 1
-<p class="lead">Framebuffers & Postprocessing</p>
-
-{{{ demo }}}
+---
+title: Assignment 1
+description: Framebuffers & Postprocessing
+---
 
 #### Goal
 

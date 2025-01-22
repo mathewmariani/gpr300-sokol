@@ -1,20 +1,24 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
-import Page from '../../layouts/Page.astro';
+import { type CollectionEntry, getCollection } from "astro:content";
+import Page from "../../layouts/Page.astro";
+import Demo from "../../components/Demo.astro";
 
 export async function getStaticPaths() {
-	const posts = await getCollection('worksessions');
-	return posts.map((post) => ({
-		params: { slug: post.slug },
-		props: post,
+	const worksessions = await getCollection("worksessions");
+	return worksessions.map((a) => ({
+		params: { slug: a.slug },
+		props: a,
 	}));
 }
-type Props = CollectionEntry<'worksessions'>;
+type Props = CollectionEntry<"worksessions">;
 
-const post = Astro.props;
-const { Content } = await post.render();
+const worksession = Astro.props;
+const { Content } = await worksession.render();
 ---
 
-<Page {...post.data}>
+<Page>
+	<h1>{worksession.data.title}</h1>
+	<p class="lead">{worksession.data.description}</p>
+	<Demo path={worksession.slug} />
 	<Content />
 </Page>
