@@ -4,14 +4,14 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-!.vscode/*.code-snippets
 
 # build output
 build/
-website/
+dist/
 
 # intermediate files
-.cache/*
+.cache/
+.astro/
 
 # Dependency directories
 node_modules/

@@ -1,3 +1,7 @@
+---
+layout: "../layouts/Page.astro"
+---
+
 # Intermediate Graphics Programming (GPR 300)
 
 <div class="alert alert-warning" role="alert">

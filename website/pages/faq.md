@@ -1,3 +1,7 @@
+---
+layout: "../layouts/Page.astro"
+---
+
 ### Why is my depth buffer so faint?
 
 This is because depth in perspective projection is not linear.
