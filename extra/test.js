@@ -4,8 +4,7 @@ const fs = require("fs");
 const args = process.argv.slice(2);
 
 // string constants
-// const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
-const build_path = "build/assignments/Debug";
+const build_path = args.includes("debug") ? "build/assignments/Debug" : "build/assignments/Release";
 const public_path = "public/assignments";
 
 // helper functions

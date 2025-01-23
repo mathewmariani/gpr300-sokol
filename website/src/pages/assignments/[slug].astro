@@ -19,6 +19,6 @@ const { Content } = await assignment.render();
 <Page>
 	<h1>{assignment.data.title}</h1>
 	<p class="lead">{assignment.data.description}</p>
-	<Demo path={assignment.slug} />
+	<Demo name={assignment.slug} />
 	<Content />
 </Page>

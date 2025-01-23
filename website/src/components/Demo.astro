@@ -1,14 +1,14 @@
 ---
 interface Props {
-  path: string;
+  name: string;
 }
 
-const { path } = Astro.props;
+const { name } = Astro.props;
 ---
 
 <canvas class="demo" id="canvas" oncontextmenu="event.preventDefault()"
 ></canvas>
-<script type="text/javascript">
+<script type="text/javascript" is:inline>
   var Module = {
     preRun: [],
     postRun: [],
@@ -41,9 +41,10 @@ const { path } = Astro.props;
     console.log("onerror: " + event.message);
   };
 </script>
-<script async type="text/javascript" src={path}></script>
+<script type="text/javascript" src=`/assets/demos/${name}.js` async is:inline
+></script>
 <style>
-  .game {
+  .demo {
     margin-right: auto;
     margin-left: auto;
     border: 0;

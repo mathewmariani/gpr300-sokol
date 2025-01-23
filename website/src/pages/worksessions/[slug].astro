@@ -19,6 +19,6 @@ const { Content } = await worksession.render();
 <Page>
 	<h1>{worksession.data.title}</h1>
 	<p class="lead">{worksession.data.description}</p>
-	<Demo path={worksession.slug} />
+	<Demo name={worksession.slug} />
 	<Content />
 </Page>
