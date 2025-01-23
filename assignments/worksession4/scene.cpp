@@ -15,8 +15,8 @@ static std::vector<std::tuple<std::string, ToonShading::Palette>> palette{
 
 static int model_index = 0;
 static std::vector<std::string> model_paths{
-    "assets/windwaker/skull/skull.obj",
-    "assets/windwaker/pot_water/pot_water.obj",
+    "./assets/windwaker/skull/skull.obj",
+    "./assets/windwaker/pot_water/pot_water.obj",
 };
 
 Scene::Scene()
@@ -39,7 +39,7 @@ Scene::Scene()
         models[i].transform.scale = glm::vec3(0.05f);
     }
 
-    zatoon.Load("assets/windwaker/ZAtoon.png");
+    zatoon.Load("./assets/windwaker/ZAtoon.png");
 
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};

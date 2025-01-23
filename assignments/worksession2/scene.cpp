@@ -23,7 +23,7 @@ Scene::Scene()
         .label = "heightmap-sampler",
     });
 
-    heightmap.Load("assets/heightmaps/heightmap.png");
+    heightmap.Load("./assets/heightmaps/heightmap.png");
     plane = batteries::CreatePlane(50.0f, 50.0f, 100);
 }
 
