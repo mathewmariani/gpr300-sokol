@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="en" data-bs-theme="dark"> <head><!-- global --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/png" href="/favicon.png"><link rel="sitemap" href="/sitemap-index.xml"><meta name="generator" content="Astro v5.1.8"><!-- bootstrap --><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"><link href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/github-dark.min.css" rel="stylesheet"><script src="/sugar.js"></script><!-- primary --><title>GPR-300</title><meta name="title" content="GPR-300"><meta name="description" content><!-- open graph --><meta property="og:type" content="website"><meta property="og:url" content="http://localhost:4321/assignments/assignment0/"><meta property="og:title" content="GPR-300"><meta property="og:description" content><!-- <meta property="og:image" content={new URL(image, Astro.url)} /> --><!-- twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="http://localhost:4321/assignments/assignment0/"><meta property="twitter:title" content="GPR-300"><meta property="twitter:description" content><!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> --><style>:root{--highlight-color: null;--highlight-background: null}::selection{color:var(--highlight-color);background:var(--highlight-background)}pre{border-radius:8px;overflow:hidden;position:relative}
+.demo[data-astro-cid-3cfzgy2g]{margin-right:auto;margin-left:auto;border:0;width:800px;height:600px;overflow:hidden;display:block;image-rendering:optimizeSpeed;image-rendering:-moz-crisp-edges;image-rendering:-o-crisp-edges;image-rendering:-webkit-optimize-contrast;image-rendering:optimize-contrast;image-rendering:crisp-edges;image-rendering:pixelated;-ms-interpolation-mode:nearest-neighbor}
+</style></head> <body class="container" id="top"> <main> <article>  <h1>Assignment 0</h1> <p class="lead">Blinn-Phong Lighting Model</p> <canvas class="demo" id="canvas" oncontextmenu="event.preventDefault()" data-astro-cid-3cfzgy2g></canvas> <script type="text/javascript">
+  var Module = {
+    preRun: [],
+    postRun: [],
+    print: (function () {
+      return function (text) {
+        text = Array.prototype.slice.call(arguments).join(" ");
+        console.log(text);
+      };
+    })(),
+    printErr: function (text) {
+      text = Array.prototype.slice.call(arguments).join(" ");
+      console.error(text);
+    },
+    canvas: (function () {
+      var canvas = document.getElementById("canvas");
+      canvas.addEventListener(
+        "webglcontextlost",
+        function (e) {
+          alert("FIXME: WebGL context lost, please reload the page");
+          e.preventDefault();
+        },
+        false,
+      );
+      return canvas;
+    })(),
+    setStatus: function (text) {},
+    monitorRunDependencies: function (left) {},
+  };
+  window.onerror = function (event) {
+    console.log("onerror: " + event.message);
+  };
+</script> <script type="text/javascript" src="/demos/assignment0.js" async></script>  <h4 id="goal">Goal</h4>
+<p>The goal of this assignment is setup and get comfortable with our <a href="environment.html">development environment</a>, and refamiliarize ourselves with the graphics pipeline and ImGUI by implementing the <a href="https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model">blinn-phong</a> reflection model with materials.</p>
+<img src="images/phong-reflection-model.png" alt="Fact: This is the primary mode of transportation of the American cowboy.">
+<h4 id="instructions">Instructions</h4>
+<ol>
+<li>
+<p>Setup Development Environment:</p>
+<ul>
+<li>Follow the instructions on setting up the <a href="environment.html">development environment</a>.</li>
+</ul>
+</li>
+<li>
+<p>Shader Setup:</p>
+<ul>
+<li>Design a shader program that defines the visual transformations or manipulations you want to apply to the scene. The fragment shader will be responsible for the implemention of the blinn-phong relection model.</li>
+</ul>
+</li>
+</ol>
+<!-- boilerplate code -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#E1E4E8">#version </span><span style="color:#79B8FF">300</span><span style="color:#E1E4E8"> es</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">out</span><span style="color:#F97583"> vec4</span><span style="color:#E1E4E8"> FragColor;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">in</span><span style="color:#F97583"> vec3</span><span style="color:#E1E4E8"> world_position;</span></span>
+<span class="line"><span style="color:#F97583">in</span><span style="color:#F97583"> vec3</span><span style="color:#E1E4E8"> world_normal;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">void</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">    vec3 normal </span><span style="color:#F97583">=</span><span style="color:#B392F0"> normalize</span><span style="color:#E1E4E8">(world_normal);</span></span>
+<span class="line"><span style="color:#E1E4E8">    vec3 object_color </span><span style="color:#F97583">=</span><span style="color:#B392F0"> vec3</span><span style="color:#E1E4E8">(normal </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 0.5</span><span style="color:#F97583"> +</span><span style="color:#79B8FF"> 0.5</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">    FragColor </span><span style="color:#F97583">=</span><span style="color:#B392F0"> vec4</span><span style="color:#E1E4E8">(object_color, </span><span style="color:#79B8FF">1.0</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ol start="3">
+<li>Lighting Model:
+<ul>
+<li>The following shader source code snippets implement the “Blinn-Phong reflectance model”, a simple lighting model that allows us to simulate how light reflects off of materials of differing roughnesses. This is achieved by combining different amounts of diffuse and specular reflection.</li>
+</ul>
+</li>
+</ol>
+<!-- structure for a light -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#6A737D">// An invisible static light source that shines in all directions.</span></span>
+<span class="line"><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> Light {</span></span>
+<span class="line"><span style="color:#F97583">  float</span><span style="color:#E1E4E8"> brightness;</span></span>
+<span class="line"><span style="color:#E1E4E8">  vec3 color;</span></span>
+<span class="line"><span style="color:#E1E4E8">  vec3 position;</span></span>
+<span class="line"><span style="color:#E1E4E8">};</span></span></code></pre>
+<!-- necessary vectors -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#6A737D">// The angle the light ray touches the fragment.</span></span>
+<span class="line"><span style="color:#F97583">vec3</span><span style="color:#E1E4E8"> light_direction </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> normalize</span><span style="color:#E1E4E8">(light.position </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> FragPos);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// The angle of reflection of the light ray off the surface.</span></span>
+<span class="line"><span style="color:#F97583">vec3</span><span style="color:#E1E4E8"> reflect_direction </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> reflect</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">-</span><span style="color:#E1E4E8">light_direction, normal);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// The angle the looks at the fragment.</span></span>
+<span class="line"><span style="color:#F97583">vec3</span><span style="color:#E1E4E8"> camera_direction </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> normalize</span><span style="color:#E1E4E8">(camera_position </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> world_position);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Exactly halfway between the camera direction and the light direction.</span></span>
+<span class="line"><span style="color:#F97583">vec3</span><span style="color:#E1E4E8"> halfway_direction </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> normalize</span><span style="color:#E1E4E8">(light_direction </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> camera_direction);</span></span></code></pre>
+<!-- lighting calculations -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#F97583">float</span><span style="color:#E1E4E8"> diffuse </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> max</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">dot</span><span style="color:#E1E4E8">(normal, light_direction), </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">float</span><span style="color:#E1E4E8"> specular </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> pow</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">max</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">dot</span><span style="color:#E1E4E8">(normal, halfway_direction), </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">), material.shininess);</span></span></code></pre>
+<ol start="3">
+<li>
+<p>Diffuse:</p>
+<ul>
+<li>Diffuse reflectance happens on very rough materials, where imperfections in the surface cause all incoming light rays to bounce in random directions. The brightness is determined solely by the dot product between the direction to the light and surface normal.</li>
+</ul>
+</li>
+<li>
+<p>Specular Reflections:</p>
+<ul>
+<li>Specular reflections occurs on smooth, mirror-like surfaces. The light rays reflect perfectly across the surface normal and into the viewer’s eye.</li>
+</ul>
+</li>
+<li>
+<p>Ambient Lighting:</p>
+<ul>
+<li>In the real world there is a lot of indirect or ambient light, where light bounces off the environment and onto surfaces from all angles. There are many ways to represent this, but the simplest is to just add some amount of constant light color to all parts of the surface.</li>
+</ul>
+</li>
+<li>
+<p>Material Properties:</p>
+<ul>
+<li>So far, for the sake of brevity, I have been using hard-coded values in the shader. For a proper implementation of Blinn-Phong, we should expose properties that allow us to represent different materials.</li>
+</ul>
+<p>We can bundle these together into a uniform struct. Kd and Ks represent the percentage of incoming light that is reflected diffusely vs specularly. To be physically correct, Kd + Ks should not exceed 1. Shininess allows us to change the size of the specular highlight. Shininess is larger for more shiny surfaces, and lower for rougher ones. <a href="http://devernay.free.fr/cours/opengl/materials.html">material properties</a></p>
+</li>
+</ol>
+<!-- structure for a material -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> Material {</span></span>
+<span class="line"><span style="color:#E1E4E8">  vec3 ambient;</span></span>
+<span class="line"><span style="color:#E1E4E8">  vec3 diffuse;</span></span>
+<span class="line"><span style="color:#E1E4E8">  vec3 specular;</span></span>
+<span class="line"><span style="color:#F97583">  float</span><span style="color:#E1E4E8"> shininess;</span></span>
+<span class="line"><span style="color:#E1E4E8">};</span></span></code></pre>
+<!-- material calculations -->
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="glsl"><code><span class="line"><span style="color:#6A737D">// Calculate final lighting color</span></span>
+<span class="line"><span style="color:#F97583">vec3</span><span style="color:#E1E4E8"> light_color </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> (material.ambient </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> (material.diffuse </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> diffuse) </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> (material.specular </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> specular)) </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> light.color;</span></span></code></pre>
+<ol start="6">
+<li>Display the Result:
+<ul>
+<li>Display the final result on the screen.</li>
+</ul>
+</li>
+</ol>
+<h3 id="supplementary-reading">Supplementary Reading</h3>
+<ul>
+<li><a href="https://learnopengl.com/Lighting/Basic-Lighting">LearnOpenGL - Basic-Lighting</a></li>
+<li><a href="https://learnopengl.com/Lighting/Materials">LearnOpenGL - Materials</a></li>
+<li><a href="https://learnopengl.com/Advanced-Lighting/Advanced-Lighting">LearnOpenGL - Advanced-Lighting</a></li>
+</ul>  </article> </main> <footer> <hr> <p class="text-center text-mutes">Made with ❤️ in Montréal.</p> </footer>  </body></html>
