@@ -1,0 +1,15 @@
+:root {
+    --highlight-color: null;
+    --highlight-background: null;
+}
+
+::selection {
+    color: var(--highlight-color);
+    background: var(--highlight-background);
+}
+
+pre {
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}

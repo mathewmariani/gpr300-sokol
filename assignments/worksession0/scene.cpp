@@ -10,8 +10,8 @@ static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
 static int model_index = 0;
 static std::vector<std::string> model_paths{
-    "assets/smashbros/togezoshell/togezoshell.obj",
-    "assets/smashbros/greenshell/greenshell.obj",
+    "/assets/smashbros/togezoshell/togezoshell.obj",
+    "/assets/smashbros/greenshell/greenshell.obj",
 };
 
 Scene::Scene()

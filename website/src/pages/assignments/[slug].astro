@@ -1,0 +1,24 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import Page from "../../layouts/Page.astro";
+import Demo from "../../components/Demo.astro";
+
+export async function getStaticPaths() {
+	const assignments = await getCollection("assignments");
+	return assignments.map((a) => ({
+		params: { slug: a.slug },
+		props: a,
+	}));
+}
+type Props = CollectionEntry<"assignments">;
+
+const assignment = Astro.props;
+const { Content } = await assignment.render();
+---
+
+<Page>
+	<h1>{assignment.data.title}</h1>
+	<p class="lead">{assignment.data.description}</p>
+	<Demo name={assignment.slug} />
+	<Content />
+</Page>

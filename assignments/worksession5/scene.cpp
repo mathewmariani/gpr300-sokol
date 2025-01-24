@@ -30,10 +30,10 @@ Scene::Scene()
         .cutoff = 0.0f,
     };
 
-    suzanne.Load("assets/suzanne.obj");
-    gradients[0].Load("assets/transitions/gradient1.png");
-    gradients[1].Load("assets/transitions/gradient2.png");
-    gradients[2].Load("assets/transitions/gradient3.png");
+    suzanne.Load("/assets/suzanne.obj");
+    gradients[0].Load("/assets/transitions/gradient1.png");
+    gradients[1].Load("/assets/transitions/gradient2.png");
+    gradients[2].Load("/assets/transitions/gradient3.png");
 
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};

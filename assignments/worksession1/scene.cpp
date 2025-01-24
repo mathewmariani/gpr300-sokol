@@ -30,11 +30,11 @@ Scene::Scene()
         batteries::load_mipmap({
             .img_id = mipmap_img,
             .path = {
-                .mip0 = "assets/windwaker/water128.png",
-                .mip1 = "assets/windwaker/water64.png",
-                .mip2 = "assets/windwaker/water32.png",
-                .mip3 = "assets/windwaker/water16.png",
-                .mip4 = "assets/windwaker/water8.png",
+                .mip0 = "/assets/windwaker/water128.png",
+                .mip1 = "/assets/windwaker/water64.png",
+                .mip2 = "/assets/windwaker/water32.png",
+                .mip3 = "/assets/windwaker/water16.png",
+                .mip4 = "/assets/windwaker/water8.png",
             },
             .buffer_ptr = cubemap_buffer,
             .buffer_offset = 1024 * 1024,

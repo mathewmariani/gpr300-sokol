@@ -1,7 +1,4 @@
 {
-	"C_Cpp.intelliSenseEngine": "default",
-	"C_Cpp.inlayHints.parameterNames.enabled": false,
-	"C_Cpp.inlayHints.referenceOperator.enabled": false,
 	"cmake.buildDirectory": "${workspaceFolder}/build",
 	"cmake.buildTask": false,
 	"cmake.configureOnOpen": false,
