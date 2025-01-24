@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib /assets/smashbros/greenshell/greenshell.mtl
+mtllib assets/smashbros/greenshell/greenshell.mtl
 o greenshell
 v -1.4852475 1.6663095 -2.4592357
 v -1.3456984 1.6889595 -2.5741518

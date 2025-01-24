@@ -61,7 +61,7 @@ Scene::Scene()
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
 
-    suzanne.Load("/assets/suzanne.obj");
+    suzanne.Load("assets/suzanne.obj");
 }
 
 Scene::~Scene()

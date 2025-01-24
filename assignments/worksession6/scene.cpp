@@ -27,9 +27,9 @@ Scene::Scene()
 {
     camera.position = {115.0f, 75.0f, 850.0f};
 
-    island.Load("/assets/windwaker/island/island.obj");
-    sea.Load("/assets/windwaker/island/sea.obj");
-    lights.Load("/assets/windwaker/island/window_lights.obj");
+    island.Load("assets/windwaker/island/island.obj");
+    sea.Load("assets/windwaker/island/sea.obj");
+    lights.Load("assets/windwaker/island/window_lights.obj");
 
     island.transform.scale = {0.05f, 0.05f, 0.05f};
     sea.transform.scale = {0.05f, 0.05f, 0.05f};

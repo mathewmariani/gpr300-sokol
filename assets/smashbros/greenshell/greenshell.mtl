@@ -10,8 +10,8 @@ Ks 0.9 0.9 0.9
 Ns 2
 d 1
 Tr 0
-map_Ka /assets/smashbros/greenshell/greenshell_ao.png
-map_Kd /assets/smashbros/greenshell/greenshell_col.png
-map_Ks /assets/smashbros/greenshell/greenshell_mtl.png
-map_Ke /assets/smashbros/greenshell/greenshell_rgh.png
-map_Kt /assets/smashbros/greenshell/greenshell_spc.png
+map_Ka assets/smashbros/greenshell/greenshell_ao.png
+map_Kd assets/smashbros/greenshell/greenshell_col.png
+map_Ks assets/smashbros/greenshell/greenshell_mtl.png
+map_Ke assets/smashbros/greenshell/greenshell_rgh.png
+map_Kt assets/smashbros/greenshell/greenshell_spc.png

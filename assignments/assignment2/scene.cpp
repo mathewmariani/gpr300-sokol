@@ -23,8 +23,8 @@ Scene::Scene()
         .color = {1.0f, 1.0f, 1.0f},
     };
 
-    suzanne.Load("/assets/suzanne.obj");
-    dungeon_texture.Load("/assets/windwaker/Txe_Ecube_yoko_9.png");
+    suzanne.Load("assets/suzanne.obj");
+    dungeon_texture.Load("assets/windwaker/Txe_Ecube_yoko_9.png");
 
     sphere = batteries::CreateSphere(1.0f, 4);
     sphere.transform.scale = {0.25f, 0.25f, 0.25f};
