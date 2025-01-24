@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib assets/smashbros/togezoshell/togezoshell.mtl
+mtllib /assets/smashbros/togezoshell/togezoshell.mtl
 o togezoshell
 v -1.7837414 1.9972094 -1.7889924
 v -1.6161468 2.0244093 -1.9174733

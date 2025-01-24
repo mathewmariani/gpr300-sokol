@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib assets/windwaker/pot_water/pot_water.mtl
+mtllib /assets/windwaker/pot_water/pot_water.mtl
 o pot_water
 v 31.320900 -0.037272 31.320900
 v -0.000001 -0.037271 44.294430
