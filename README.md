@@ -11,11 +11,13 @@ The syllabus for this course was developed by Eric Winebrenner ([@ewinebrenner](
 
 ## Repository Layout
 
-*   `assignments/` – Assignment template and assets.
+*   `assets/` – Assets required by the assignments.
+*   `assignments/` – Assignment source code.
 *   `build/` - Intermediate files and other build output. 
+*   `dist/` - Website build output. 
 *   `extra/` - Files used during the build process.
 *   `libs/` - Required external libraries.
-*   `resources/` – Scripts and resources used for building the website.
+*   `website/` – Resources used for building the website.
 
 
 ## Contributing

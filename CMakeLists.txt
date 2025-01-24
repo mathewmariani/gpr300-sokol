@@ -27,7 +27,7 @@ include_directories(${THIRDPARTY_DIR})
 add_subdirectory(${ASSIGNMENTS_DIR})
 
 # assets
-execute_process(
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-  "${CMAKE_SOURCE_DIR}/assignments/assets"
-  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/assets")
+# execute_process(
+#   COMMAND ${CMAKE_COMMAND} -E create_symlink
+#   "${CMAKE_SOURCE_DIR}/assignments/assets"
+#   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/assets")
