@@ -12,6 +12,6 @@ newmtl m0
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka /assets/windwaker/island/WindSS00.png
-	map_Kd /assets/windwaker/island/WindSS00.png
-	map_d /assets/windwaker/island/WindSS00.png
+	map_Ka assets/windwaker/island/WindSS00.png
+	map_Kd assets/windwaker/island/WindSS00.png
+	map_d assets/windwaker/island/WindSS00.png
