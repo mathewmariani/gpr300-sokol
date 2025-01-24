@@ -16,8 +16,6 @@ The syllabus for this course was created by Eric Winebrenner [@ewinebrenner][].
 
 This course has been adapted to use [sokol headers][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
 
-All demos for both assignments and worksessions can be viewed in the [showcase][].
-
 ---
 
 ### Prerequisites
