@@ -9,6 +9,4 @@
 			"visibility": "hidden"
 		}
 	},
-	"debug.showInStatusBar": "always",
-	"debug.onTaskErrors": "debugAnyway"
 }
