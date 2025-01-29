@@ -37,6 +37,7 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
+          source ./emsdk_env.sh
           cd ..
 
       - name: Build with Cmake 🔧
