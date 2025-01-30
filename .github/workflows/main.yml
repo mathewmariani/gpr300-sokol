@@ -37,7 +37,8 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
-          source ./emsdk_env.sh >> ~/.bashrc
+          echo "EMSDK=$GITHUB_WORKSPACE/emsdk" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/emsdk:$GITHUB_WORKSPACE/emsdk/upstream/emscripten:$PATH" >> $GITHUB_ENV
           cd ..
 
       - name: Build with Cmake 🔧
