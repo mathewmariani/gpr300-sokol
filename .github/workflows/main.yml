@@ -37,11 +37,7 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
-          echo "EMSDK=$GITHUB_WORKSPACE/emsdk" >> $GITHUB_ENV
-          echo "EMSDK_NODE=$GITHUB_WORKSPACE/emsdk/node/16.20.0_64bit/bin/node" >> $GITHUB_ENV
-          echo "EMSCRIPTEN=$GITHUB_WORKSPACE/emsdk/upstream/emscripten" >> $GITHUB_ENV
-          echo "PATH=$GITHUB_WORKSPACE/emsdk:$GITHUB_WORKSPACE/emsdk/upstream/emscripten:$PATH" >> $GITHUB_ENV
-          echo "PATH=$GITHUB_WORKSPACE/emsdk/node/16.20.0_64bit/bin:$PATH" >> $GITHUB_ENV
+          source ./emsdk_env.sh
           cd ..
 
       - name: Build with Cmake 🔧
