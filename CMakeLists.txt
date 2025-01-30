@@ -4,7 +4,7 @@ project(gpr300)
 
 set(THIRDPARTY_DIR libs)
 set(ASSIGNMENTS_DIR assignments)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/assignments")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/demos")
 
 # suppress warnings
 add_compile_options(-Wno-c99-designator)
