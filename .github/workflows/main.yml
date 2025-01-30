@@ -37,11 +37,11 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
-          source ./emsdk_env.sh
           cd ..
 
       - name: Build with Cmake 🔧
         run: |
+          source ./emsdk/emsdk_env.sh
           cmake --preset Release -B build
           cmake --build build --preset Release
 
