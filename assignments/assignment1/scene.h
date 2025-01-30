@@ -12,6 +12,7 @@
 #include "blur.h"
 #include "chromaticaberration.h"
 #include "crt.h"
+#include "edgedetection.h"
 #include "grayscale.h"
 #include "inverse.h"
 
@@ -30,6 +31,7 @@ private:
   BlurRenderer blurRenderer;
   ChromaticAberrationRenderer chromaticAberrationRenderer;
   CRTRenderer crtRenderer;
+  EdgeDetectionRenderer edgeDetectionRenderer;
   GrayScaleRenderer grayscaleRenderer;
   InverseRenderer inverseRenderer;
 

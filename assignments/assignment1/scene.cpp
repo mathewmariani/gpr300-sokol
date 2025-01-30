@@ -11,11 +11,33 @@
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
-static int effect_index = 0;
+enum {
+    NO_POST,
+    GRAYSCALE,
+    BLUR,
+    EDGEDETECTION,
+    INVERSE,
+    CHROMATIC_ABERRATION,
+    CRT,
+};
+
+static struct {
+    int index = 0;
+
+    struct {
+        float strength = 16.0f;
+    } blue;
+
+    struct {
+        glm::vec3 offsets{0.009f, 0.006f, -0.006f};
+    } chromatic_aberration;
+} effect;
+
 static std::vector<std::string> post_processing_effects = {
     "None",
     "Grayscale",
     "Kernel Blur",
+    "Edge Detection",
     "Inverse",
     "Chromatic Aberration",
     "CRT",
@@ -110,34 +132,34 @@ void Scene::Render(void)
 
     // render framebuffer
     sg_begin_pass(&pass);
+
     // apply a post processing effect
-    switch (effect_index)
+    switch (effect.index)
     {
-    case 1:
+    case GRAYSCALE:
         sg_apply_pipeline(grayscaleRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
-    case 2:
+    case BLUR:
         sg_apply_pipeline(blurRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
-    case 3:
+    case EDGEDETECTION:
+        sg_apply_pipeline(edgeDetectionRenderer.pipeline);
+        break;
+    case INVERSE:
         sg_apply_pipeline(inverseRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
-    case 4:
+    case CHROMATIC_ABERRATION:
         sg_apply_pipeline(chromaticAberrationRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
-    case 5:
+    case CRT:
         sg_apply_pipeline(crtRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
+    case NO_POST:
     default:
         sg_apply_pipeline(framebuffer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
         break;
     }
+    sg_apply_bindings(&framebuffer.bindings);
     sg_draw(0, 6, 1);
 }
 
@@ -162,14 +184,14 @@ void Scene::Debug(void)
         ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
         ImGui::ColorEdit3("Color", &light.color[0]);
     }
-    if (ImGui::BeginCombo("Effect", post_processing_effects[effect_index].c_str()))
+    if (ImGui::BeginCombo("Effect", post_processing_effects[effect.index].c_str()))
     {
         for (auto n = 0; n < post_processing_effects.size(); ++n)
         {
-            auto is_selected = (post_processing_effects[effect_index] == post_processing_effects[n]);
+            auto is_selected = (post_processing_effects[effect.index] == post_processing_effects[n]);
             if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
             {
-                effect_index = n;
+                effect.index = n;
             }
             if (is_selected)
             {
@@ -177,6 +199,18 @@ void Scene::Debug(void)
             }
         }
         ImGui::EndCombo();
+    }
+    switch (effect.index)
+    {
+    case GRAYSCALE:
+    case BLUR:
+    case EDGEDETECTION:
+    case INVERSE:
+    case CHROMATIC_ABERRATION:
+    case CRT:
+    case NO_POST:
+    default:
+        break;
     }
     ImGui::End();
 }

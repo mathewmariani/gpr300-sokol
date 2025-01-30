@@ -3,6 +3,7 @@ set(ASSIGNMENT_FILES
     blur.h
     chromaticaberration.h
     crt.h
+    edgedetection.h
     grayscale.h
     inverse.h
     scene.cpp
