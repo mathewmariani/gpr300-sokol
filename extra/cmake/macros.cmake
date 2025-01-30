@@ -31,9 +31,6 @@ macro(add_assignment target sources)
   target_include_directories(${target} PUBLIC .)
   target_include_directories(${target} PUBLIC ../../libs)
 
-  # silence warnings
-  target_compile_options(${target} PRIVATE -Wno-nontrivial-memcall)
-
   process_shaders()
   emscripten(${target})
 endmacro()
