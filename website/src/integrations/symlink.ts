@@ -11,7 +11,7 @@ export const symlinkIntegration = () => {
   let integration: AstroIntegration = {
     name: "astro-lifecycle-logs",
     hooks: {
-      'astro:build:before': async () => {
+      'astro:build:setup': async () => {
         try {
           for (const symlink of symlinks) {
             const sourcePath = path.resolve(process.cwd(), symlink.source);
