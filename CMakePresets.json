@@ -21,7 +21,7 @@
       "displayName": "Emscripten Release",
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build",
-      "toolchainFile": "${env:EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }

@@ -37,7 +37,7 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
-          source "/home/runner/work/gpr300-sokol/gpr300-sokol/emsdk/emsdk_env.sh"
+          source ./emsdk_env.sh
           cd ..
 
       - name: Build with Cmake 🔧
