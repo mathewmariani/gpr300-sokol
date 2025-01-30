@@ -37,8 +37,7 @@ jobs:
           cd emsdk
           ./emsdk install latest
           ./emsdk activate --embedded latest
-          echo "EMSDK=$GITHUB_WORKSPACE/emsdk" >> $GITHUB_ENV
-          echo "PATH=$GITHUB_WORKSPACE/emsdk:$GITHUB_WORKSPACE/emsdk/upstream/emscripten:$PATH" >> $GITHUB_ENV
+          source "/home/runner/work/gpr300-sokol/gpr300-sokol/emsdk/emsdk_env.sh"
           cd ..
 
       - name: Build with Cmake 🔧
