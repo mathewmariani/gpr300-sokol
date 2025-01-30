@@ -19,6 +19,8 @@ endmacro()
 
 macro(add_assignment target sources)
   add_executable(${target} ${sources} ../boilerplate.cpp)
+
+  # link all libraries
   target_link_libraries(${target} PRIVATE batteries)
   target_link_libraries(${target} PRIVATE dbgui)
   target_link_libraries(${target} PRIVATE fast_obj)
@@ -28,6 +30,9 @@ macro(add_assignment target sources)
   target_link_libraries(${target} PRIVATE stb)
   target_include_directories(${target} PUBLIC .)
   target_include_directories(${target} PUBLIC ../../libs)
+
+  # silence warnings
+  target_compile_options(${target} PRIVATE -Wno-nontrivial-memcall)
 
   process_shaders()
   emscripten(${target})
