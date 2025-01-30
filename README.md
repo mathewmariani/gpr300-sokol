@@ -27,6 +27,5 @@ To maintain alignment with the syllabus, pull requests adding additional subject
 
 ## License
 
-This project is free software; you can redistribute it and/or modify it under
-the terms of the MIT license.
+This project is free software; you can redistribute it and/or modify it under the terms of the MIT license.
 See [LICENSE](LICENSE) for details.

@@ -7,32 +7,6 @@
 	"cmake.options.advanced": {
 		"launchTarget": {
 			"visibility": "hidden"
-		},
+		}
 	},
-	"debug.showInStatusBar": "always",
-	"editor.formatOnSave": true,
-	"editor.tabSize": 2,
-	"debug.onTaskErrors": "debugAnyway",
-	"editor.multiCursorModifier": "ctrlCmd",
-	"files.associations": {
-		"__bit_reference": "cpp",
-		"algorithm": "cpp",
-		"vector": "cpp",
-		"string": "cpp",
-		"__hash_table": "cpp",
-		"__split_buffer": "cpp",
-		"__tree": "cpp",
-		"array": "cpp",
-		"bitset": "cpp",
-		"deque": "cpp",
-		"initializer_list": "cpp",
-		"map": "cpp",
-		"queue": "cpp",
-		"span": "cpp",
-		"stack": "cpp",
-		"string_view": "cpp",
-		"unordered_map": "cpp",
-		"atomic": "cpp",
-		"utility": "cpp"
-	}
 }
