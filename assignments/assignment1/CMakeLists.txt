@@ -1,5 +1,6 @@
 set(ASSIGNMENT_FILES
     blinnphong.h
+    bloom.h
     blur.h
     chromaticaberration.h
     crt.h

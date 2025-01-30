@@ -8,7 +8,9 @@
 #include "batteries/scene.h"
 #include "batteries/shape.h"
 
+// effects
 #include "blinnphong.h"
+#include "bloom.h"
 #include "blur.h"
 #include "chromaticaberration.h"
 #include "crt.h"
@@ -28,6 +30,7 @@ public:
 
 private:
   BlinnPhong blinnphong;
+  BloomRenderer bloomRenderer;
   BlurRenderer blurRenderer;
   ChromaticAberrationRenderer chromaticAberrationRenderer;
   CRTRenderer crtRenderer;

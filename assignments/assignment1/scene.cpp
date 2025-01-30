@@ -19,6 +19,7 @@ enum {
     INVERSE,
     CHROMATIC_ABERRATION,
     CRT,
+    BLOOM,
 };
 
 static struct {
@@ -41,6 +42,7 @@ static std::vector<std::string> post_processing_effects = {
     "Inverse",
     "Chromatic Aberration",
     "CRT",
+    "Bloom",
 };
 
 Scene::Scene()
@@ -153,6 +155,9 @@ void Scene::Render(void)
         break;
     case CRT:
         sg_apply_pipeline(crtRenderer.pipeline);
+        break;
+    case BLOOM:
+        sg_apply_pipeline(bloomRenderer.pipeline);
         break;
     case NO_POST:
     default:
