@@ -12,8 +12,8 @@ macro(emscripten target)
       -sMAXIMUM_MEMORY=200MB
       -sALLOW_MEMORY_GROWTH=1
       -sUSE_WEBGL2=1
-      $<$<CONFIG:Debug>:-g>
-      $<$<CONFIG:Debug>:-sSINGLE_FILE=1>)
+      -sSINGLE_FILE=1
+      $<$<CONFIG:Debug>:-g>)
   endif()
 endmacro()
 
