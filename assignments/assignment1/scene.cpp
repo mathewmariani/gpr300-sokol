@@ -161,7 +161,7 @@ void Scene::Render(void)
     case BLOOM:
         sg_apply_pipeline(bloomRenderer.pipeline);
         break;
-    case PIXELATION
+    case PIXELATION:
         sg_apply_pipeline(pixelationRenderer.pipeline);
         break;
     case NO_POST:
