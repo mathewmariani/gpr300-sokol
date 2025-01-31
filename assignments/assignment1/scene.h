@@ -17,6 +17,7 @@
 #include "edgedetection.h"
 #include "grayscale.h"
 #include "inverse.h"
+#include "pixelation.h"
 
 class Scene final : public batteries::Scene
 {
@@ -37,6 +38,7 @@ private:
   EdgeDetectionRenderer edgeDetectionRenderer;
   GrayScaleRenderer grayscaleRenderer;
   InverseRenderer inverseRenderer;
+  PixelationRenderer pixelationRenderer;
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;

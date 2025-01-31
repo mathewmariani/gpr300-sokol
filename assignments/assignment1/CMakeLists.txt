@@ -7,6 +7,7 @@ set(ASSIGNMENT_FILES
     edgedetection.h
     grayscale.h
     inverse.h
+    pixelation.h
     scene.cpp
     scene.h)
 
