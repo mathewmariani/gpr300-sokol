@@ -4,7 +4,7 @@ precision mediump float;
 
 out vec4 FragColor;
 
-in vec2 TexCoords;
+in vec2 vs_texcoord;
 
 uniform sampler2D screen;
 
@@ -34,7 +34,7 @@ void main()
   vec3 color = vec3(0.0);
   for(int i = 0; i < 9; i++)
   {
-    vec3 local = vec3(texture(screen, TexCoords.st + offsets[i]));
+    vec3 local = vec3(texture(screen, vs_texcoord.st + offsets[i]));
     color += local * (kernel[i] / strength);
   }
 
