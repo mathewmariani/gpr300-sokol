@@ -11,6 +11,7 @@ namespace batteries
         sg_sampler sampler;
         sg_image color_img;
         sg_image bright_img;
+        sg_image depth_img;
 
         HDRbuffer(int width, int height)
         {
