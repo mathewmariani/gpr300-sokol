@@ -35,7 +35,7 @@ struct ChromaticAberrationRenderer final : public batteries::PostProcessEffect<C
                     .sampler_slot = 0,
                 },
             }),
-            .label = "chromatic-aberration-pipeline",
+            .label = "chromaticaberration-pipeline",
         });
     }
 };

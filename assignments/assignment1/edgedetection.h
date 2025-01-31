@@ -35,7 +35,7 @@ struct EdgeDetectionRenderer final : public batteries::PostProcessEffect<EdgeDet
                     .sampler_slot = 0,
                 },
             }),
-            .label = "transition-pipeline",
+            .label = "edgedetection-pipeline",
         });
     }
 };

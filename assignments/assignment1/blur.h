@@ -35,7 +35,7 @@ struct BlurRenderer final : public batteries::PostProcessEffect<Blur>
                     .sampler_slot = 0,
                 },
             }),
-            .label = "transition-pipeline",
+            .label = "blur-pipeline",
         });
     }
 };
