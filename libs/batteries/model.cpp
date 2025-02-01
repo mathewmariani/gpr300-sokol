@@ -1,3 +1,4 @@
+// batteries
 #include "model.h"
 
 // fastobj
@@ -34,22 +35,22 @@ namespace batteries
     }
 
     // initialize gfx resources
-    mesh->vertex_buffer = sg_make_buffer({
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
-        .data = {
-            .ptr = mesh->vertices.data(),
-            .size = mesh->vertices.size() * sizeof(vertex_t),
-        },
-        .label = "mesh-vertices",
-    });
-    mesh->index_buffer = sg_make_buffer({
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = {
-            .ptr = mesh->indices.data(),
-            .size = mesh->indices.size() * sizeof(uint16_t),
-        },
-        .label = "mesh-indices",
-    });
+    // mesh->vertex_buffer = sg_make_buffer({
+    //     .type = SG_BUFFERTYPE_VERTEXBUFFER,
+    //     .data = {
+    //         .ptr = mesh->vertices.data(),
+    //         .size = mesh->vertices.size() * sizeof(vertex_t),
+    //     },
+    //     .label = "mesh-vertices",
+    // });
+    // mesh->index_buffer = sg_make_buffer({
+    //     .type = SG_BUFFERTYPE_INDEXBUFFER,
+    //     .data = {
+    //         .ptr = mesh->indices.data(),
+    //         .size = mesh->indices.size() * sizeof(uint16_t),
+    //     },
+    //     .label = "mesh-indices",
+    // });
   }
   void Model::Load(const std::string &path)
   {

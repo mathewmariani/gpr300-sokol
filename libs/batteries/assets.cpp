@@ -1,5 +1,4 @@
 // sokol-fetch
-#include "sokol/sokol_gfx.h"
 #include "sokol/sokol_fetch.h"
 
 // stb
@@ -8,6 +7,7 @@
 // fast_obj
 #include "fast_obj/fast_obj.h"
 
+// batteries
 #include "batteries/assets.h"
 #include "batteries/model.h"
 #include "batteries/mesh.h"
@@ -33,7 +33,6 @@ namespace
   };
   struct _mipmap_request_t
   {
-    sg_image img_id;
     uint8_t *buffer;
     int buffer_offset;
     int fetched_sizes[8];
@@ -47,7 +46,6 @@ namespace
   };
   struct _cubemap_request_t
   {
-    sg_image img_id;
     uint8_t *buffer;
     int buffer_offset;
     int fetched_sizes[6];
@@ -72,16 +70,16 @@ namespace
     texture->loaded = true;
 
     // clang-format off
-    sg_init_image(texture->image, {
-        .type = SG_IMAGETYPE_2D,
-        .width = width,
-        .height = height,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = {
-            .ptr = pixels,
-            .size = (size_t)(width * height * 4),
-        }
-    });
+    // sg_init_image(texture->image, {
+    //     .type = SG_IMAGETYPE_2D,
+    //     .width = width,
+    //     .height = height,
+    //     .pixel_format = SG_PIXELFORMAT_RGBA8,
+    //     .data.subimage[0][0] = {
+    //         .ptr = pixels,
+    //         .size = (size_t)(width * height * 4),
+    //     }
+    // });
     // clang-format on
     stbi_image_free(pixels);
   }
@@ -94,7 +92,7 @@ namespace
     const int desired_channels = 4;
     int img_widths[6], img_heights[6];
     stbi_uc *pixels_ptrs[6];
-    sg_image_data img_content;
+    // sg_image_data img_content;
     for (auto i = 0; i < 6; ++i)
     {
       pixels_ptrs[i] = stbi_load_from_memory(
@@ -105,18 +103,18 @@ namespace
           nullptr,
           desired_channels);
 
-      img_content.subimage[i][0].ptr = pixels_ptrs[i];
-      img_content.subimage[i][0].size = img_widths[i] * img_heights[i] * desired_channels;
+      // img_content.subimage[i][0].ptr = pixels_ptrs[i];
+      // img_content.subimage[i][0].size = img_widths[i] * img_heights[i] * desired_channels;
     }
 
     // clang-format off
-    sg_init_image(request->img_id, (sg_image_desc){
-        .type = SG_IMAGETYPE_CUBE,
-        .width = img_widths[0],
-        .height = img_heights[0],
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data = img_content,
-    });
+    // sg_init_image(request->img_id, (sg_image_desc){
+    //     .type = SG_IMAGETYPE_CUBE,
+    //     .width = img_widths[0],
+    //     .height = img_heights[0],
+    //     .pixel_format = SG_PIXELFORMAT_RGBA8,
+    //     .data = img_content,
+    // });
     // clang-format on
 
     for (auto i = 0; i < 6; ++i)
@@ -133,7 +131,7 @@ namespace
     const int desired_channels = 4;
     int img_widths[8], img_heights[8];
     stbi_uc *pixels_ptrs[8];
-    sg_image_data img_content;
+    // sg_image_data img_content;
     for (auto i = 0; i < 8; ++i)
     {
       pixels_ptrs[i] = stbi_load_from_memory(
@@ -144,19 +142,19 @@ namespace
           nullptr,
           desired_channels);
 
-      img_content.subimage[0][i].ptr = pixels_ptrs[i];
-      img_content.subimage[0][i].size = img_widths[i] * img_heights[i] * desired_channels;
+      // img_content.subimage[0][i].ptr = pixels_ptrs[i];
+      // img_content.subimage[0][i].size = img_widths[i] * img_heights[i] * desired_channels;
     }
 
     // clang-format off
-    sg_init_image(request->img_id, (sg_image_desc){
-        .type = SG_IMAGETYPE_2D,
-        .width = img_widths[0],
-        .height = img_heights[0],
-        .num_mipmaps = 5,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data = img_content,
-    });
+    // sg_init_image(request->img_id, (sg_image_desc){
+    //     .type = SG_IMAGETYPE_2D,
+    //     .width = img_widths[0],
+    //     .height = img_heights[0],
+    //     .num_mipmaps = 5,
+    //     .pixel_format = SG_PIXELFORMAT_RGBA8,
+    //     .data = img_content,
+    // });
     // clang-format on
 
     for (auto i = 0; i < 8; ++i)
@@ -290,7 +288,6 @@ namespace batteries
 
     // FIXME: what is this, and why is it important if even?
     _state.mipmap_req = (_mipmap_request_t){
-        .img_id = request.img_id,
         .buffer = request.buffer_ptr,
         .buffer_offset = (int)request.buffer_offset,
     };
@@ -360,7 +357,6 @@ namespace batteries
 
     // FIXME: what is this, and why is it important if even?
     _state.cubemap_req = (_cubemap_request_t){
-        .img_id = request.img_id,
         .buffer = request.buffer_ptr,
         .buffer_offset = (int)request.buffer_offset,
     };

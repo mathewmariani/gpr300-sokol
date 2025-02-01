@@ -10,18 +10,12 @@ if(BUILD_WITH_BATTERIES)
     ${BATTERIES_DIR}/assets.h
     ${BATTERIES_DIR}/camera.cpp
     ${BATTERIES_DIR}/camera.h
-    ${BATTERIES_DIR}/depthbuffer.h
-    ${BATTERIES_DIR}/framebuffer.cpp
-    ${BATTERIES_DIR}/framebuffer.h
-    ${BATTERIES_DIR}/geometrybuffer.h
-    ${BATTERIES_DIR}/gizmo.h
     ${BATTERIES_DIR}/lights.h
     ${BATTERIES_DIR}/materials.h
     ${BATTERIES_DIR}/math.h
     ${BATTERIES_DIR}/mesh.h
     ${BATTERIES_DIR}/model.cpp
     ${BATTERIES_DIR}/model.h
-    ${BATTERIES_DIR}/pass.h
     ${BATTERIES_DIR}/postprocess.h
     ${BATTERIES_DIR}/scene.cpp
     ${BATTERIES_DIR}/scene.h

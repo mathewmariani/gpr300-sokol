@@ -1,11 +1,9 @@
 #pragma once
 
-#include "sokol/sokol_gfx.h"
+// fast_obj
+#include "fast_obj/fast_obj.h"
 
 #include <string>
-#include <functional>
-
-#include "fast_obj/fast_obj.h"
 
 namespace batteries
 {
@@ -51,13 +49,11 @@ namespace batteries
       const char *mip7;
     } path;
     Texture *texture;
-    sg_image img_id;
     uint8_t *buffer_ptr;
     uint32_t buffer_offset;
   };
   struct cubemap_request_t
   {
-    sg_image img_id;
     const char *path_right;
     const char *path_left;
     const char *path_top;

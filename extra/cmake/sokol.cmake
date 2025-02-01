@@ -20,9 +20,7 @@ if(BUILD_WITH_SOKOL)
   set(SOKOL_DIR ${THIRDPARTY_DIR}/sokol)
   set(SOKOL_HEADERS
     ${SOKOL_DIR}/sokol.c
-    ${SOKOL_DIR}/sokol_app.h
-    ${SOKOL_DIR}/sokol_gfx.h
-    ${SOKOL_DIR}/sokol_glue.h)
+    ${SOKOL_DIR}/sokol_app.h)
 
   add_library(sokol STATIC ${SOKOL_HEADERS})
 

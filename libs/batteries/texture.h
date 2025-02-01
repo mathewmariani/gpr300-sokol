@@ -3,18 +3,12 @@
 // batteries
 #include "assets.h"
 
-// sokol
-#include "sokol/sokol_gfx.h"
-
 namespace batteries
 {
   struct Texture final : public batteries::Asset
   {
-    sg_image image;
-
     Texture()
     {
-      image = sg_alloc_image();
     }
 
     ~Texture()

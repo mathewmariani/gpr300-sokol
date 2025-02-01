@@ -1,9 +1,7 @@
 #pragma once
 
+// batteries
 #include "vertex.h"
-
-// sokol
-#include "sokol/sokol_gfx.h"
 
 // std
 #include <vector>
@@ -20,9 +18,9 @@ namespace batteries
     };
 
     // sokol info
-    sg_buffer vertex_buffer;
-    sg_buffer index_buffer;
-    sg_sampler sampler;
+    // sg_buffer vertex_buffer;
+    // sg_buffer index_buffer;
+    // sg_sampler sampler;
 
     std::vector<vertex_t> vertices;
     std::vector<uint16_t> indices;
