@@ -1,8 +1,5 @@
 #pragma once
 
-// sokol
-#include "sokol/sokol_gfx.h"
-
 namespace batteries
 {
   struct PostProcessEffectSettings
@@ -18,7 +15,6 @@ namespace batteries
   template <typename T>
   struct PostProcessEffect : public BasePostProcessEffect
   {
-    sg_pipeline pipeline;
     T settings;
   };
 }

@@ -11,22 +11,22 @@ namespace
   static void _init_gfx_resources(batteries::Shape *shape)
   {
     // initialize gfx resources
-    shape->mesh.vertex_buffer = sg_make_buffer({
-        .type = SG_BUFFERTYPE_VERTEXBUFFER,
-        .data = {
-            .ptr = shape->mesh.vertices.data(),
-            .size = shape->mesh.vertices.size() * sizeof(batteries::vertex_t),
-        },
-        .label = "mesh-vertices",
-    });
-    shape->mesh.index_buffer = sg_make_buffer({
-        .type = SG_BUFFERTYPE_INDEXBUFFER,
-        .data = {
-            .ptr = shape->mesh.indices.data(),
-            .size = shape->mesh.indices.size() * sizeof(uint16_t),
-        },
-        .label = "mesh-indices",
-    });
+    // shape->mesh.vertex_buffer = sg_make_buffer({
+    //     .type = SG_BUFFERTYPE_VERTEXBUFFER,
+    //     .data = {
+    //         .ptr = shape->mesh.vertices.data(),
+    //         .size = shape->mesh.vertices.size() * sizeof(batteries::vertex_t),
+    //     },
+    //     .label = "mesh-vertices",
+    // });
+    // shape->mesh.index_buffer = sg_make_buffer({
+    //     .type = SG_BUFFERTYPE_INDEXBUFFER,
+    //     .data = {
+    //         .ptr = shape->mesh.indices.data(),
+    //         .size = shape->mesh.indices.size() * sizeof(uint16_t),
+    //     },
+    //     .label = "mesh-indices",
+    // });
   }
 }
 

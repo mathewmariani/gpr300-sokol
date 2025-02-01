@@ -1,13 +1,14 @@
 // sokol
 #include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
 #include "sokol/sokol_log.h"
-#include "sokol/sokol_glue.h"
 #include "sokol/sokol_fetch.h"
 
 // libs
 #include "stb/stb_image.h"
 #include "dbgui/dbgui.h"
+
+// opengl
+#include <GLES3/gl3.h>
 
 // forward declare
 void init(void);
@@ -44,12 +45,6 @@ static Scene *scene;
 
 void init(void)
 {
-  // setup sokol-gfx
-  sg_setup({
-      .environment = sglue_environment(),
-      .logger.func = slog_func,
-  });
-
   // setup sokol-fetch
   sfetch_setup({
       .max_requests = 24,
@@ -57,6 +52,8 @@ void init(void)
       .num_lanes = 1,
       .logger.func = slog_func,
   });
+
+  glViewport(0, 0, sapp_width(), sapp_height());
 
   __dbgui_setup();
 
@@ -72,7 +69,6 @@ void cleanup(void)
 
   __dbgui_shutdown();
   sfetch_shutdown();
-  sg_shutdown();
 }
 
 void frame(void)
@@ -85,9 +81,6 @@ void frame(void)
 
   scene->Update(t);
   scene->Render();
-
-  sg_end_pass();
-  sg_commit();
 
   // draw ui
   __dbgui_begin();
