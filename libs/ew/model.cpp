@@ -39,12 +39,8 @@ namespace
 		{
 			obj_request_data_t request = *(obj_request_data_t *)response->user_data;
 			request.mesh = fast_obj_read((const char *)response->data.ptr, response->data.size);
-
-			if (request.mesh->mtllib_count == 0)
-			{
-				request.callback(request.model, request.mesh);
-				return;
-			}
+			request.callback(request.model, request.mesh);
+			fast_obj_destroy(request.mesh);
 		}
 		else if (response->failed)
 		{
@@ -96,7 +92,7 @@ namespace
 				data.indices.push_back(j);
 			}
 
-			model->m_meshes[i].load(data);
+			model->m_meshes.push_back(ew::Mesh(data));
 		}
 	}
 }

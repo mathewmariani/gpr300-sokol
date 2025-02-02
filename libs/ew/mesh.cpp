@@ -24,15 +24,16 @@ namespace ew {
 
 			glGenBuffers(1, &m_ebo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-			//Position attribute
+
+			// position attribute
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
 			glEnableVertexAttribArray(0);
 
-			//Normal attribute
+			// normal attribute
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, normal));
 			glEnableVertexAttribArray(1);
 
-			//UV attribute
+			// texcoord attribute
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, uv)));
 			glEnableVertexAttribArray(2);
 
