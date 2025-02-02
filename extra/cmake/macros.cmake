@@ -23,6 +23,7 @@ macro(add_assignment target sources)
   # link all libraries
   target_link_libraries(${target} PRIVATE batteries)
   target_link_libraries(${target} PRIVATE dbgui)
+  target_link_libraries(${target} PRIVATE ew)
   target_link_libraries(${target} PRIVATE fast_obj)
   target_link_libraries(${target} PRIVATE glm)
   target_link_libraries(${target} PRIVATE imgui)
