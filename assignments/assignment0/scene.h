@@ -4,7 +4,6 @@
 #include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
-#include "batteries/shader.h"
 #include "batteries/shape.h"
 
 class Scene final : public batteries::Scene
@@ -23,6 +22,4 @@ private:
 
   batteries::ambient_t ambient;
   batteries::light_t light;
-
-  batteries::Shader blinnphong;
 };
