@@ -45,10 +45,17 @@ static std::vector<mtl_t> materials = {
     {"yellow rubber", {{0.05f, 0.05f, 0.0f}, {0.5f, 0.5f, 0.4f}, {0.7f, 0.7f, 0.04f}, 0.078125f}},
 };
 
+struct Material {
+	glm::vec3 Ka{ 1.0f }; 
+	glm::vec3 Kd{ 0.5f }; 
+	glm::vec3 Ks{ 0.5f };
+	float Shininess = 128.0f;
+} material;
+
 Scene::Scene()
 {
     suzanne = ew::Model::Load("assets/suzanne.obj");
-    blinnphong = ew::Shader::Load("assets/blinnphong.vert", "assets/blinnphong.frag");
+    blinnphong = ew::Shader::Load("assets/shaders/blinnphong.vs", "assets/shaders/blinnphong.fs");
 }
 
 Scene::~Scene()
@@ -67,6 +74,22 @@ void Scene::Render(void)
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    blinnphong->use();
+    
+    // material properties
+	blinnphong->setVec3("material.Ka", material.Ka);
+	blinnphong->setVec3("material.Kd", material.Kd);
+	blinnphong->setVec3("material.Ks", material.Ks);
+	blinnphong->setFloat("material.Shininess", material.Shininess);
+
+	// scene matrices
+	blinnphong->setMat4("model", glm::mat4{1.0f});
+	blinnphong->setMat4("view_proj", view_proj);
+
+    // camera
+	blinnphong->setVec3("camera_position", camera.position);
+
+    // draw suzanne
     suzanne->draw();
 }
 
