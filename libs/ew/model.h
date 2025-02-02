@@ -10,9 +10,12 @@
 namespace ew {
 	class Model {
 	public:
-		Model(const std::string& filePath);
+		static std::unique_ptr<Model> Load(const std::string &path);
+	public:
+		Model() = default;
 		void draw();
-	private:
+
+	public:
 		std::vector<ew::Mesh> m_meshes;
 	};
 }

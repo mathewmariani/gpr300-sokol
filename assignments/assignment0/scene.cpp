@@ -45,27 +45,10 @@ static std::vector<mtl_t> materials = {
     {"yellow rubber", {{0.05f, 0.05f, 0.0f}, {0.5f, 0.5f, 0.4f}, {0.7f, 0.7f, 0.04f}, 0.078125f}},
 };
 
-static struct
-{
-    bool material_enabled = true;
-} state;
-
 Scene::Scene()
 {
-    ambient = {
-        .intensity = 1.0f,
-        .color = {0.5f, 0.5f, 0.5f},
-    };
-
-    light = {
-        .brightness = 1.0f,
-        .color = {1.0f, 1.0f, 1.0f},
-    };
-
-    sphere = batteries::CreateSphere(1.0f, 4);
-    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
-
-    suzanne.Load("assets/suzanne.obj");
+    suzanne = ew::Model::Load("assets/suzanne.obj");
+    blinnphong = ew::Shader::Load("assets/blinnphong.vert", "assets/blinnphong.frag");
 }
 
 Scene::~Scene()
@@ -75,15 +58,6 @@ Scene::~Scene()
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
-
-    static auto ry = 0.0f;
-    ry += time.frame;
-
-    // sugar: rotate light
-    const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
-    light.position = rym * light_orbit_radius;
-
-    sphere.transform.position = light.position;
 }
 
 void Scene::Render(void)
@@ -92,6 +66,8 @@ void Scene::Render(void)
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    suzanne->draw();
 }
 
 void Scene::Debug(void)
@@ -102,44 +78,6 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
-
-    if (ImGui::CollapsingHeader("Material"))
-    {
-        if (ImGui::BeginCombo("Presets", materials[materials_index].name.c_str()))
-        {
-            for (auto n = 0; n < materials.size(); ++n)
-            {
-                auto is_selected = (materials[materials_index].name == materials[n].name);
-                if (ImGui::Selectable(materials[n].name.c_str(), is_selected))
-                {
-                    materials_index = n;
-                }
-                if (is_selected)
-                {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
-        }
-
-        auto material = materials[materials_index].material;
-        ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
-        ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
-    }
-
-    if (ImGui::CollapsingHeader("Ambient"))
-    {
-        ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &ambient.color[0]);
-    }
-
-    if (ImGui::CollapsingHeader("Light"))
-    {
-        ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &light.color[0]);
-    }
 
     ImGui::End();
 }
