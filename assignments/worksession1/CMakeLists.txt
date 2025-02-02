@@ -1,6 +1,5 @@
 set(ASSIGNMENT_FILES
     scene.cpp
-    scene.h
-    water.h)
+    scene.h)
 
 add_assignment(worksession1 "${ASSIGNMENT_FILES}")
