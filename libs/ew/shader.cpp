@@ -3,27 +3,88 @@
 */
 
 #include "shader.h"
-#include <fstream>
-#include <sstream>
+
+// sokol
+#include "sokol/sokol_fetch.h"
+
+// opengl
 #include <GLES3/gl3.h>
+
+// glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace ew {
-	/// <summary>
-	/// Loads shader source code from a file.
-	/// </summary>
-	/// <param name="filePath"></param>
-	/// <returns></returns>
-	std::string loadShaderSourceFromFile(const std::string& filePath) {
-		std::ifstream fstream(filePath);
-		if (!fstream.is_open()) {
-			printf("Failed to load file %s", filePath.c_str());
-			return {};
+namespace
+{
+	static uint8_t file_buffer[1024 * 1024 * 10];
+
+	typedef void (*obj_request_callback_t)(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src);
+
+	struct obj_request_t
+	{
+		const char *vertex;
+		const char *fragment;
+		ew::Shader *shader;
+		obj_request_callback_t callback;
+	};
+
+	struct obj_request_data_t
+	{
+		ew::Shader *shader;
+		obj_request_callback_t callback;
+	};
+
+	static void shaderstage_fetch_callback(const sfetch_response_t *response)
+	{
+		if (response->fetched)
+		{
+			obj_request_data_t request = *(obj_request_data_t *)response->user_data;
 		}
-		std::stringstream buffer;
-		buffer << fstream.rdbuf();
-		return buffer.str();
+		else if (response->failed)
+		{
+			printf("[!!!] Failed to load shader file.\n");
+		}
+	}
+
+	static void load_shader(const obj_request_t &request)
+	{
+		obj_request_data_t wrapper = {
+			.shader = request.shader,
+			.callback = request.callback,
+		};
+
+		sfetch_request_t sokol = {
+			.callback = shaderstage_fetch_callback,
+			.buffer = SFETCH_RANGE(file_buffer),
+			.user_data = SFETCH_RANGE(wrapper),
+		};
+
+		sokol.path = request.vertex;
+		sfetch_send(sokol);
+
+		sokol.path = request.fragment;
+		sfetch_send(sokol);
+	}
+
+	static void fetch_callback(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src)
+	{
+		ew::createShaderProgram(vertex_src.c_str(), fragment_src.c_str());
+	}
+}
+
+namespace ew
+{
+	std::unique_ptr<Shader> Shader::Load(const std::string &vert, const std::string &frag)
+	{
+		auto ptr = std::make_unique<Shader>();
+		load_shader((obj_request_t) {
+			.vertex = vert.c_str(),
+			.fragment = frag.c_str(),
+			.callback = fetch_callback,
+			.shader = ptr.get(),
+		});
+
+		return ptr;
 	}
 
 	/// <summary>
@@ -78,17 +139,7 @@ namespace ew {
 		glDeleteShader(fragmentShader);
 		return shaderProgram;
 	}
-	/// <summary>
-	/// Creates a shader instance with vertex + fragment stages
-	/// </summary>
-	/// <param name="vertexShader">File path to vertex shader</param>
-	/// <param name="fragmentShader">File path to fragment shader</param>
-	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader)
-	{
-		std::string vertexShaderSource = ew::loadShaderSourceFromFile(vertexShader.c_str());
-		std::string fragmentShaderSource = ew::loadShaderSourceFromFile(fragmentShader.c_str());
-		m_id = ew::createShaderProgram(vertexShaderSource.c_str(), fragmentShaderSource.c_str());
-	}
+
 	void Shader::use()const
 	{
 		glUseProgram(m_id);

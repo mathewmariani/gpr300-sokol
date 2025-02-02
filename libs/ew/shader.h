@@ -11,7 +11,10 @@ namespace ew {
 	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource);
 	class Shader {
 	public:
-		Shader(const std::string& vertexShader, const std::string& fragmentShader);
+		static std::unique_ptr<Shader> Load(const std::string &vert, const std::string &frag);
+
+	public:
+		Shader() = default;
 		void use()const;
 		void setInt(const std::string& name, int v) const;
 		void setFloat(const std::string& name, float v) const;
