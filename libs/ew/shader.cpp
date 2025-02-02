@@ -20,25 +20,19 @@ namespace
 
 	typedef void (*obj_request_callback_t)(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src);
 
-	struct obj_request_t
+	struct shader_request_t
 	{
-		const char *vertex;
-		const char *fragment;
+		struct {
+			const char *vertex;
+			const char *fragment;
+		} path;
 		ew::Shader *shader;
-		obj_request_callback_t callback;
 	};
 
-	struct obj_request_data_t
-	{
-		ew::Shader *shader;
-		obj_request_callback_t callback;
-	};
-
-	static void shaderstage_fetch_callback(const sfetch_response_t *response)
+	static void shader_fetch_callback(const sfetch_response_t *response)
 	{
 		if (response->fetched)
 		{
-			obj_request_data_t request = *(obj_request_data_t *)response->user_data;
 		}
 		else if (response->failed)
 		{
@@ -46,24 +40,30 @@ namespace
 		}
 	}
 
-	static void load_shader(const obj_request_t &request)
+	static void load_shader(const shader_request_t &request)
 	{
-		obj_request_data_t wrapper = {
-			.shader = request.shader,
-			.callback = request.callback,
-		};
+		// auto shader_fetch_callback = [](const sfetch_response_t *response)
+		// {
+		// 	// this will create the actual shader 
+		// };
 
-		sfetch_request_t sokol = {
-			.callback = shaderstage_fetch_callback,
-			.buffer = SFETCH_RANGE(file_buffer),
-			.user_data = SFETCH_RANGE(wrapper),
-		};
+		// shader_request_t wrapper = {
+		// 	.shader = request.shader,
+		// 	.callback = request.callback,
+		// };
 
-		sokol.path = request.vertex;
-		sfetch_send(sokol);
+		// sfetch_request_t fetch = {
+		// 	.callback = shader_fetch_callback,
+		// 	.buffer = SFETCH_RANGE(file_buffer),
+		// 	.user_data = SFETCH_RANGE(wrapper),
+		// };
 
-		sokol.path = request.fragment;
-		sfetch_send(sokol);
+		// fetch.path = request.path.vertex;
+		// fetch.buffer 
+		// sfetch_send(fetch);
+
+		// fetch.path = request.path.fragment;
+		// sfetch_send(fetch);
 	}
 
 	static void fetch_callback(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src)
@@ -77,14 +77,21 @@ namespace ew
 	std::unique_ptr<Shader> Shader::Load(const std::string &vert, const std::string &frag)
 	{
 		auto ptr = std::make_unique<Shader>();
-		load_shader((obj_request_t) {
-			.vertex = vert.c_str(),
-			.fragment = frag.c_str(),
-			.callback = fetch_callback,
+		load_shader((shader_request_t) {
+			.path = {
+				.vertex = vert.c_str(),
+				.fragment = frag.c_str(),
+			},
+			// .callback = fetch_callback,
 			.shader = ptr.get(),
 		});
 
 		return ptr;
+	}
+
+	Shader::Shader(const std::string& vertex, const std::string& fragment)
+	{
+		m_id = ew::createShaderProgram(vertex.c_str(), fragment.c_str());
 	}
 
 	/// <summary>

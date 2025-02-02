@@ -54,8 +54,10 @@ struct Material {
 
 Scene::Scene()
 {
+    #include "blinnphong.glsl.h"
+
     suzanne = ew::Model::Load("assets/suzanne.obj");
-    blinnphong = ew::Shader::Load("assets/shaders/blinnphong.vs", "assets/shaders/blinnphong.fs");
+    blinnphong = std::make_unique<ew::Shader>(blinnphong_vs, blinnphong_fs);
 }
 
 Scene::~Scene()
