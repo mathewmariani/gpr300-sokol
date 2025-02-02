@@ -1,9 +1,7 @@
 #pragma once
 
-#include "water.h"
-
+// batteries
 #include "batteries/scene.h"
-#include "batteries/shape.h"
 
 class Scene final : public batteries::Scene
 {
@@ -14,8 +12,4 @@ public:
   void Update(float dt);
   void Render(void);
   void Debug(void);
-
-private:
-  Water water;
-  batteries::Shape plane;
 };
