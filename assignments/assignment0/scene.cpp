@@ -36,7 +36,7 @@ typedef struct
     const batteries::material_t material;
 } mtl_t;
 
-static int materials_index = 0;
+static int materials_index = 15;
 static std::vector<mtl_t> materials = {
     // http://devernay.free.fr/cours/opengl/materials.html
     {"emerald", {{0.0215f, 0.1745f, 0.0215f}, {0.07568f, 0.61424f, 0.07568f}, {0.633f, 0.727811f, 0.633f}, 0.6f}},
@@ -131,9 +131,9 @@ void Scene::Render(void)
 	blinnphong->setVec3("camera_position", camera.position);
 
     // material properties
-	blinnphong->setVec3("material.Ka", materials[materials_index].material.ambient);
-	blinnphong->setVec3("material.Kd", materials[materials_index].material.diffuse);
-	blinnphong->setVec3("material.Ks", materials[materials_index].material.specular);
+	blinnphong->setVec3("material.ambient", materials[materials_index].material.ambient);
+	blinnphong->setVec3("material.diffuse", materials[materials_index].material.diffuse);
+	blinnphong->setVec3("material.specular", materials[materials_index].material.specular);
 	blinnphong->setFloat("material.Shininess", materials[materials_index].material.shininess);
 
     // ambient light
