@@ -4,11 +4,54 @@
 // imgui
 #include "imgui/imgui.h"
 
+// ew
+#include "ew/procGen.h"
+
 // opengl
 #include <GLES3/gl3.h>
 
+#include <iostream>
+
+GLenum glCheckError_(const char *file, int line)
+{
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    {
+        std::string error;
+        switch (errorCode)
+        {
+            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+        }
+        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+    }
+    return errorCode;
+}
+#define glCheckError() glCheckError_(__FILE__, __LINE__) 
+
+static struct
+{
+    glm::vec3 color = {0.00f, 0.31f, 0.85f};
+    glm::vec2 direction = {0.5f, 0.5f};
+    float scale = 10.0f;
+    float strength = 1.0f;
+    float tiling = 10.0f;
+    float top_scale = 0.90f;
+    float bottom_scale = 0.02f;
+    float lod_bias = 14.5f;
+} debug;
+
 Scene::Scene()
 {
+    #include "water.glsl.h"
+
+    water = std::make_unique<ew::Shader>(water_vs, water_fs);
+    texture = std::make_unique<ew::Texture>("assets/windwaker/water.png");
+
+    plane.load(ew::createPlane(400.0f, 400.0f, 10));
 }
 
 Scene::~Scene()
@@ -22,8 +65,41 @@ void Scene::Update(float dt)
 
 void Scene::Render(void)
 {
+    const auto view_proj = camera.Projection() * camera.View();
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+
+    // set bindings
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->getID());
+
+    water->use();
+
+    // samplers
+    water->setInt("texture0", 0);
+
+	// scene matrices
+	water->setMat4("model", glm::mat4{1.0f});
+	water->setMat4("view_proj", view_proj);
+
+    // water properties
+    water->setVec3("color", debug.color);
+    water->setVec2("direction", debug.direction);
+    water->setFloat("tiling", debug.tiling);
+    water->setFloat("time", (float)time.absolute);
+    water->setFloat("Ts", debug.top_scale);
+    water->setFloat("Bs", debug.bottom_scale);
+    water->setFloat("strength", debug.strength);
+    water->setFloat("scale", debug.scale);
+
+    plane.draw();
+
+    glCheckError();
 }
 
 void Scene::Debug(void)
