@@ -1,4 +1,4 @@
-name: Build
+name: Build and Deploy
 
 on:
   push:
@@ -7,10 +7,10 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
 
     runs-on: ubuntu-latest
 
@@ -49,10 +49,8 @@ jobs:
         run: |
           npm run build
 
-      - name: Cache dist folder
-        uses: actions/cache@v3
+      - name: Deploy 🚀
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: dist
-          key: ${{ runner.os }}-dist-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-dist-
+          folder: dist

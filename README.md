@@ -1,7 +1,6 @@
 # Intermediate Graphics Programming (GPR300)
 
-[![Build](/../../actions/workflows/build.yml/badge.svg)](/../../actions/workflows/build.yml)
-[![Deploy](/../../actions/workflows/deploy.yml/badge.svg)](/../../actions/workflows/deploy.yml)
+[![Build & Deploy](/../../actions/workflows/main.yml/badge.svg)](/../../actions/workflows/main.yml)
 
 This adaptation of GPR-300 is a work in progress.
 
