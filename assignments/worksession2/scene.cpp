@@ -10,14 +10,19 @@
 // opengl
 #include <GLES3/gl3.h>
 
+#include "batteries/transform.h"
+
 Scene::Scene()
 {
     #include "island_generator.glsl.h"
+    #include "water_shader.glsl.h"
 
     island = std::make_unique<ew::Shader>(island_generator_vs, island_generator_fs);
+    water_shader = std::make_unique<ew::Shader>(water_shader_vs, water_shader_fs);
     heightmap = std::make_unique<ew::Texture>("assets/heightmaps/heightmap.png");
 
     plane.load(ew::createPlane(50.0f, 50.0f, 100));
+    water_plane.load(ew::createPlane(50.0f, 50.0f, 1));
 }
 
 Scene::~Scene()
@@ -40,6 +45,9 @@ void Scene::Render(void)
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // set bindings
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, heightmap->getID());
@@ -57,6 +65,11 @@ void Scene::Render(void)
     island->setFloat("landmass.scale", 10.0f);
 
     plane.draw();
+
+    water_shader->use();
+    water_shader->setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.7f, 0.0f)));
+	water_shader->setMat4("view_proj", view_proj);
+    water_plane.draw();
 }
 
 void Scene::Debug(void)

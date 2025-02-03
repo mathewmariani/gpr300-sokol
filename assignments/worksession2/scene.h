@@ -23,7 +23,9 @@ public:
 
 private:
   std::unique_ptr<ew::Shader> island;
+  std::unique_ptr<ew::Shader> water_shader;
   std::unique_ptr<ew::Texture> heightmap;
   
   ew::Mesh plane;
+  ew::Mesh water_plane;
 };
