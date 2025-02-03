@@ -2,8 +2,31 @@
 #include "imgui/imgui.h"
 
 #include "batteries/materials.h"
+#include "batteries/transform.h"
+
+#include <iostream>
 
 #include <GLES3/gl3.h>
+
+GLenum glCheckError_(const char *file, int line)
+{
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    {
+        std::string error;
+        switch (errorCode)
+        {
+            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+        }
+        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+    }
+    return errorCode;
+}
+#define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
@@ -12,9 +35,6 @@ typedef struct
     const std::string name;
     const batteries::material_t material;
 } mtl_t;
-
-// use model:
-// https://www.blendswap.com/blend/9755
 
 static int materials_index = 0;
 static std::vector<mtl_t> materials = {
@@ -58,6 +78,19 @@ Scene::Scene()
 
     suzanne = ew::Model::Load("assets/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>(blinnphong_vs, blinnphong_fs);
+    texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+
+    printf("Scene.texture at: %p\n", (void*)texture.get());
+
+    ambient = {
+        .intensity = 1.0f,
+        .color = { 0.5f, 0.5f, 0.5f },
+    };
+
+    light = {
+        .brightness = 1.0f,
+        .color = { 0.5f, 0.5f, 0.5f },
+    };
 }
 
 Scene::~Scene()
@@ -67,6 +100,9 @@ Scene::~Scene()
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
+
+    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
+    light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
@@ -76,23 +112,42 @@ void Scene::Render(void)
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+
+    // set bindings
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->getID());
+
     blinnphong->use();
-    
-    // material properties
-	blinnphong->setVec3("material.Ka", material.Ka);
-	blinnphong->setVec3("material.Kd", material.Kd);
-	blinnphong->setVec3("material.Ks", material.Ks);
-	blinnphong->setFloat("material.Shininess", material.Shininess);
+
+    // samplers
+    blinnphong->setInt("texture0", 0);
 
 	// scene matrices
 	blinnphong->setMat4("model", glm::mat4{1.0f});
 	blinnphong->setMat4("view_proj", view_proj);
-
-    // camera
 	blinnphong->setVec3("camera_position", camera.position);
+
+    // material properties
+	blinnphong->setVec3("material.Ka", materials[materials_index].material.ambient);
+	blinnphong->setVec3("material.Kd", materials[materials_index].material.diffuse);
+	blinnphong->setVec3("material.Ks", materials[materials_index].material.specular);
+	blinnphong->setFloat("material.Shininess", materials[materials_index].material.shininess);
+
+    // ambient light
+    blinnphong->setVec3("ambient.color", ambient.color);
+    blinnphong->setVec3("ambient.direction", ambient.direction);
+
+    // point light
+    blinnphong->setVec3("light.color", light.color);
+    blinnphong->setVec3("light.position", light.position);
 
     // draw suzanne
     suzanne->draw();
+
+    glCheckError();
 }
 
 void Scene::Debug(void)
@@ -103,6 +158,32 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
+
+    if (ImGui::CollapsingHeader("Material"))
+    {
+        if (ImGui::BeginCombo("Presets", materials[materials_index].name.c_str()))
+        {
+            for (auto n = 0; n < materials.size(); ++n)
+            {
+                auto is_selected = (materials[materials_index].name == materials[n].name);
+                if (ImGui::Selectable(materials[n].name.c_str(), is_selected))
+                {
+                    materials_index = n;
+                }
+                if (is_selected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        auto material = materials[materials_index].material;
+        ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
+    }
 
     ImGui::End();
 }
