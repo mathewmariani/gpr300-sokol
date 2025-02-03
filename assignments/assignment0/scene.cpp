@@ -76,7 +76,7 @@ Scene::Scene()
 {
     #include "blinnphong.glsl.h"
 
-    suzanne = ew::Model::Load("assets/suzanne.obj");
+    suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>(blinnphong_vs, blinnphong_fs);
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
