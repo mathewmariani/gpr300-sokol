@@ -34,6 +34,7 @@ macro(add_assignment target sources)
   target_include_directories(${target} PUBLIC .)
   target_include_directories(${target} PUBLIC ../../libs)
 
+  process_shaders()
   emscripten(${target})
 endmacro()
 
