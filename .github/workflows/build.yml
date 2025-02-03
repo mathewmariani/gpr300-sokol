@@ -48,3 +48,9 @@ jobs:
       - name: Building Website 🔧
         run: |
           npm run build
+
+      - name: Upload dist as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist

@@ -17,6 +17,11 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
 
+      - name: Download dist artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
