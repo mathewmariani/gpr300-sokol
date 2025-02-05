@@ -31,6 +31,9 @@ namespace ew {
 		void setVec4(const std::string& name, const glm::vec4& v) const;
 		void setMat4(const std::string& name, const glm::mat4& m) const;
 	private:
-		unsigned int m_id; //Shader program handle
+		unsigned int m_id = 0; //Shader program handle
+		unsigned int vertex = 0; //Shader program handle
+		unsigned int fragment = 0; //Shader program handle
+
 	};
 }
