@@ -70,8 +70,8 @@ void Scene::Render(void)
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
     // set bindings
@@ -110,6 +110,25 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
+
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Color"))
+    {
+        ImGui::ColorEdit3("Color", &debug.color[0]);
+        ImGui::SliderFloat("Upper Blend", &debug.top_scale, 0.0f, 1.0f);
+        ImGui::SliderFloat("Bottom Blend", &debug.bottom_scale, 0.0f, 1.0f);
+    }
+    if (ImGui::CollapsingHeader("Texture"))
+    {
+        ImGui::SliderFloat("Tilling", &debug.tiling, 1.0f, 100.0f);
+        ImGui::SliderFloat2("Scroll Direction", &debug.direction[0], -1.0f, 1.0f);
+    }
+    if (ImGui::CollapsingHeader("Wave"))
+    {
+        ImGui::SliderFloat("Scale", &debug.scale, 1.0f, 100.0f);
+        ImGui::SliderFloat("Strength", &debug.strength, 0.0f, 5.0f);
+    }
 
     ImGui::End();
 }

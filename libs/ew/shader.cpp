@@ -16,82 +16,54 @@
 
 namespace
 {
-	static uint8_t file_buffer[1024 * 1024 * 10];
 
-	typedef void (*obj_request_callback_t)(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src);
+static uint8_t file_buffer[1024 * 1024 * 10];
 
-	struct shader_request_t
-	{
-		struct {
-			const char *vertex;
-			const char *fragment;
-		} path;
-		ew::Shader *shader;
-	};
+struct fetch_shader_wrapper
+{
+	void *ptr;
+	GLuint vertex;
+	GLuint fragment;
+};
 
-	static void shader_fetch_callback(const sfetch_response_t *response)
-	{
-		if (response->fetched)
-		{
-		}
-		else if (response->failed)
-		{
-			printf("[!!!] Failed to load shader file.\n");
-		}
-	}
+struct shader_request_instance_t
+{
+	int index;
+	fetch_shader_wrapper *wrapper;
+};
 
-	static void load_shader(const shader_request_t &request)
-	{
-		// auto shader_fetch_callback = [](const sfetch_response_t *response)
-		// {
-		// 	// this will create the actual shader 
-		// };
-
-		// shader_request_t wrapper = {
-		// 	.shader = request.shader,
-		// 	.callback = request.callback,
-		// };
-
-		// sfetch_request_t fetch = {
-		// 	.callback = shader_fetch_callback,
-		// 	.buffer = SFETCH_RANGE(file_buffer),
-		// 	.user_data = SFETCH_RANGE(wrapper),
-		// };
-
-		// fetch.path = request.path.vertex;
-		// fetch.buffer 
-		// sfetch_send(fetch);
-
-		// fetch.path = request.path.fragment;
-		// sfetch_send(fetch);
-	}
-
-	static void fetch_callback(ew::Shader *shader, const std::string& vertex_src, const std::string& fragment_src)
-	{
-		ew::createShaderProgram(vertex_src.c_str(), fragment_src.c_str());
-	}
 }
 
 namespace ew
 {
-	std::unique_ptr<Shader> Shader::Load(const std::string &vert, const std::string &frag)
-	{
-		auto ptr = std::make_unique<Shader>();
-		load_shader((shader_request_t) {
-			.path = {
-				.vertex = vert.c_str(),
-				.fragment = frag.c_str(),
-			},
-			// .callback = fetch_callback,
-			.shader = ptr.get(),
-		});
-
-		return ptr;
-	}
-
 	Shader::Shader(const std::string& vertex, const std::string& fragment)
 	{
 		m_id = ew::createShaderProgram(vertex.c_str(), fragment.c_str());
+
+		// fetch_shader_wrapper w = {
+		// 	.ptr = this,
+		// 	.vertex = 0,
+		// 	.fragment = 0,
+		// };
+
+		// const char* stages[2] = {
+		// 	vertex.c_str(),
+		// 	fragment.c_str(),
+		// };
+
+		// for (auto i = 0; i < 2; ++i) {
+		// 	shader_request_instance_t instance = {
+		// 		.index = i,
+		// 		.wrapper = &w,
+		// 	};
+
+		// 	sfetch_send((sfetch_request_t){
+		// 		.path = stages[i],
+		// 		.callback = fetchCallback,
+		// 		.buffer = SFETCH_RANGE(file_buffer),
+		// 		.user_data = SFETCH_RANGE(instance),
+		// 	});
+		// }
 	}
 
 	/// <summary>
@@ -187,5 +159,59 @@ namespace ew
 	{
 		glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(m));
 	}
-}
 
+	void Shader::fetchCallback(const sfetch_response_t* response)
+	{
+		if (!response->fetched)
+		{
+			printf("[!!!] Failed to load shader file (%s)\n", response->path);
+			return;
+		}
+
+		char* source = (char*)malloc(response->data.size + 1);
+		if (source) {
+			memcpy(source, response->data.ptr, response->data.size);
+			source[response->data.size] = '\0';
+		}
+
+		// create shader stage
+		auto instance = static_cast<shader_request_instance_t*>(response->user_data);
+		GLenum stage = (instance->index == 0) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
+
+		printf("IM HERE");
+		switch (stage)
+		{
+			case GL_VERTEX_SHADER:
+				instance->wrapper->vertex = createShader(stage, source);
+				break;
+			case GL_FRAGMENT_SHADER:
+				instance->wrapper->fragment = createShader(stage, source);
+				break;
+		};
+
+		printf("shader values (%d, %d)", instance->wrapper->vertex, instance->wrapper->fragment);
+
+		if (instance->wrapper->vertex != 0 && instance->wrapper->fragment != 0)
+		{
+			auto* self = (Shader*)(static_cast<fetch_shader_wrapper*>(response->user_data))->ptr;
+			self->m_id = glCreateProgram();
+
+			glAttachShader(self->m_id, instance->wrapper->vertex);
+			glAttachShader(self->m_id, instance->wrapper->fragment);
+			glLinkProgram(self->m_id);
+
+			int success;
+			glGetProgramiv(self->m_id, GL_LINK_STATUS, &success);
+			if (!success) {
+				char infoLog[512];
+				glGetProgramInfoLog(self->m_id, 512, NULL, infoLog);
+				printf("Failed to link shader program: %s", infoLog);
+			}
+
+			glDeleteShader(instance->wrapper->vertex);
+			glDeleteShader(instance->wrapper->fragment);
+		}
+
+		free(source);
+	}
+}

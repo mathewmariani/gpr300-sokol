@@ -3,15 +3,19 @@
 */
 
 #pragma once
+
+// sokol
+#include "sokol/sokol_fetch.h"
+
 #include <string>
 #include <glm/glm.hpp>
 
 namespace ew {
-	std::string loadShaderSourceFromFile(const std::string& filePath);
 	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource);
+
 	class Shader {
-	public:
-		static std::unique_ptr<Shader> Load(const std::string &vert, const std::string &frag);
+	private:
+		static void fetchCallback(const sfetch_response_t* response);
 
 	public:
 		Shader() = default;
