@@ -29,7 +29,7 @@ struct fetch_shader_wrapper
 struct shader_request_instance_t
 {
 	int index;
-	fetch_shader_wrapper *wrapper;
+	void *ptr;
 };
 
 }
@@ -38,32 +38,32 @@ namespace ew
 {
 	Shader::Shader(const std::string& vertex, const std::string& fragment)
 	{
-		m_id = ew::createShaderProgram(vertex.c_str(), fragment.c_str());
+		//m_id = ew::createShaderProgram(vertex.c_str(), fragment.c_str());
 
-		// fetch_shader_wrapper w = {
-		// 	.ptr = this,
-		// 	.vertex = 0,
-		// 	.fragment = 0,
-		// };
+		fetch_shader_wrapper w = {
+			.ptr = this,
+			.vertex = 0,
+			.fragment = 0,
+		};
 
-		// const char* stages[2] = {
-		// 	vertex.c_str(),
-		// 	fragment.c_str(),
-		// };
+		const char* stages[2] = {
+			vertex.c_str(),
+			fragment.c_str(),
+		};
 
-		// for (auto i = 0; i < 2; ++i) {
-		// 	shader_request_instance_t instance = {
-		// 		.index = i,
-		// 		.wrapper = &w,
-		// 	};
+		for (auto i = 0; i < 2; ++i) {
+			shader_request_instance_t instance = {
+				.index = i,
+				.ptr = this,
+			};
 
-		// 	sfetch_send((sfetch_request_t){
-		// 		.path = stages[i],
-		// 		.callback = fetchCallback,
-		// 		.buffer = SFETCH_RANGE(file_buffer),
-		// 		.user_data = SFETCH_RANGE(instance),
-		// 	});
-		// }
+			sfetch_send((sfetch_request_t){
+				.path = stages[i],
+				.callback = fetchCallback,
+				.buffer = SFETCH_RANGE(file_buffer),
+				.user_data = SFETCH_RANGE(instance),
+			});
+		}
 	}
 
 	/// <summary>
@@ -121,7 +121,9 @@ namespace ew
 
 	void Shader::use()const
 	{
-		glUseProgram(m_id);
+		if (m_id != 0) {
+			glUseProgram(m_id);
+		}
 	}
 	void Shader::setInt(const std::string& name, int v) const
 	{
@@ -176,28 +178,26 @@ namespace ew
 
 		// create shader stage
 		auto instance = static_cast<shader_request_instance_t*>(response->user_data);
+		auto* self = static_cast<Shader*>(instance->ptr);
 		GLenum stage = (instance->index == 0) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 
-		printf("IM HERE");
 		switch (stage)
 		{
 			case GL_VERTEX_SHADER:
-				instance->wrapper->vertex = createShader(stage, source);
+				self->vertex = createShader(stage, source);
 				break;
 			case GL_FRAGMENT_SHADER:
-				instance->wrapper->fragment = createShader(stage, source);
+				self->fragment = createShader(stage, source);
 				break;
 		};
 
-		printf("shader values (%d, %d)", instance->wrapper->vertex, instance->wrapper->fragment);
-
-		if (instance->wrapper->vertex != 0 && instance->wrapper->fragment != 0)
+		if (self->vertex != 0 && self->fragment != 0)
 		{
 			auto* self = (Shader*)(static_cast<fetch_shader_wrapper*>(response->user_data))->ptr;
 			self->m_id = glCreateProgram();
 
-			glAttachShader(self->m_id, instance->wrapper->vertex);
-			glAttachShader(self->m_id, instance->wrapper->fragment);
+			glAttachShader(self->m_id, self->vertex);
+			glAttachShader(self->m_id, self->fragment);
 			glLinkProgram(self->m_id);
 
 			int success;
@@ -208,8 +208,8 @@ namespace ew
 				printf("Failed to link shader program: %s", infoLog);
 			}
 
-			glDeleteShader(instance->wrapper->vertex);
-			glDeleteShader(instance->wrapper->fragment);
+			glDeleteShader(self->vertex);
+			glDeleteShader(self->fragment);
 		}
 
 		free(source);
