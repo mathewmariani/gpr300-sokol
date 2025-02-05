@@ -90,6 +90,9 @@ void frame(void)
 
 void event(const sapp_event *event)
 {
-  __dbgui_event(event);
+  if (__dbgui_event(event))
+  {
+    return;
+  }
   scene->Event(event);
 }
