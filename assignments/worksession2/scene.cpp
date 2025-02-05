@@ -69,6 +69,7 @@ void Scene::Render(void)
     water_shader->use();
     water_shader->setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.7f, 0.0f)));
 	water_shader->setMat4("view_proj", view_proj);
+    water_shader->setVec3("camera_position", camera.position);
     water_plane.draw();
 }
 
