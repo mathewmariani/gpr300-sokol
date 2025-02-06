@@ -62,11 +62,10 @@ void Texture::fetchCallback(const sfetch_response_t* response) {
 		return;
 	}
 
-	auto* self = (Texture*)(static_cast<fetch_wrapper*>(response->user_data))->ptr;
-	printf("Scene.texture at: %p\n", (void*)self);
-
 	int width, height, components;
 	auto *pixels = stbi_load_from_memory((const stbi_uc *)response->data.ptr, response->data.size, &width, &height, &components, 4);
+
+	auto* self = (Texture*)(static_cast<fetch_wrapper*>(response->user_data))->ptr;
 
 	if (pixels) {
 		self->createTexture(pixels, width, height);
