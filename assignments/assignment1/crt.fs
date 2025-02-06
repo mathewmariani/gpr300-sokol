@@ -4,7 +4,7 @@ precision mediump float;
 precision mediump sampler2D;
 
 out vec4 FragColor;
-in vec2 TexCoords;
+in vec2 vs_texcoord;
 
 float PI = 3.14159;
 
@@ -41,7 +41,7 @@ vec3 vignetteIntensity(vec2 uv, vec2 resolution, float opacity, float roundness)
 
 void main()
 {
-  vec2 uv = curveRemapUV(TexCoords);
+  vec2 uv = curveRemapUV(vs_texcoord);
 
   if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0)
   {

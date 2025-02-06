@@ -8,12 +8,16 @@
 #include "batteries/scene.h"
 #include "batteries/shape.h"
 
+// effects
 #include "blinnphong.h"
+#include "bloom.h"
 #include "blur.h"
 #include "chromaticaberration.h"
 #include "crt.h"
+#include "edgedetection.h"
 #include "grayscale.h"
 #include "inverse.h"
+#include "pixelation.h"
 
 class Scene final : public batteries::Scene
 {
@@ -27,11 +31,14 @@ public:
 
 private:
   BlinnPhong blinnphong;
+  BloomRenderer bloomRenderer;
   BlurRenderer blurRenderer;
   ChromaticAberrationRenderer chromaticAberrationRenderer;
   CRTRenderer crtRenderer;
+  EdgeDetectionRenderer edgeDetectionRenderer;
   GrayScaleRenderer grayscaleRenderer;
   InverseRenderer inverseRenderer;
+  PixelationRenderer pixelationRenderer;
 
   batteries::Model suzanne;
   batteries::Gizmo gizmo;

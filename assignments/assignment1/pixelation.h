@@ -3,18 +3,18 @@
 // batteries
 #include "batteries/postprocess.h"
 
-#include "blur.glsl.h"
+#include "pixelation.glsl.h"
 
-struct Blur final : public batteries::PostProcessEffectSettings
+struct Pixelation final : public batteries::PostProcessEffectSettings
 {
     struct fs_params_t
     {
     } fs_params;
 };
 
-struct BlurRenderer final : public batteries::PostProcessEffect<Blur>
+struct PixelationRenderer final : public batteries::PostProcessEffect<Pixelation>
 {
-    BlurRenderer()
+    PixelationRenderer()
     {
         pipeline = sg_make_pipeline((sg_pipeline_desc){
             .layout = {
@@ -24,8 +24,8 @@ struct BlurRenderer final : public batteries::PostProcessEffect<Blur>
                 },
             },
             .shader = sg_make_shader((sg_shader_desc){
-                .vertex_func.source = blur_vs,
-                .fragment_func.source = blur_fs,
+                .vertex_func.source = pixelation_vs,
+                .fragment_func.source = pixelation_fs,
                 .images[0].stage = SG_SHADERSTAGE_FRAGMENT,
                 .samplers[0].stage = SG_SHADERSTAGE_FRAGMENT,
                 .image_sampler_pairs[0] = {
@@ -35,7 +35,7 @@ struct BlurRenderer final : public batteries::PostProcessEffect<Blur>
                     .sampler_slot = 0,
                 },
             }),
-            .label = "blur-pipeline",
+            .label = "pixelation-pipeline",
         });
     }
 };

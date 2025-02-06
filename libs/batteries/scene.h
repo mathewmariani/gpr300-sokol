@@ -4,6 +4,7 @@
 #include "depthbuffer.h"
 #include "framebuffer.h"
 #include "geometrybuffer.h"
+#include "hdrbuffer.h"
 
 namespace batteries
 {
@@ -27,6 +28,7 @@ namespace batteries
     batteries::Framebuffer framebuffer;
     batteries::Depthbuffer depthbuffer;
     batteries::Geometrybuffer geometrybuffer;
+    batteries::HDRbuffer hdrbuffer;
 
     struct
     {

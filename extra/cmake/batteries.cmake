@@ -15,6 +15,7 @@ if(BUILD_WITH_BATTERIES)
     ${BATTERIES_DIR}/framebuffer.h
     ${BATTERIES_DIR}/geometrybuffer.h
     ${BATTERIES_DIR}/gizmo.h
+    ${BATTERIES_DIR}/hdrbuffer.h
     ${BATTERIES_DIR}/lights.h
     ${BATTERIES_DIR}/materials.h
     ${BATTERIES_DIR}/math.h
