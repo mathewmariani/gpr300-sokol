@@ -30,9 +30,7 @@ static std::vector<std::tuple<std::string, Palette>> palette{
 
 Scene::Scene()
 {
-    #include "toonshading.glsl.h"
-    toonshading = std::make_unique<ew::Shader>(toonshading_vs, toonshading_fs);
-    
+    toonshading = std::make_unique<ew::Shader>("assets/shaders/windwaker/toonshading.vs", "assets/shaders/windwaker/toonshading.fs");
     skull = std::make_unique<ew::Model>("assets/windwaker/skull/skull.obj");
     texture = std::make_unique<ew::Texture>("assets/windwaker/skull/Txo_dokuo.png");
     zatoon = std::make_unique<ew::Texture>("assets/windwaker/ZAtoon.png");

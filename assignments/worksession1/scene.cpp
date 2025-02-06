@@ -46,9 +46,7 @@ static struct
 
 Scene::Scene()
 {
-    #include "water.glsl.h"
-
-    water = std::make_unique<ew::Shader>(water_vs, water_fs);
+    water = std::make_unique<ew::Shader>("assets/shaders/windwaker/water.vs", "assets/shaders/windwaker/water.fs");
     texture = std::make_unique<ew::Texture>("assets/windwaker/water.png");
 
     plane.load(ew::createPlane(400.0f, 400.0f, 10));

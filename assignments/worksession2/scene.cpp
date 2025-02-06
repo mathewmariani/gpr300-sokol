@@ -14,11 +14,8 @@
 
 Scene::Scene()
 {
-    #include "island_generator.glsl.h"
-    #include "water_shader.glsl.h"
-
-    island = std::make_unique<ew::Shader>(island_generator_vs, island_generator_fs);
-    water_shader = std::make_unique<ew::Shader>(water_shader_vs, water_shader_fs);
+    island = std::make_unique<ew::Shader>("assets/shaders/island.vs", "assets/shaders/island.fs");
+    water_shader = std::make_unique<ew::Shader>("assets/shaders/island_water.vs", "assets/shaders/island_water.fs");
     heightmap = std::make_unique<ew::Texture>("assets/heightmaps/heightmap.png");
 
     plane.load(ew::createPlane(50.0f, 50.0f, 100));

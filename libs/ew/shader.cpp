@@ -38,8 +38,6 @@ namespace ew
 {
 	Shader::Shader(const std::string& vertex, const std::string& fragment)
 	{
-		//m_id = ew::createShaderProgram(vertex.c_str(), fragment.c_str());
-
 		fetch_shader_wrapper w = {
 			.ptr = this,
 			.vertex = 0,
@@ -193,7 +191,6 @@ namespace ew
 
 		if (self->vertex != 0 && self->fragment != 0)
 		{
-			auto* self = (Shader*)(static_cast<fetch_shader_wrapper*>(response->user_data))->ptr;
 			self->m_id = glCreateProgram();
 
 			glAttachShader(self->m_id, self->vertex);

@@ -74,13 +74,9 @@ struct Material {
 
 Scene::Scene()
 {
-    #include "blinnphong.glsl.h"
-
     suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/blinnphong.vs", "assets/shaders/blinnphong.fs");
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
-
-    printf("Scene.texture at: %p\n", (void*)texture.get());
 
     ambient = {
         .intensity = 1.0f,
