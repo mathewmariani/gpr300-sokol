@@ -4,9 +4,9 @@ precision mediump float;
 precision mediump sampler2D;
 
 // attributes
-layout(location = 0) in vec3 vPosition;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vTexCoord;
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_texcoord;
 
 // uniforms
 uniform mat4 model;
@@ -18,7 +18,7 @@ struct LandmassProperties {
 };
 uniform LandmassProperties landmass;
 
-out vec2 TexCoords;
+out vec2 vs_texcoord;
 
 const float offset = 1.0 / 2048.0;
 const vec2 offsets[9] = vec2[]( 
@@ -42,16 +42,16 @@ const float kernel[9] = float[](
 
 void main()
 {
-  TexCoords = vTexCoord;
+  vs_texcoord = in_texcoord;
 
   float height = 0.0;
   for(int i = 0; i < 9; i++)
   {
-    float local = texture(heightmap, TexCoords + offsets[i]).r;
+    float local = texture(heightmap, vs_texcoord + offsets[i]).r;
     height += local * (kernel[i] / strength);
   }
 
-  vec3 pos = vPosition;
+  vec3 pos = in_position;
   pos.y += height * landmass.scale;
 
   gl_Position = view_proj * model * vec4(pos, 1.0);
