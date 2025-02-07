@@ -36,8 +36,10 @@ typedef struct
     const batteries::material_t material;
 } mtl_t;
 
-static int materials_index = 15;
+static int materials_index = 0;
 static std::vector<mtl_t> materials = {
+    {"default", {{0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}, 1.0f}},
+
     // http://devernay.free.fr/cours/opengl/materials.html
     {"emerald", {{0.0215f, 0.1745f, 0.0215f}, {0.07568f, 0.61424f, 0.07568f}, {0.633f, 0.727811f, 0.633f}, 0.6f}},
     {"jade", {{0.135f, 0.2225f, 0.1575f}, {0.54f, 0.89f, 0.63f}, {0.316228f, 0.316228f, 0.316228f}, 0.1}},
@@ -64,13 +66,6 @@ static std::vector<mtl_t> materials = {
     {"white rubber", {{0.05f, 0.05f, 0.05f}, {0.5f, 0.5f, 0.5f}, {0.7f, 0.7f, 0.7f}, 0.078125f}},
     {"yellow rubber", {{0.05f, 0.05f, 0.0f}, {0.5f, 0.5f, 0.4f}, {0.7f, 0.7f, 0.04f}, 0.078125f}},
 };
-
-struct Material {
-	glm::vec3 Ka{ 1.0f }; 
-	glm::vec3 Kd{ 0.5f }; 
-	glm::vec3 Ks{ 0.5f };
-	float Shininess = 128.0f;
-} material;
 
 Scene::Scene()
 {
@@ -127,14 +122,15 @@ void Scene::Render(void)
 	blinnphong->setVec3("camera_position", camera.position);
 
     // material properties
-	blinnphong->setVec3("material.ambient", materials[materials_index].material.ambient);
-	blinnphong->setVec3("material.diffuse", materials[materials_index].material.diffuse);
-	blinnphong->setVec3("material.specular", materials[materials_index].material.specular);
-	blinnphong->setFloat("material.Shininess", materials[materials_index].material.shininess);
+    auto material = materials[materials_index].material;
+	blinnphong->setVec3("material.ambient", material.ambient);
+	blinnphong->setVec3("material.diffuse", material.diffuse);
+	blinnphong->setVec3("material.specular", material.specular);
+	blinnphong->setFloat("material.shininess", material.shininess);
 
     // ambient light
+    blinnphong->setFloat("ambient.intensity", ambient.intensity);
     blinnphong->setVec3("ambient.color", ambient.color);
-    blinnphong->setVec3("ambient.direction", ambient.direction);
 
     // point light
     blinnphong->setVec3("light.color", light.color);
@@ -155,7 +151,17 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    if (ImGui::CollapsingHeader("Material"))
+    // ImGui::Separator();
+    // ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+    // ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+    // ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+    // ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
+
+    ImGui::SeparatorText("Ambient");
+    ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Color", &ambient.color[0]);
+
+    ImGui::SeparatorText("Material");
     {
         if (ImGui::BeginCombo("Presets", materials[materials_index].name.c_str()))
         {

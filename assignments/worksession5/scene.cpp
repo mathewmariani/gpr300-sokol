@@ -164,18 +164,18 @@ void Scene::Render(void)
         blinnphong->setVec3("camera_position", camera.position);
 
         // material properties
-        blinnphong->setVec3("material.ambient", material.ambient);
-        blinnphong->setVec3("material.diffuse", material.diffuse);
-        blinnphong->setVec3("material.specular", material.specular);
-        blinnphong->setFloat("material.Shininess", material.shininess);
-
-        // ambient light
-        blinnphong->setVec3("ambient.color", ambient.color);
-        blinnphong->setVec3("ambient.direction", ambient.direction);
-
-        // point light
-        blinnphong->setVec3("light.color", light.color);
-        blinnphong->setVec3("light.position", light.position);
+		blinnphong->setVec3("material.ambient", material.ambient);
+		blinnphong->setVec3("material.diffuse", material.diffuse);
+		blinnphong->setVec3("material.specular", material.specular);
+		blinnphong->setFloat("material.shininess", material.shininess);
+	
+		// ambient light
+		blinnphong->setFloat("ambient.intensity", ambient.intensity);
+		blinnphong->setVec3("ambient.color", ambient.color);
+	
+		// point light
+		blinnphong->setVec3("light.color", light.color);
+		blinnphong->setVec3("light.position", light.position);
 
         // draw suzanne
         suzanne->draw();
