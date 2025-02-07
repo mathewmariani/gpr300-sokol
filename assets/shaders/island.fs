@@ -5,7 +5,7 @@ precision mediump sampler2D;
 
 out vec4 FragColor;
 
-in vec2 TexCoords;
+in vec2 vs_texcoord;
 
 uniform sampler2D heightmap;
 
@@ -34,7 +34,7 @@ void main()
   float n = 0.0;
   for(int i = 0; i < 9; i++)
   {
-    float local = texture(heightmap, TexCoords + offsets[i]).r;
+    float local = texture(heightmap, vs_texcoord + offsets[i]).r;
     n += local * (kernel[i] / strength);
   }
 
