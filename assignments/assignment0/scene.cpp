@@ -1,12 +1,16 @@
 #include "scene.h"
+
+// imgui
 #include "imgui/imgui.h"
 
+// batteries
 #include "batteries/materials.h"
 #include "batteries/transform.h"
 
-#include <iostream>
-
+// opengl
 #include <GLES3/gl3.h>
+
+#include <iostream>
 
 GLenum glCheckError_(const char *file, int line)
 {
