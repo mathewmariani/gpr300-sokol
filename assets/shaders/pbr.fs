@@ -10,7 +10,6 @@ struct PBRMaterial {
   sampler2D specular;
 };
 struct Light {
-  float brightness;
   vec3 color;
   vec3 position;
 };
