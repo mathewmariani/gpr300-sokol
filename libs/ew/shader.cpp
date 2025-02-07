@@ -94,14 +94,12 @@ namespace ew
 	/// <param name="vertexShaderSource">GLSL source code for the vertex shader</param>
 	/// <param name="fragmentShaderSource">GLSL source code for the fragment shader</param>
 	/// <returns></returns>
-	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource) {
-		unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
-		unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
+	unsigned int createShaderProgram(unsigned int vertex, unsigned int fragment) {
 		unsigned int shaderProgram = glCreateProgram();
+
 		//Attach each stage
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
+		glAttachShader(shaderProgram, vertex);
+		glAttachShader(shaderProgram, fragment);
 		//Link all the stages together
 		glLinkProgram(shaderProgram);
 		int success;
@@ -112,8 +110,8 @@ namespace ew
 			printf("Failed to link shader program: %s", infoLog);
 		}
 		//The linked program now contains our compiled code, so we can delete these intermediate objects
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
+		glDeleteShader(vertex);
+		glDeleteShader(fragment);
 		return shaderProgram;
 	}
 
@@ -191,22 +189,7 @@ namespace ew
 
 		if (self->vertex != 0 && self->fragment != 0)
 		{
-			self->m_id = glCreateProgram();
-
-			glAttachShader(self->m_id, self->vertex);
-			glAttachShader(self->m_id, self->fragment);
-			glLinkProgram(self->m_id);
-
-			int success;
-			glGetProgramiv(self->m_id, GL_LINK_STATUS, &success);
-			if (!success) {
-				char infoLog[512];
-				glGetProgramInfoLog(self->m_id, 512, NULL, infoLog);
-				printf("Failed to link shader program: %s", infoLog);
-			}
-
-			glDeleteShader(self->vertex);
-			glDeleteShader(self->fragment);
+			self->m_id = createShaderProgram(self->vertex, self->fragment);
 		}
 
 		free(source);

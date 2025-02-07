@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 
 namespace ew {
-	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource);
+	unsigned int createShaderProgram(unsigned int vertex, unsigned int fragment);
 
 	class Shader {
 	private:
