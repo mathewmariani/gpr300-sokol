@@ -30,7 +30,7 @@ namespace batteries
 
     float fov = 60.0f;
     float nearz = 0.01f;
-    float farz = 100.0f;
+    float farz = 1000.0f;
   };
 
   struct camera_desc
@@ -74,7 +74,7 @@ namespace batteries
     float min_pitch = -89.0f;
     float max_pitch = +89.0f;
     float min_dist = 2.0f;
-    float max_dist = 30.0f;
+    float max_dist = 100.0f;
     float distance = 5.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;

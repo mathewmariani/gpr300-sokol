@@ -23,6 +23,7 @@ public:
 private:
   std::unique_ptr<ew::Shader> water;
   std::unique_ptr<ew::Texture> texture;
+  std::unique_ptr<ew::Texture> water_mipmap;
   
   ew::Mesh plane;
 };

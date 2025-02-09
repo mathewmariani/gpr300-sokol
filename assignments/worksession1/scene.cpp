@@ -49,6 +49,14 @@ Scene::Scene()
     water = std::make_unique<ew::Shader>("assets/shaders/windwaker/water.vs", "assets/shaders/windwaker/water.fs");
     texture = std::make_unique<ew::Texture>("assets/windwaker/water.png");
 
+    water_mipmap = std::make_unique<ew::Texture>((ew::mipmap_t){
+        "assets/windwaker/water128.png",
+        "assets/windwaker/water64.png",
+        "assets/windwaker/water32.png",
+        "assets/windwaker/water16.png",
+        "assets/windwaker/water8.png",
+    });
+
     plane.load(ew::createPlane(400.0f, 400.0f, 10));
 }
 
@@ -74,7 +82,7 @@ void Scene::Render(void)
 
     // set bindings
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture->getID());
+    glBindTexture(GL_TEXTURE_2D, water_mipmap->getID());
 
     water->use();
 
@@ -94,6 +102,7 @@ void Scene::Render(void)
     water->setFloat("Bs", debug.bottom_scale);
     water->setFloat("strength", debug.strength);
     water->setFloat("scale", debug.scale);
+    water->setFloat("lod_bias", debug.lod_bias);
 
     plane.draw();
 
@@ -110,6 +119,8 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     ImGui::Separator();
+
+    ImGui::SliderFloat("LOD Bias", &debug.lod_bias, 0.0f, 100.0f);
 
     if (ImGui::CollapsingHeader("Color"))
     {
