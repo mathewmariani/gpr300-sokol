@@ -11,29 +11,7 @@
 #include "ew/procGen.h"
 
 // opengl
-#include <GLES3/gl3.h>
-
-#include <iostream>
-
-GLenum glCheckError_(const char *file, int line)
-{
-    GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        std::string error;
-        switch (errorCode)
-        {
-            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-        }
-        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-    }
-    return errorCode;
-}
-#define glCheckError() glCheckError_(__FILE__, __LINE__) 
+#include <GLES3/gl3.h> 
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
@@ -41,7 +19,7 @@ struct Material {
 	glm::vec3 ambient{ 1.0f }; 
 	glm::vec3 diffuse{ 0.5f }; 
 	glm::vec3 specular{ 0.5f };
-	float shininess = 128.0f;
+	float shininess = 0.5f;
 } material;
 
 struct Depthbuffer {
@@ -55,10 +33,10 @@ struct Depthbuffer {
         glGenTextures(1, &depth);
         glBindTexture(GL_TEXTURE_2D, depth);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
@@ -113,15 +91,15 @@ void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    const auto light_view = glm::lookAt(light.position, {0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f});
     const auto light_view_proj = light_proj * light_view;
 
     // draw the scene only using the depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthbuffer.fbo);
     {
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        glCullFace(GL_FRONT);
         glEnable(GL_DEPTH_TEST);
 
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -175,9 +153,9 @@ void Scene::Render(void)
 
     // draw suzanne
     suzanne->draw();
-    plane.draw();
 
-    glCheckError();
+    blinnphong->setMat4("model", glm::translate(glm::vec3(0.0f, -2.0f, 0.0f)));
+    plane.draw();
 }
 
 void Scene::Debug(void)
@@ -199,7 +177,7 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
     ImGui::ColorEdit3("Color", &ambient.color[0]);
 
-    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(1024, 1024), ImVec2(0, 1), ImVec2(1, 0)); 
+    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(1024, 1024)); 
 
     ImGui::End();
 }
