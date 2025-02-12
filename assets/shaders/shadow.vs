@@ -22,5 +22,5 @@ void main()
   vs_texcoord = in_texcoord;
 
   vs_light_proj_pos = light_view_proj * vec4(vs_position, 1.0);
-  gl_Position = view_proj * model * vec4(in_position, 1.0);
+  gl_Position = view_proj * vec4(vs_position, 1.0);
 }
