@@ -1,19 +1,13 @@
 #pragma once
 
 // batteries
-#include "batteries/gizmo.h"
-#include "batteries/lights.h"
-#include "batteries/materials.h"
-#include "batteries/model.h"
 #include "batteries/scene.h"
-#include "batteries/shape.h"
+#include "batteries/lights.h"
 
-#include "blinnphong.h"
-#include "blur.h"
-#include "chromaticaberration.h"
-#include "crt.h"
-#include "grayscale.h"
-#include "inverse.h"
+// ew
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
 
 class Scene final : public batteries::Scene
 {
@@ -26,17 +20,11 @@ public:
   void Debug(void);
 
 private:
-  BlinnPhong blinnphong;
-  BlurRenderer blurRenderer;
-  ChromaticAberrationRenderer chromaticAberrationRenderer;
-  CRTRenderer crtRenderer;
-  GrayScaleRenderer grayscaleRenderer;
-  InverseRenderer inverseRenderer;
+  std::unique_ptr<ew::Model> suzanne;
+  std::unique_ptr<ew::Shader> blinnphong;
+  std::unique_ptr<ew::Texture> texture;
+  std::vector<std::unique_ptr<ew::Shader>> effects;
 
-  batteries::Model suzanne;
-  batteries::Gizmo gizmo;
-  batteries::Shape sphere;
   batteries::ambient_t ambient;
   batteries::light_t light;
-  batteries::material_t material;
 };

@@ -2,9 +2,13 @@
 
 // batteries
 #include "batteries/scene.h"
-#include "batteries/shape.h"
 
-#include "water.h"
+// ew
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
+
+#include <memory>
 
 class Scene final : public batteries::Scene
 {
@@ -17,6 +21,8 @@ public:
   void Debug(void);
 
 private:
-  Water water;
-  batteries::Shape plane;
+  std::unique_ptr<ew::Shader> water;
+  std::unique_ptr<ew::Texture> texture;
+  
+  ew::Mesh plane;
 };

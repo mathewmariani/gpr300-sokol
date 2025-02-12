@@ -1,13 +1,13 @@
 #pragma once
 
 // batteries
-#include "batteries/model.h"
-#include "batteries/lights.h"
 #include "batteries/scene.h"
-#include "batteries/gizmo.h"
-#include "batteries/shape.h"
+#include "batteries/lights.h"
 
-#include "blinnphong.h"
+// ew
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
 
 class Scene final : public batteries::Scene
 {
@@ -20,10 +20,9 @@ public:
   void Debug(void);
 
 private:
-  BlinnPhong blinnphong;
-  batteries::Model suzanne;
-  batteries::Gizmo gizmo;
-  batteries::Shape sphere;
+  std::unique_ptr<ew::Model> suzanne;
+  std::unique_ptr<ew::Shader> blinnphong;
+  std::unique_ptr<ew::Texture> texture;
 
   batteries::ambient_t ambient;
   batteries::light_t light;
