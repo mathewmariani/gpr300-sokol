@@ -52,6 +52,12 @@ struct Depthbuffer {
     }
 } depthbuffer;
 
+struct {
+    float bias = 0.005f;
+    bool cull_front = false;
+    bool use_pcf = false;
+} debug;
+
 Scene::Scene()
 {
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/shadow.vs", "assets/shaders/shadow.fs");
@@ -73,6 +79,7 @@ Scene::Scene()
     depthbuffer.Initialize();
 
     plane.load(ew::createPlane(50.0f, 50.0f, 1));
+    // plane.load(ew::createCube(15.0f));
 }
 
 Scene::~Scene()
@@ -92,15 +99,17 @@ void Scene::Render(void)
     const auto view_proj = camera.Projection() * camera.View();
 
     const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, {0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f});
+    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     const auto light_view_proj = light_proj * light_view;
 
     // draw the scene only using the depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthbuffer.fbo);
     {
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
+        glCullFace(debug.cull_front ? GL_FRONT : GL_BACK);
         glEnable(GL_DEPTH_TEST);
+
+        glViewport(0, 0, 1024, 1024);
 
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -121,6 +130,9 @@ void Scene::Render(void)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
+
+    // reset viewport
+    glViewport(0, 0, sapp_width(), sapp_height());
 
     // set bindings
     glActiveTexture(GL_TEXTURE0);
@@ -151,10 +163,18 @@ void Scene::Render(void)
     blinnphong->setVec3("light.color", light.color);
     blinnphong->setVec3("light.position", light.position);
 
+    blinnphong->setFloat("bias", debug.bias);
+    blinnphong->setInt("use_pcf", debug.use_pcf);
+
     // draw suzanne
     suzanne->draw();
 
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_FRONT);
+    // blinnphong->setMat4("model", glm::mat4(1.0f));
+
     blinnphong->setMat4("model", glm::translate(glm::vec3(0.0f, -2.0f, 0.0f)));
+
     plane.draw();
 }
 
@@ -166,6 +186,11 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
+
+    ImGui::SeparatorText("Shadow Mapping");
+    ImGui::Checkbox("cull_front", &debug.cull_front);
+    ImGui::Checkbox("use_pcf", &debug.use_pcf);
+    ImGui::SliderFloat("Bias", &debug.bias, 0.05f, 0.00f);
 
     ImGui::SeparatorText("Material");
     ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);

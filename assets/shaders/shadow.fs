@@ -31,6 +31,8 @@ uniform Material material;
 uniform Ambient ambient;
 uniform Light light;
 uniform vec3 camera_position;
+uniform float bias;
+uniform bool use_pcf;
 
 float shadowCalculation(vec4 fragPosLightSpace)
 {
@@ -45,20 +47,23 @@ float shadowCalculation(vec4 fragPosLightSpace)
     // check whether current frag pos is in shadow
     vec3 normal = normalize(vs_normal);
     vec3 light_dir = normalize(light.position - vs_position);
-    float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+    // float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+    float shadow = (current_depth - bias) > closest_depth ? 1.0 : 0.0;
 
-    // PCF
-    float shadow = 0.0;
-    vec2 texel_size = 1.0 / vec2(1024.0, 1024.0);
-    for(int x = -1; x <= 1; ++x)
+    if (use_pcf)
     {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
-            shadow += (current_depth - bias) > pcf_depth  ? 1.0 : 0.0;        
-        }    
+      shadow = 0.0;
+      vec2 texel_size = 1.0 / vec2(1024.0, 1024.0);
+      for(int x = -1; x <= 1; ++x)
+      {
+          for(int y = -1; y <= 1; ++y)
+          {
+              float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r; 
+              shadow += (current_depth - bias) > pcf_depth  ? 1.0 : 0.0;        
+          }    
+      }
+      shadow /= 9.0;
     }
-    shadow /= 9.0;
 
     return shadow;
 }
@@ -87,7 +92,6 @@ void main()
   vec3 object_color = (normal * 0.5 + 0.5);
 
   float shadow = shadowCalculation(vs_light_proj_pos);
-  // float shadow = 0.0;
 
   vec3 lighting = blinnPhong(normal, vs_position, light.position);
   lighting *= (1.0 - shadow);
