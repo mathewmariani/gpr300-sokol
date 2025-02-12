@@ -49,7 +49,7 @@ float shadowCalculation(vec4 fragPosLightSpace)
 
     // PCF
     float shadow = 0.0;
-    vec2 texel_size = 1.0 / textureSize(shadow_map, 0.0);
+    vec2 texel_size = 1.0 / vec2(1024.0, 1024.0);
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -62,6 +62,7 @@ float shadowCalculation(vec4 fragPosLightSpace)
 
     return shadow;
 }
+
 
 vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos) {
   // normalize inputs
@@ -86,6 +87,7 @@ void main()
   vec3 object_color = (normal * 0.5 + 0.5);
 
   float shadow = shadowCalculation(vs_light_proj_pos);
+  // float shadow = 0.0;
 
   vec3 lighting = blinnPhong(normal, vs_position, light.position);
   lighting *= (1.0 - shadow);

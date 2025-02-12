@@ -16,7 +16,7 @@ struct Material {
 	glm::vec3 ambient{ 1.0f }; 
 	glm::vec3 diffuse{ 0.5f }; 
 	glm::vec3 specular{ 0.5f };
-	float shininess = 128.0f;
+	float shininess = 0.5f;
 } material;
 
 struct {
@@ -51,7 +51,7 @@ struct FullscreenQuad {
 
 		// buffer data to vbo
 		glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices, GL_STATIC_DRAW);
-		
+
 		// positions and texcoords
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
