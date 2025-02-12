@@ -58,6 +58,7 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 4][] - Toon Shading
 *   [worksession 5][] - Transition Sequences
 *   [worksession 6][] - Complex Geometries
+*   [worksession 7][] - Mario Kart Double Dash Water
 
 <!-- Future Work Sessions:
 *   [worksession 4][] - Mandelbrot Set
