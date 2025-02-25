@@ -13,7 +13,7 @@
 // opengl
 #include <GLES3/gl3.h> 
 
-static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
+static glm::vec4 suzanne_orbit_radius = {2.0f, 0.0f, -2.0f, 1.0f};
 
 struct Material {
 	glm::vec3 ambient{ 1.0f }; 
@@ -41,6 +41,7 @@ struct Depthbuffer {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
+        glClear(GL_DEPTH_BUFFER_BIT);
         glDrawBuffers(0, nullptr);
         glReadBuffer(GL_NONE);
 
@@ -57,15 +58,19 @@ struct {
     float bias = 0.005f;
     bool cull_front = false;
     bool use_pcf = false;
+    float farz = 2.5f;
+    float nearz = 0.01f;
+    glm::mat4 suzanne_mat = glm::mat4(1.0f);
 } debug;
 
 Scene::Scene()
 {
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/shadow.vs", "assets/shaders/shadow.fs");
     depth = std::make_unique<ew::Shader>("assets/shaders/depth.vs", "assets/shaders/depth.fs");
+    snow = std::make_unique<ew::Shader>("assets/shaders/snow.vs", "assets/shaders/snow.fs");
 
     suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
-    texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+    snow_texture = std::make_unique<ew::Texture>("assets/snow.png");
 
     ambient = {
         .intensity = 1.0f,
@@ -75,11 +80,12 @@ Scene::Scene()
     light = {
         .brightness = 1.0f,
         .color = { 0.5f, 0.5f, 0.5f },
+        .position = { 0.0f, -2.0f, 0.0f },
     };
 
     depthbuffer.Initialize();
 
-    plane.load(ew::createPlane(50.0f, 50.0f, 1));
+    plane.load(ew::createPlane(50.0f, 50.0f, 1000));
     // plane.load(ew::createCube(15.0f));
 }
 
@@ -92,15 +98,15 @@ void Scene::Update(float dt)
     batteries::Scene::Update(dt);
 
     const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
-    light.position = rym * light_orbit_radius;
+    debug.suzanne_mat = glm::translate(glm::vec3(rym * suzanne_orbit_radius));
 }
 
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, debug.nearz, debug.farz);
+    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
     const auto light_view_proj = light_proj * light_view;
 
     // draw the scene only using the depth buffer
@@ -112,12 +118,10 @@ void Scene::Render(void)
 
         glViewport(0, 0, 1024, 1024);
 
-        glClear(GL_DEPTH_BUFFER_BIT);
-
         depth->use();
 
         // scene matrices
-        depth->setMat4("model", glm::mat4{1.0f});
+        depth->setMat4("model", debug.suzanne_mat);
         depth->setMat4("light_view_proj", light_view_proj);
 
         // draw scene
@@ -139,13 +143,16 @@ void Scene::Render(void)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, depthbuffer.depth);
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, snow_texture->getID());
+    
     blinnphong->use();
 
     // samplers
     blinnphong->setInt("shadow_map", 0);
 
 	// scene matrices
-	blinnphong->setMat4("model", glm::mat4{1.0f});
+	blinnphong->setMat4("model", debug.suzanne_mat);
 	blinnphong->setMat4("view_proj", view_proj);
 	blinnphong->setMat4("light_view_proj", light_view_proj);
     blinnphong->setVec3("camera_position", camera.position);
@@ -170,11 +177,24 @@ void Scene::Render(void)
     // draw suzanne
     suzanne->draw();
 
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_FRONT);
-    // blinnphong->setMat4("model", glm::mat4(1.0f));
+    snow->use();
 
-    blinnphong->setMat4("model", glm::translate(glm::vec3(0.0f, -2.0f, 0.0f)));
+    // samplers
+    snow->setInt("shadow_map", 0);
+    snow->setInt("snow_texture", 1);
+
+	// scene matrices
+	snow->setMat4("model", glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)));
+	snow->setMat4("view_proj", view_proj);
+	snow->setMat4("light_view_proj", light_view_proj);
+    snow->setVec3("camera_position", camera.position);
+
+    // point light
+    snow->setVec3("light.color", light.color);
+    snow->setVec3("light.position", light.position);
+
+    snow->setFloat("bias", debug.bias);
+    snow->setInt("use_pcf", debug.use_pcf);
 
     plane.draw();
 }
@@ -192,6 +212,9 @@ void Scene::Debug(void)
     ImGui::Checkbox("cull_front", &debug.cull_front);
     ImGui::Checkbox("use_pcf", &debug.use_pcf);
     ImGui::SliderFloat("Bias", &debug.bias, 0.05f, 0.00f);
+
+    ImGui::SliderFloat("Near", &debug.nearz, 0.1f, 10.0f);
+    ImGui::SliderFloat("Far", &debug.farz, 0.1f, 10.0f);
 
     ImGui::SeparatorText("Material");
     ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
