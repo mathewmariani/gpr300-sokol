@@ -11,6 +11,8 @@
 constexpr int kFramebufferWidth = 800;
 constexpr int kFramebufferHeight = 600;
 
+constexpr glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
+
 struct FullscreenQuad {
 	GLuint vao;
 	GLuint vbo;
@@ -51,9 +53,9 @@ struct FullscreenQuad {
 
 struct Framebuffer {
 	GLuint fbo;
-	GLuint color0;
-	GLuint color1;
-	GLuint color2;
+	GLuint position;
+	GLuint normal;
+	GLuint albedo;
 	GLuint depth;
 
 	void Initialize()
@@ -63,28 +65,28 @@ struct Framebuffer {
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 		// color attachment
-		glGenTextures(1, &color0);
-		glBindTexture(GL_TEXTURE_2D, color0);
+		glGenTextures(1, &position);
+		glBindTexture(GL_TEXTURE_2D, position);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
 
 		// color attachment
-		glGenTextures(1, &color1);
-		glBindTexture(GL_TEXTURE_2D, color1);
+		glGenTextures(1, &normal);
+		glBindTexture(GL_TEXTURE_2D, normal);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, color1, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
 
 		// color attachment
-		glGenTextures(1, &color2);
-		glBindTexture(GL_TEXTURE_2D, color2);
+		glGenTextures(1, &albedo);
+		glBindTexture(GL_TEXTURE_2D, albedo);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, color2, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
 
 		// Create depth texture
 		glGenTextures(1, &depth);
@@ -106,40 +108,22 @@ struct Framebuffer {
 	}
 } framebuffer;
 
-void post_process(ew::Shader* shader)
-{
-	shader->use();
-	shader->setInt("g_albedo", 0);
-	shader->setInt("g_position", 1);
-	shader->setInt("g_normal", 2);
+struct Material {
+	glm::vec3 ambient{ 1.0f }; 
+	glm::vec3 diffuse{ 0.5f }; 
+	glm::vec3 specular{ 0.5f };
+	float shininess = 0.5f;
+} material;
 
-	// fullscreen quad pipeline:
-	glDisable(GL_DEPTH_TEST);
-
-	// clear default buffer
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-
-	// draw fullscreen quad
-	glBindVertexArray(fullscreen_quad.vao);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, framebuffer.color0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, framebuffer.color1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, framebuffer.color2);
-
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-}
+struct {
+	int width = 1;
+} debug;
 
 Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
     geometry = std::make_unique<ew::Shader>("assets/shaders/deferred/geometry.vs", "assets/shaders/deferred/geometry.fs");
-	lighting = std::make_unique<ew::Shader>("assets/shaders/deferred/blinnphong.vs", "assets/shaders/deferred/blinnphongt.fs");
+	lighting = std::make_unique<ew::Shader>("assets/shaders/deferred/blinnphong.vs", "assets/shaders/deferred/blinnphong.fs");
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
     ambient = {
@@ -163,6 +147,9 @@ Scene::~Scene()
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
+
+    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
+    light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
@@ -171,21 +158,14 @@ void Scene::Render(void)
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
     {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glEnable(GL_DEPTH_TEST);
 
-        // set bindings
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture->getID());
-
         geometry->use();
-
-        // samplers
-        geometry->setInt("texture0", 0);
 
         // scene matrices
         geometry->setMat4("model", glm::mat4{1.0f});
@@ -193,18 +173,60 @@ void Scene::Render(void)
         geometry->setVec3("camera_position", camera.position);
 
         // draw suzanne
-		for (auto i = -1; i <= 1; i++)
+		for (auto i = -debug.width; i <= debug.width; i++)
 		{
-			for (auto j = -1; j <= 1; j++)
+			for (auto j = -debug.width; j <= debug.width; j++)
 			{
-				geometry->setMat4("model", glm::translate(glm::vec3(i * 2.0f, 0, j * 2.0f)));
+				geometry->setMat4("model", glm::translate(glm::vec3(i * 3.0f, 0, j * 3.0f)));
 				suzanne->draw();
 			}
 		}
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    post_process(lighting.get());
+	{
+		lighting->use();
+		lighting->setInt("g_position", 0);
+		lighting->setInt("g_normal", 1);
+		lighting->setInt("g_albedo", 2);
+	
+		lighting->setVec3("camera_position", camera.position);
+	
+		// material properties
+		lighting->setVec3("material.ambient", material.ambient);
+		lighting->setVec3("material.diffuse", material.diffuse);
+		lighting->setVec3("material.specular", material.specular);
+		lighting->setFloat("material.shininess", material.shininess);
+
+		// ambient light
+		lighting->setFloat("ambient.intensity", ambient.intensity);
+		lighting->setVec3("ambient.color", ambient.color);
+	
+		// point light
+		lighting->setVec3("light.color", light.color);
+		lighting->setVec3("light.position", light.position);
+		
+		// fullscreen quad pipeline:
+		glDisable(GL_DEPTH_TEST);
+	
+		// clear default buffer
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
+	
+		// draw fullscreen quad
+		glBindVertexArray(fullscreen_quad.vao);
+	
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, framebuffer.position);
+	
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, framebuffer.normal);
+	
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, framebuffer.albedo);
+	
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 }
 
 void Scene::Debug(void)
@@ -216,9 +238,11 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-	ImGui::Image((ImTextureID)(intptr_t)framebuffer.color0, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
-	ImGui::Image((ImTextureID)(intptr_t)framebuffer.color1, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
-	ImGui::Image((ImTextureID)(intptr_t)framebuffer.color2, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
+	ImGui::SliderInt("Width", &debug.width, 0, 50);
+
+	// ImGui::Image((ImTextureID)(intptr_t)framebuffer.position, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
+	// ImGui::Image((ImTextureID)(intptr_t)framebuffer.normal, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
+	// ImGui::Image((ImTextureID)(intptr_t)framebuffer.albedo, ImVec2(kFramebufferWidth, kFramebufferHeight)); 
 
     ImGui::End();
 }
