@@ -149,6 +149,7 @@ Scene::Scene()
     light = {
         .brightness = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
+        .position = batteries::random_point_on_sphere(),
     };
 
     framebuffer.Initialize();
@@ -182,8 +183,8 @@ void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
 
-    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
-    light.position = rym * light_orbit_radius;
+    // const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
+    // light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
@@ -272,17 +273,19 @@ void Scene::Render(void)
     }
 
     { // render light sources
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, framebuffer.depth);
+        glEnable(GL_DEPTH_TEST);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+        glBlitFramebuffer(0, 0, 800, 600, 0, 0, sapp_widthf(), sapp_heightf(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         lightsphere->use();
 
         // scene matrices
         lightsphere->setMat4("model", glm::translate(light.position));
         lightsphere->setMat4("view_proj", view_proj);
-        lightsphere->setVec3("camera_position", camera.position);
-
-        lightsphere->setVec2("screen_size", {sapp_widthf(), sapp_heightf()});
 
         sphere.draw();
     }
