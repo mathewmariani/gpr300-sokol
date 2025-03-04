@@ -1,9 +1,8 @@
 #include "scene.h"
-
 #include "catnumrollspline.h"
 
 // batteries
-#include "batteries/transform.h"
+#include "batteries/math.h"
 
 // glm
 #include "glm/glm.hpp"
@@ -15,9 +14,9 @@
 #include <GLES3/gl3.h>
 
 // sokol
-#include <vector>
-
 #include "sokol/sokol_app.h"
+
+#include <vector>
 
 constexpr glm::vec3 color_1{1.00f, 1.00f, 1.00f};
 constexpr glm::vec3 color_2{0.20f, 0.59f, 0.85f};

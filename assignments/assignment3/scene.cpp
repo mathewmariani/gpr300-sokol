@@ -2,7 +2,6 @@
 
 // batteries
 #include "batteries/math.h"
-#include "batteries/transform.h"
 
 // ew
 #include "ew/procGen.h"

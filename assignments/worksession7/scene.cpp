@@ -1,4 +1,3 @@
-// batteries
 #include "scene.h"
 
 // imgui
@@ -9,8 +8,6 @@
 
 // opengl
 #include <GLES3/gl3.h>
-
-#include "batteries/transform.h"
 
 struct
 {

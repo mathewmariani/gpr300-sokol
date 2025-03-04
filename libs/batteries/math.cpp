@@ -2,8 +2,6 @@
 #include "math.h"
 
 // glm
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/transform.hpp"
 #include "glm/gtc/random.hpp"
 
 // std

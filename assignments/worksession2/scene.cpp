@@ -1,5 +1,7 @@
-// batteries
 #include "scene.h"
+
+// batteries
+#include "batteries/math.h"
 
 // imgui
 #include "imgui/imgui.h"
@@ -9,8 +11,6 @@
 
 // opengl
 #include <GLES3/gl3.h>
-
-#include "batteries/transform.h"
 
 Scene::Scene()
 {

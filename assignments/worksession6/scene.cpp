@@ -1,4 +1,3 @@
-// batteries
 #include "scene.h"
 
 // imgui
