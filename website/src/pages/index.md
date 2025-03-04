@@ -42,9 +42,9 @@ Before working on any project it's important to understand the [development envi
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
 *   [assignment 3][] - Deferred Lighting
+*   [assignment 4][] - Splines
 
 <!-- Future Assignments:
-*   [assignment 4][] - Splines
 *   [assignment 5][] - Skeletal Animations
 -->
 
@@ -104,3 +104,4 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 4]: worksessions/worksession4
 [worksession 5]: worksessions/worksession5
 [worksession 6]: worksessions/worksession6
+[worksession 7]: worksessions/worksession7
