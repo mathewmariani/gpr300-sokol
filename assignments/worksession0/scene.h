@@ -1,8 +1,8 @@
 #pragma once
 
 // batteries
-#include "batteries/scene.h"
 #include "batteries/lights.h"
+#include "batteries/scene.h"
 
 // ew
 #include "ew/model.h"
@@ -11,20 +11,20 @@
 
 class Scene final : public batteries::Scene
 {
-public:
-  Scene();
-  virtual ~Scene();
+  public:
+    Scene();
+    virtual ~Scene();
 
-  void Update(float dt);
-  void Render(void);
-  void Debug(void);
+    void Update(float dt);
+    void Render(void);
+    void Debug(void);
 
-private:
-  std::unique_ptr<ew::Model> shell;
-  std::unique_ptr<ew::Shader> pbr;
-  
-  std::vector<std::unique_ptr<ew::Texture>> textures;
+  private:
+    std::unique_ptr<ew::Model> shell;
+    std::unique_ptr<ew::Shader> pbr;
 
-  batteries::ambient_t ambient;
-  batteries::light_t light;
+    std::vector<std::unique_ptr<ew::Texture>> textures;
+
+    batteries::ambient_t ambient;
+    batteries::light_t light;
 };

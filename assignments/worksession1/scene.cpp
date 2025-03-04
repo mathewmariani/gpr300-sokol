@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-GLenum glCheckError_(const char *file, int line)
+GLenum glCheckError_(const char* file, int line)
 {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR)
@@ -20,17 +20,27 @@ GLenum glCheckError_(const char *file, int line)
         std::string error;
         switch (errorCode)
         {
-            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+        case GL_INVALID_ENUM:
+            error = "INVALID_ENUM";
+            break;
+        case GL_INVALID_VALUE:
+            error = "INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            error = "INVALID_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            error = "OUT_OF_MEMORY";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            error = "INVALID_FRAMEBUFFER_OPERATION";
+            break;
         }
         std::cout << error << " | " << file << " (" << line << ")" << std::endl;
     }
     return errorCode;
 }
-#define glCheckError() glCheckError_(__FILE__, __LINE__) 
+#define glCheckError() glCheckError_(__FILE__, __LINE__)
 
 static struct
 {
@@ -89,9 +99,9 @@ void Scene::Render(void)
     // samplers
     water->setInt("texture0", 0);
 
-	// scene matrices
-	water->setMat4("model", glm::mat4{1.0f});
-	water->setMat4("view_proj", view_proj);
+    // scene matrices
+    water->setMat4("model", glm::mat4{1.0f});
+    water->setMat4("view_proj", view_proj);
 
     // water properties
     water->setVec3("color", debug.color);

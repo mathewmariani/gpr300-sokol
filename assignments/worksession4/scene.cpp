@@ -1,5 +1,6 @@
 // batteries
 #include "scene.h"
+
 #include "batteries/materials.h"
 #include "batteries/transform.h"
 
@@ -9,8 +10,8 @@
 // opengl
 #include <GLES3/gl3.h>
 
-#include <vector>
 #include <tuple>
+#include <vector>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
@@ -77,14 +78,14 @@ void Scene::Render(void)
 
     toonshading->use();
 
-	// scene matrices
-	toonshading->setMat4("model", glm::mat4{1.0f});
-	toonshading->setMat4("view_proj", view_proj);
-	toonshading->setVec3("camera_position", camera.position);
+    // scene matrices
+    toonshading->setMat4("model", glm::mat4{1.0f});
+    toonshading->setMat4("view_proj", view_proj);
+    toonshading->setVec3("camera_position", camera.position);
 
     // samplers
-	toonshading->setInt("material.albedo", 0);
-	toonshading->setInt("material.zatoon", 1);
+    toonshading->setInt("material.albedo", 0);
+    toonshading->setInt("material.zatoon", 1);
 
     // ambient light
     toonshading->setVec3("palette.highlight", std::get<1>(palette[palette_index]).highlight);

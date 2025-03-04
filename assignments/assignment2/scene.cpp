@@ -11,20 +11,22 @@
 #include "ew/procGen.h"
 
 // opengl
-#include <GLES3/gl3.h> 
+#include <GLES3/gl3.h>
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
 
-struct Material {
-	glm::vec3 ambient{ 1.0f }; 
-	glm::vec3 diffuse{ 0.5f }; 
-	glm::vec3 specular{ 0.5f };
-	float shininess = 0.5f;
+struct Material
+{
+    glm::vec3 ambient{1.0f};
+    glm::vec3 diffuse{0.5f};
+    glm::vec3 specular{0.5f};
+    float shininess = 0.5f;
 } material;
 
-struct Depthbuffer {
-	GLuint fbo;
-	GLuint depth;
+struct Depthbuffer
+{
+    GLuint fbo;
+    GLuint depth;
 
     void Initialize()
     {
@@ -45,7 +47,8 @@ struct Depthbuffer {
         glReadBuffer(GL_NONE);
 
         // check completeness
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
             printf("Not so victorious\n");
         }
 
@@ -53,7 +56,8 @@ struct Depthbuffer {
     }
 } depthbuffer;
 
-struct {
+struct
+{
     float bias = 0.005f;
     bool cull_front = false;
     bool use_pcf = false;
@@ -69,12 +73,12 @@ Scene::Scene()
 
     ambient = {
         .intensity = 1.0f,
-        .color = { 0.5f, 0.5f, 0.5f },
+        .color = {0.5f, 0.5f, 0.5f},
     };
 
     light = {
         .brightness = 1.0f,
-        .color = { 0.5f, 0.5f, 0.5f },
+        .color = {0.5f, 0.5f, 0.5f},
     };
 
     depthbuffer.Initialize();
@@ -144,17 +148,17 @@ void Scene::Render(void)
     // samplers
     blinnphong->setInt("shadow_map", 0);
 
-	// scene matrices
-	blinnphong->setMat4("model", glm::mat4{1.0f});
-	blinnphong->setMat4("view_proj", view_proj);
-	blinnphong->setMat4("light_view_proj", light_view_proj);
+    // scene matrices
+    blinnphong->setMat4("model", glm::mat4{1.0f});
+    blinnphong->setMat4("view_proj", view_proj);
+    blinnphong->setMat4("light_view_proj", light_view_proj);
     blinnphong->setVec3("camera_position", camera.position);
 
     // material properties
-	blinnphong->setVec3("material.ambient", material.ambient);
-	blinnphong->setVec3("material.diffuse", material.diffuse);
-	blinnphong->setVec3("material.specular", material.specular);
-	blinnphong->setFloat("material.shininess", material.shininess);
+    blinnphong->setVec3("material.ambient", material.ambient);
+    blinnphong->setVec3("material.diffuse", material.diffuse);
+    blinnphong->setVec3("material.specular", material.specular);
+    blinnphong->setFloat("material.shininess", material.shininess);
 
     // ambient light
     blinnphong->setFloat("ambient.intensity", ambient.intensity);
@@ -203,7 +207,7 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
     ImGui::ColorEdit3("Color", &ambient.color[0]);
 
-    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(1024, 1024)); 
+    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(1024, 1024));
 
     ImGui::End();
 }

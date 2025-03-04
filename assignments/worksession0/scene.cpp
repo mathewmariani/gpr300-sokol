@@ -12,7 +12,8 @@
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 
-enum {
+enum
+{
     PBR_ALBEDO = 0,
     PBR_METALLIC = 1,
     PBR_ROUGHNESS = 2,
@@ -32,12 +33,12 @@ Scene::Scene()
 
     ambient = {
         .intensity = 1.0f,
-        .color = { 0.5f, 0.5f, 0.5f },
+        .color = {0.5f, 0.5f, 0.5f},
     };
 
     light = {
         .brightness = 1.0f,
-        .color = { 0.5f, 0.5f, 0.5f },
+        .color = {0.5f, 0.5f, 0.5f},
     };
 }
 
@@ -82,16 +83,16 @@ void Scene::Render(void)
 
     pbr->use();
 
-	// scene matrices
-	pbr->setMat4("model", glm::mat4{1.0f});
-	pbr->setMat4("view_proj", view_proj);
-	pbr->setVec3("camera_position", camera.position);
+    // scene matrices
+    pbr->setMat4("model", glm::mat4{1.0f});
+    pbr->setMat4("view_proj", view_proj);
+    pbr->setVec3("camera_position", camera.position);
 
     // pbr material properties
-	pbr->setInt("material.albedo", PBR_ALBEDO);
-	pbr->setInt("material.metallic", PBR_METALLIC);
-	pbr->setInt("material.roughness", PBR_ROUGHNESS);
-	pbr->setInt("material.occlusion", PBR_OCCLUSION);
+    pbr->setInt("material.albedo", PBR_ALBEDO);
+    pbr->setInt("material.metallic", PBR_METALLIC);
+    pbr->setInt("material.roughness", PBR_ROUGHNESS);
+    pbr->setInt("material.occlusion", PBR_OCCLUSION);
     pbr->setInt("material.specular", PBR_SPECULAR);
 
     // point light

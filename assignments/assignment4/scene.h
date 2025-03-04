@@ -8,15 +8,15 @@
 
 class Scene final : public batteries::Scene
 {
-public:
-  Scene();
-  virtual ~Scene();
+  public:
+    Scene();
+    virtual ~Scene();
 
-  void Update(float dt);
-  void Render(void);
-  void Event(const sapp_event *event);
-  void Debug(void);
+    void Update(float dt);
+    void Render(void);
+    void Event(const sapp_event* event);
+    void Debug(void);
 
-private:
-  std::unique_ptr<ew::Shader> splines;
+  private:
+    std::unique_ptr<ew::Shader> splines;
 };

@@ -72,9 +72,9 @@ void Scene::Render(void)
     shader->setInt("water_tex", 1);
     shader->setInt("water_warp", 2);
 
-	// scene matrices
-	shader->setMat4("model", glm::mat4{1.0f});
-	shader->setMat4("view_proj", view_proj);
+    // scene matrices
+    shader->setMat4("model", glm::mat4{1.0f});
+    shader->setMat4("view_proj", view_proj);
 
     // debug tools
     shader->setVec3("color", debug.color);

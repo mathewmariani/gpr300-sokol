@@ -54,9 +54,9 @@ void Scene::Render(void)
     // samplers
     island->setInt("heightmap", 0);
 
-	// scene matrices
-	island->setMat4("model", glm::mat4{1.0f});
-	island->setMat4("view_proj", view_proj);
+    // scene matrices
+    island->setMat4("model", glm::mat4{1.0f});
+    island->setMat4("view_proj", view_proj);
 
     // island properties
     island->setFloat("landmass.scale", 10.0f);
@@ -65,7 +65,7 @@ void Scene::Render(void)
 
     water_shader->use();
     water_shader->setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.7f, 0.0f)));
-	water_shader->setMat4("view_proj", view_proj);
+    water_shader->setMat4("view_proj", view_proj);
     water_shader->setVec3("camera_position", camera.position);
     water_plane.draw();
 }

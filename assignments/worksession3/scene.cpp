@@ -64,9 +64,9 @@ void Scene::Render(void)
     // samplers
     water->setInt("texture0", 0);
 
-	// scene matrices
-	water->setMat4("model", glm::mat4{1.0f});
-	water->setMat4("view_proj", view_proj);
+    // scene matrices
+    water->setMat4("model", glm::mat4{1.0f});
+    water->setMat4("view_proj", view_proj);
 
     // water properties
     water->setFloat("lod_bias", debug.lod_bias);
