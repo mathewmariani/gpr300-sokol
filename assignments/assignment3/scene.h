@@ -29,10 +29,12 @@ class Scene final : public batteries::Scene
     std::unique_ptr<ew::Model> suzanne;
     std::unique_ptr<ew::Shader> geometry;
     std::unique_ptr<ew::Shader> lighting;
+    std::unique_ptr<ew::Shader> lightsphere;
     std::unique_ptr<ew::Texture> texture;
 
     batteries::ambient_t ambient;
     batteries::light_t light;
+    ew::Mesh sphere;
 
     std::vector<glm::mat4> modelMatrices;
 };

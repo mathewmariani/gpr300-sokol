@@ -4,6 +4,9 @@
 #include "batteries/math.h"
 #include "batteries/transform.h"
 
+// ew
+#include "ew/procGen.h"
+
 // imgui
 #include "imgui/imgui.h"
 
@@ -13,7 +16,7 @@
 constexpr int kFramebufferWidth = 800;
 constexpr int kFramebufferHeight = 600;
 
-constexpr glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
+constexpr glm::vec4 light_orbit_radius = {2.0f, 4.0f, -4.0f, 1.0f};
 
 struct FullscreenQuad
 {
@@ -133,7 +136,10 @@ Scene::Scene()
     suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
     geometry = std::make_unique<ew::Shader>("assets/shaders/deferred/geometry.vs", "assets/shaders/deferred/geometry.fs");
     lighting = std::make_unique<ew::Shader>("assets/shaders/deferred/blinnphong.vs", "assets/shaders/deferred/blinnphong.fs");
+    lightsphere = std::make_unique<ew::Shader>("assets/shaders/deferred/light.vs", "assets/shaders/deferred/light.fs");
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+
+    sphere.load(ew::createSphere(0.5f, 4));
 
     ambient = {
         .intensity = 1.0f,
@@ -193,6 +199,8 @@ void Scene::Render(void)
         glCullFace(GL_BACK);
         glEnable(GL_DEPTH_TEST);
 
+        glViewport(0, 0, kFramebufferWidth, kFramebufferHeight);
+
         geometry->use();
 
         // scene matrices
@@ -215,7 +223,7 @@ void Scene::Render(void)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    {
+    { // render fullscreen quad
         lighting->use();
         lighting->setInt("g_position", 0);
         lighting->setInt("g_normal", 1);
@@ -244,6 +252,8 @@ void Scene::Render(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glViewport(0, 0, sapp_widthf(), sapp_heightf());
+
         // draw fullscreen quad
         glBindVertexArray(fullscreen_quad.vao);
 
@@ -257,6 +267,24 @@ void Scene::Render(void)
         glBindTexture(GL_TEXTURE_2D, framebuffer.albedo);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+    }
+
+    { // render light sources
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.depth);
+
+        lightsphere->use();
+
+        // scene matrices
+        lightsphere->setMat4("model", glm::translate(light.position));
+        lightsphere->setMat4("view_proj", view_proj);
+        lightsphere->setVec3("camera_position", camera.position);
+
+        lightsphere->setVec2("screen_size", {sapp_widthf(), sapp_heightf()});
+
+        sphere.draw();
     }
 }
 
@@ -276,11 +304,9 @@ void Scene::Debug(void)
 
     if (ImGui::CollapsingHeader("Geometry Buffer"))
     {
-        // Flip the image vertically by inverting the Y scale
-        ImVec2 uv_min(0.0f, 1.0f); // Bottom-left corner (OpenGL origin)
-        ImVec2 uv_max(1.0f, 0.0f); // Top-right corner (ImGui origin)
+        ImVec2 uv_min(0.0f, 1.0f);
+        ImVec2 uv_max(1.0f, 0.0f);
 
-        // Render the image with flipped texture coordinates
         ImGui::Text("Albedo:");
         ImGui::Image((ImTextureID)(intptr_t)framebuffer.albedo, ImVec2(200, 150), uv_min, uv_max);
 
@@ -289,6 +315,9 @@ void Scene::Debug(void)
 
         ImGui::Text("Normal:");
         ImGui::Image((ImTextureID)(intptr_t)framebuffer.normal, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Depth:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.depth, ImVec2(200, 150), uv_min, uv_max);
     }
     ImGui::End();
 }
