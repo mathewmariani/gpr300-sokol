@@ -12,6 +12,7 @@ if(BUILD_WITH_BATTERIES)
     ${BATTERIES_DIR}/camera.h
     ${BATTERIES_DIR}/lights.h
     ${BATTERIES_DIR}/materials.h
+    ${BATTERIES_DIR}/math.cpp
     ${BATTERIES_DIR}/math.h
     ${BATTERIES_DIR}/mesh.h
     ${BATTERIES_DIR}/model.cpp

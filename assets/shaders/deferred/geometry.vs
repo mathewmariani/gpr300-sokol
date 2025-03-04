@@ -16,9 +16,12 @@ out vec2 vs_texcoord;
 
 void main()
 {
-    vs_position = in_position;
-    vs_normal = transpose(inverse(mat3(model))) * in_normal;
+    vec4 world_position = model * vec4(in_position, 1.0);
+    vec3 world_normal = transpose(inverse(mat3(model))) * in_normal;
+
+    vs_position = world_position.xyz;
+    vs_normal = world_normal;
     vs_texcoord = in_texcoord;
 
-    gl_Position = view_proj * model * vec4(in_position, 1.0);
+    gl_Position = view_proj * world_position;
 }

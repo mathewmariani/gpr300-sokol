@@ -1,6 +1,7 @@
-// batteries
 #include "scene.h"
 
+// batteries
+#include "batteries/math.h"
 #include "batteries/transform.h"
 
 // imgui
@@ -72,25 +73,25 @@ struct Framebuffer
         // color attachment
         glGenTextures(1, &position);
         glBindTexture(GL_TEXTURE_2D, position);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
 
         // color attachment
         glGenTextures(1, &normal);
         glBindTexture(GL_TEXTURE_2D, normal);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
 
         // color attachment
         glGenTextures(1, &albedo);
         glBindTexture(GL_TEXTURE_2D, albedo);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kFramebufferWidth, kFramebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
 
         // Create depth texture
@@ -146,10 +147,29 @@ Scene::Scene()
 
     framebuffer.Initialize();
     fullscreen_quad.Initialize();
+
+    InitializeInstances();
 }
 
 Scene::~Scene()
 {
+}
+
+void Scene::InitializeInstances(void)
+{
+    auto width = debug.width;
+    auto size = (width - (-width) + 1) * (width - (-width) + 1);
+    modelMatrices.resize(size);
+
+    auto i = 0;
+    for (auto x = -debug.width; x <= debug.width; x++)
+    {
+        for (auto y = -debug.width; y <= debug.width; y++, i++)
+        {
+            auto position = glm::vec3(x * 3.0f, 0, y * 3.0f);
+            modelMatrices[i] = batteries::random_model_matrix(position);
+        }
+    }
 }
 
 void Scene::Update(float dt)
@@ -181,11 +201,14 @@ void Scene::Render(void)
         geometry->setVec3("camera_position", camera.position);
 
         // draw suzanne
-        for (auto i = -debug.width; i <= debug.width; i++)
+        auto i = 0;
+        for (auto x = -debug.width; x <= debug.width; x++)
         {
-            for (auto j = -debug.width; j <= debug.width; j++)
+            for (auto y = -debug.width; y <= debug.width; y++, i++)
             {
-                geometry->setMat4("model", glm::translate(glm::vec3(i * 3.0f, 0, j * 3.0f)));
+                geometry->setMat4("model", modelMatrices[i]);
+
+                // Draw the object
                 suzanne->draw();
             }
         }
@@ -246,11 +269,26 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    ImGui::SliderInt("Width", &debug.width, 0, 50);
+    if (ImGui::SliderInt("Width", &debug.width, 1, 100))
+    {
+        InitializeInstances();
+    }
 
-    // ImGui::Image((ImTextureID)(intptr_t)framebuffer.position, ImVec2(kFramebufferWidth, kFramebufferHeight));
-    // ImGui::Image((ImTextureID)(intptr_t)framebuffer.normal, ImVec2(kFramebufferWidth, kFramebufferHeight));
-    // ImGui::Image((ImTextureID)(intptr_t)framebuffer.albedo, ImVec2(kFramebufferWidth, kFramebufferHeight));
+    if (ImGui::CollapsingHeader("Geometry Buffer"))
+    {
+        // Flip the image vertically by inverting the Y scale
+        ImVec2 uv_min(0.0f, 1.0f); // Bottom-left corner (OpenGL origin)
+        ImVec2 uv_max(1.0f, 0.0f); // Top-right corner (ImGui origin)
 
+        // Render the image with flipped texture coordinates
+        ImGui::Text("Albedo:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.albedo, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Position:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.position, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Normal:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.normal, ImVec2(200, 150), uv_min, uv_max);
+    }
     ImGui::End();
 }
