@@ -15,6 +15,7 @@
 constexpr int kFramebufferWidth = 800;
 constexpr int kFramebufferHeight = 600;
 
+constexpr float orbit_radius = 2.0f;
 constexpr glm::vec4 light_orbit_radius = {2.0f, 4.0f, -4.0f, 1.0f};
 
 struct FullscreenQuad
@@ -138,42 +139,46 @@ Scene::Scene()
     lightsphere = std::make_unique<ew::Shader>("assets/shaders/deferred/light.vs", "assets/shaders/deferred/light.fs");
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
-    sphere.load(ew::createSphere(0.5f, 4));
+    sphere.load(ew::createSphere(0.25f, 4));
 
     ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = {
-        .brightness = 1.0f,
-        .color = {0.5f, 0.5f, 0.5f},
-        .position = batteries::random_point_on_sphere(),
-    };
-
     framebuffer.Initialize();
     fullscreen_quad.Initialize();
 
-    InitializeInstances();
+    InitializeInstanceData();
 }
 
 Scene::~Scene()
 {
 }
 
-void Scene::InitializeInstances(void)
+void Scene::InitializeInstanceData(void)
 {
     auto width = debug.width;
     auto size = (width - (-width) + 1) * (width - (-width) + 1);
-    modelMatrices.resize(size);
+    model_instances.resize(size);
+    light_instances.resize(size);
 
     auto i = 0;
     for (auto x = -debug.width; x <= debug.width; x++)
     {
         for (auto y = -debug.width; y <= debug.width; y++, i++)
         {
-            auto position = glm::vec3(x * 3.0f, 0, y * 3.0f);
-            modelMatrices[i] = batteries::random_model_matrix(position);
+            const auto position = glm::vec3(x * 3.0f, 0, y * 3.0f);
+            const auto orbit = batteries::random_point_on_sphere();
+
+            // light instances
+            light_instances[i] = {
+                .color = batteries::random_color(),
+                .position = glm::vec4(position, 1.0f) + orbit  * orbit_radius,
+            };
+
+            // model instances
+            model_instances[i] = batteries::random_model_matrix(position);
         }
     }
 }
@@ -181,9 +186,6 @@ void Scene::InitializeInstances(void)
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
-
-    // const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
-    // light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
@@ -214,7 +216,7 @@ void Scene::Render(void)
         {
             for (auto y = -debug.width; y <= debug.width; y++, i++)
             {
-                geometry->setMat4("model", modelMatrices[i]);
+                geometry->setMat4("model", model_instances[i]);
 
                 // Draw the object
                 suzanne->draw();
@@ -242,8 +244,12 @@ void Scene::Render(void)
         lighting->setVec3("ambient.color", ambient.color);
 
         // point light
-        lighting->setVec3("light.color", light.color);
-        lighting->setVec3("light.position", light.position);
+        auto count = light_instances.size() > 100 ? 100 : light_instances.size();
+        for (auto i = 0; i < count; i++)
+        {
+            lighting->setVec3("lights[" + std::to_string(i) + "].color", light_instances[i].color);
+            lighting->setVec3("lights[" + std::to_string(i) + "].position", light_instances[i].position);
+        }
 
         // fullscreen quad pipeline:
         glDisable(GL_DEPTH_TEST);
@@ -282,11 +288,20 @@ void Scene::Render(void)
 
         lightsphere->use();
 
-        // scene matrices
-        lightsphere->setMat4("model", glm::translate(light.position));
-        lightsphere->setMat4("view_proj", view_proj);
+        auto i = 0;
+        for (auto x = -debug.width; x <= debug.width; x++)
+        {
+            for (auto y = -debug.width; y <= debug.width; y++, i++)
+            {
+                // scene matrices
+                lightsphere->setMat4("model", glm::translate(light_instances[i].position));
+                lightsphere->setMat4("view_proj", view_proj);
 
-        sphere.draw();
+                lightsphere->setVec3("color", light_instances[i].color);
+
+                sphere.draw();
+            }
+        }
     }
 }
 
@@ -301,7 +316,7 @@ void Scene::Debug(void)
 
     if (ImGui::SliderInt("Width", &debug.width, 1, 100))
     {
-        InitializeInstances();
+        InitializeInstanceData();
     }
 
     if (ImGui::CollapsingHeader("Geometry Buffer"))

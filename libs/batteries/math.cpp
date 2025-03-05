@@ -10,7 +10,15 @@
 
 namespace batteries
 {
-    glm::vec4 random_point_on_sphere()
+    glm::vec4 random_color(void)
+    {
+        const auto r = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+        const auto g = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+        const auto b = static_cast<float>(((rand() % 100) / 200.0f) + 0.5f);
+        return glm::vec4(r, g, b, 1.0f);
+    }
+
+    glm::vec4 random_point_on_sphere(void)
     {
         // Random number generation with a uniform distribution
         static std::random_device rd;

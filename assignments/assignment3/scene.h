@@ -23,7 +23,7 @@ class Scene final : public batteries::Scene
     void Debug(void);
 
   private:
-    void InitializeInstances(void);
+    void InitializeInstanceData(void);
 
   private:
     std::unique_ptr<ew::Model> suzanne;
@@ -36,5 +36,6 @@ class Scene final : public batteries::Scene
     batteries::light_t light;
     ew::Mesh sphere;
 
-    std::vector<glm::mat4> modelMatrices;
+    std::vector<glm::mat4> model_instances;
+    std::vector<batteries::light_t> light_instances;
 };

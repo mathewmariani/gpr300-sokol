@@ -1,6 +1,9 @@
 #version 300 es
 
 precision mediump float;
+precision mediump int;
+
+const int NR_LIGHTS = 100;
 
 struct Material {
   vec3 ambient;
@@ -26,13 +29,13 @@ uniform sampler2D g_position;
 uniform sampler2D g_normal;
 uniform Material material;
 uniform Ambient ambient;
-uniform Light light;
+uniform Light[NR_LIGHTS] lights;
 uniform vec3 camera_position;
 
-vec3 blinnPhong(vec3 position, vec3 normal, vec3 light_pos)
+vec3 blinnPhong(vec3 position, vec3 normal, Light light)
 {
   vec3 view_dir = normalize(camera_position - position);
-  vec3 light_dir = normalize(light_pos - position);
+  vec3 light_dir = normalize(light.position - position);
   vec3 halfway_dir = normalize(light_dir + view_dir);  
 
   // dot products
@@ -43,7 +46,7 @@ vec3 blinnPhong(vec3 position, vec3 normal, vec3 light_pos)
   vec3 diffuse = ndotl * material.diffuse;
   vec3 specular = pow(ndoth, material.shininess * 128.0) * material.specular; 
 
-  return (diffuse + specular);
+  return (diffuse + specular) * light.color;
 }
 
 void main()
@@ -53,8 +56,11 @@ void main()
   vec3 albedo = texture(g_albedo, vs_texcoord).rgb;
 
   vec3 lighting = vec3(0.0);
-  lighting += blinnPhong(position, normal, light.position);
-  lighting *= light.color;
+  for(int i = 0; i < NR_LIGHTS; ++i)
+  {
+    lighting += blinnPhong(position, normal, lights[i]);
+  }
+
   lighting += ambient.color * material.ambient;
 
   FragColor = vec4(albedo * lighting, 1.0);

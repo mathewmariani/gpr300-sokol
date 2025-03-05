@@ -7,6 +7,7 @@
 
 namespace batteries
 {
-  glm::vec4 random_point_on_sphere();
+  glm::vec4 random_color(void);
+  glm::vec4 random_point_on_sphere(void);
   glm::mat4 random_model_matrix(glm::vec3 position);
 }
