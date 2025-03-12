@@ -5,6 +5,7 @@
     "libs:imgui": "./libs/imgui/update.sh",
     "libs:sokol": "./libs/sokol/update.sh",
     "libs:stb": "./libs/stb/update.sh",
+    "libs:ufbx": "./libs/ufbx/update.sh",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
