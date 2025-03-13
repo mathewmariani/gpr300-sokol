@@ -3,6 +3,7 @@ layout: "../layouts/Page.astro"
 ---
 
 # Development Environment
+<div class="highlight"></div>
 
 The development environment utilizes [VSCode][], [Cmake][] and the [Emscripten SDK][] to enable an IDE-like workflow that produces a wasm runtime which can be ran in the browser.
 

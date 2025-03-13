@@ -2,6 +2,9 @@
 layout: "../layouts/Page.astro"
 ---
 
+# Frequently Asked Questions
+<div class="highlight"></div>
+
 ### Why is my depth buffer so faint?
 
 This is because depth in perspective projection is not linear.

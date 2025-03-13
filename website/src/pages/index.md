@@ -2,19 +2,14 @@
 layout: "../layouts/Page.astro"
 ---
 
-# Intermediate Graphics Programming (GPR 300)
+# Intermediate Graphics Programming
+<div class="highlight"></div>
 
-<div class="alert alert-warning" role="alert">
-  ⚠️ This adaptation and website are a work in progress.
-</div>
-
-It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR 200) has already been completed.
+<p class="lead">It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR-200) has already been completed.</p>
 
 Students will gain a profound appreciation for the graphics pipeline by implementing 3D rendering tools, post-processing algorithms and industry-standard shaders. The animation side introduces mesh manipulation techniques, such as morphing and skeletal animation, using modern GPU-based algorithms. Linear algebra and 3D math concepts will be refreshed and/or introduced for applicable topics.
 
 The syllabus for this course was created by Eric Winebrenner [@ewinebrenner][].
-
-This course has been adapted to use [sokol headers][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
 
 ---
 
