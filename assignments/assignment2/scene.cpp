@@ -14,6 +14,7 @@
 #include <GLES3/gl3.h>
 
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
+static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
 
 struct Material
 {
@@ -121,7 +122,7 @@ void Scene::Render(void)
         depth->use();
 
         // scene matrices
-        depth->setMat4("model", glm::mat4{1.0f});
+        depth->setMat4("model", random_model_matrix);
         depth->setMat4("light_view_proj", light_view_proj);
 
         // draw scene
@@ -149,7 +150,7 @@ void Scene::Render(void)
     blinnphong->setInt("shadow_map", 0);
 
     // scene matrices
-    blinnphong->setMat4("model", glm::mat4{1.0f});
+    blinnphong->setMat4("model", random_model_matrix);
     blinnphong->setMat4("view_proj", view_proj);
     blinnphong->setMat4("light_view_proj", light_view_proj);
     blinnphong->setVec3("camera_position", camera.position);
@@ -174,12 +175,8 @@ void Scene::Render(void)
     // draw suzanne
     suzanne->draw();
 
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_FRONT);
-    // blinnphong->setMat4("model", glm::mat4(1.0f));
-
+    // draw plane
     blinnphong->setMat4("model", glm::translate(glm::vec3(0.0f, -2.0f, 0.0f)));
-
     plane.draw();
 }
 
@@ -207,7 +204,11 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
     ImGui::ColorEdit3("Color", &ambient.color[0]);
 
-    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(1024, 1024));
+    ImVec2 uv_min(0.0f, 1.0f);
+    ImVec2 uv_max(1.0f, 0.0f);
+
+    ImGui::Text("Depth:");
+    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(200, 150), uv_min, uv_max);
 
     ImGui::End();
 }

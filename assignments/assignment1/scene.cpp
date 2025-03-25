@@ -50,6 +50,7 @@ struct
 } effect;
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
 
 struct Material
 {
@@ -240,7 +241,7 @@ void Scene::Render(void)
         blinnphong->setInt("texture0", 0);
 
         // scene matrices
-        blinnphong->setMat4("model", glm::mat4{1.0f});
+        blinnphong->setMat4("model", random_model_matrix);
         blinnphong->setMat4("view_proj", view_proj);
         blinnphong->setVec3("camera_position", camera.position);
 

@@ -10,39 +10,8 @@
 // opengl
 #include <GLES3/gl3.h>
 
-#include <iostream>
-
-GLenum glCheckError_(const char* file, int line)
-{
-    GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        std::string error;
-        switch (errorCode)
-        {
-        case GL_INVALID_ENUM:
-            error = "INVALID_ENUM";
-            break;
-        case GL_INVALID_VALUE:
-            error = "INVALID_VALUE";
-            break;
-        case GL_INVALID_OPERATION:
-            error = "INVALID_OPERATION";
-            break;
-        case GL_OUT_OF_MEMORY:
-            error = "OUT_OF_MEMORY";
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            error = "INVALID_FRAMEBUFFER_OPERATION";
-            break;
-        }
-        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-    }
-    return errorCode;
-}
-#define glCheckError() glCheckError_(__FILE__, __LINE__)
-
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
 
 typedef struct
 {
@@ -131,7 +100,7 @@ void Scene::Render(void)
     blinnphong->setInt("texture0", 0);
 
     // scene matrices
-    blinnphong->setMat4("model", glm::mat4{1.0f});
+    blinnphong->setMat4("model", random_model_matrix);
     blinnphong->setMat4("view_proj", view_proj);
     blinnphong->setVec3("camera_position", camera.position);
 
@@ -152,8 +121,6 @@ void Scene::Render(void)
 
     // draw suzanne
     suzanne->draw();
-
-    glCheckError();
 }
 
 void Scene::Debug(void)
@@ -164,12 +131,6 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
-
-    // ImGui::Separator();
-    // ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
-    // ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
-    // ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
-    // ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
 
     ImGui::SeparatorText("Ambient");
     ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
