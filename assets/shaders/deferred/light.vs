@@ -12,6 +12,5 @@ uniform mat4 model;
 void main()
 {
     vec4 world_position = model * vec4(in_position, 1.0);
-    vec3 world_normal = transpose(inverse(mat3(model))) * in_normal;
     gl_Position = view_proj * world_position;
 }

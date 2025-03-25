@@ -17,3 +17,5 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 
 [LearnOpenGL - Deferred Shading]: https://learnopengl.com/Advanced-Lighting/Deferred-Shading
+[Valve]: https://developer.valvesoftware.com/wiki/Deferred_lighting
+[Xbox Tech Demo]: https://www.youtube.com/watch?v=UE4ldJfsDz8&t=2s&ab_channel=dwif87f8dhe44
