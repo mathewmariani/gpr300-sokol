@@ -189,7 +189,7 @@ Scene::Scene()
     
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
-    sphere.load(ew::createSphere(0.25f, 4));
+    sphere.load(ew::createSphere(1.0f, 4));
 
     ambient = {
         .intensity = 1.0f,
@@ -288,7 +288,7 @@ void Scene::Render(void)
         glBlendFunc(GL_ONE, GL_ONE);
         glBlendEquation(GL_FUNC_ADD);
 
-        // glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
         glCullFace(GL_FRONT);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -374,7 +374,8 @@ void Scene::Render(void)
         {
             for (auto y = -debug.width; y <= debug.width; y++, i++)
             {
-                lightsphere->setMat4("model", glm::translate(light_instances[i].position));
+                const auto scale = debug.light_radius;
+                lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f)));
                 lightsphere->setMat4("view_proj", view_proj);
                 lightsphere->setVec3("color", light_instances[i].color);
 

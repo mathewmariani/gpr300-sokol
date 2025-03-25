@@ -22,7 +22,8 @@ uniform vec3 camera_position;
 
 float calculateAttentuation(float dist, float radius)
 {
-  return 1.0 / (1.0 + (dist / radius) * (dist / radius));
+	float i = clamp(1.0 - pow(dist/radius,4.0), 0.0, 1.0);
+	return i * i;
 }
 
 vec3 blinnPhong(vec3 position, vec3 normal, vec4 material)
@@ -53,5 +54,5 @@ void main()
   vec4 material = texture(g_material, uv).rgba;
 
   vec3 lighting = blinnPhong(position, normal, material);
-  frag_lighting = vec4(albedo * lighting, 1.0);
+  frag_lighting = vec4(lighting, 1.0);
 }
