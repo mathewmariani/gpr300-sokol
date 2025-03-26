@@ -19,11 +19,13 @@ add_compile_options(-Wno-nontrivial-memcall)
 include("extra/cmake/macros.cmake")
 include("extra/cmake/batteries.cmake")
 include("extra/cmake/dbgui.cmake")
+include("extra/cmake/ew.cmake")
 include("extra/cmake/fast_obj.cmake")
 include("extra/cmake/glm.cmake")
 include("extra/cmake/imgui.cmake")
 include("extra/cmake/sokol.cmake")
 include("extra/cmake/stb.cmake")
+include("extra/cmake/ufbx.cmake")
 
 # libraries
 include_directories(${THIRDPARTY_DIR})

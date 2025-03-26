@@ -8,6 +8,8 @@ if(BUILD_WITH_IMGUI)
   set(IMGUI_FILES
     ${IMGUI_DIR}/imconfig.h
     ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_impl_opengl3.cpp
+    ${IMGUI_DIR}/imgui_impl_opengl3.h
     ${IMGUI_DIR}/imgui_internal.h
     ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp

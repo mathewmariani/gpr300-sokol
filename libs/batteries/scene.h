@@ -1,9 +1,7 @@
 #pragma once
 
+// batteries
 #include "camera.h"
-#include "depthbuffer.h"
-#include "framebuffer.h"
-#include "geometrybuffer.h"
 
 namespace batteries
 {
@@ -19,14 +17,8 @@ namespace batteries
     virtual void Event(const sapp_event *event);
 
   protected:
-    sg_pass pass;
-
     batteries::Camera camera;
     batteries::CameraController cameracontroller;
-
-    batteries::Framebuffer framebuffer;
-    batteries::Depthbuffer depthbuffer;
-    batteries::Geometrybuffer geometrybuffer;
 
     struct
     {

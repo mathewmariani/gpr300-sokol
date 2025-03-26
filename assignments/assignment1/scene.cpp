@@ -1,28 +1,197 @@
 #include "scene.h"
 
-// batteries
-#include "batteries/assets.h"
-
 // imgui
 #include "imgui/imgui.h"
 
-#include <string>
-#include <vector>
+// batteries
+#include "batteries/materials.h"
+#include "batteries/math.h"
 
-static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+// opengl
+#include <GLES3/gl3.h>
 
-static int effect_index = 0;
+enum
+{
+    EFFECT_NONE = 0,
+    EFFECT_BLUR = 1,
+    EFFECT_ABERRATION = 2,
+    EFFECT_CRT = 3,
+    EFFECT_EDGE_DETECTION = 4,
+    EFFECT_GRAYSCALE = 5,
+    EFFECT_INVERSE = 6,
+    EFFECT_PIXELATION = 7,
+};
+
 static std::vector<std::string> post_processing_effects = {
     "None",
-    "Grayscale",
-    "Kernel Blur",
-    "Inverse",
+    "Blur",
     "Chromatic Aberration",
     "CRT",
+    "Edge Detection",
+    "Grayscale",
+    "Inverse",
+    "Pixelation",
 };
+
+struct
+{
+    int index = 0;
+
+    struct
+    {
+        float strength = 16.0f;
+    } blur;
+
+    struct
+    {
+        glm::vec3 offset = glm::vec3(0.009f, 0.006f, -0.006f);
+        glm::vec2 direction = glm::vec2(1.0f);
+    } chromatic;
+} effect;
+
+static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
+
+struct Material
+{
+    glm::vec3 ambient{1.0f};
+    glm::vec3 diffuse{0.5f};
+    glm::vec3 specular{0.5f};
+    float shininess = 0.5f;
+} material;
+
+struct FullscreenQuad
+{
+    GLuint vao;
+    GLuint vbo;
+
+    void Initialize()
+    {
+        // clang-format off
+        float quad_vertices[] = {
+            // pos (x, y) texcoord (u, v)
+            -1.0f,  1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+
+            -1.0f,  1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f,  1.0f, 1.0f, 1.0f,
+        };
+        // clang-format on
+
+        // initialize fullscreen quad, buffer object
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+
+        // bind vao, and vbo
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        // buffer data to vbo
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices, GL_STATIC_DRAW);
+
+        // positions and texcoords
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(sizeof(float) * 2));
+
+        glBindVertexArray(0);
+    }
+} fullscreen_quad;
+
+struct Framebuffer
+{
+    GLuint fbo;
+    GLuint color0;
+    GLuint color1;
+    GLuint depth;
+
+    void Initialize()
+    {
+        // initialize framebuffer
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        // color attachment
+        glGenTextures(1, &color0);
+        glBindTexture(GL_TEXTURE_2D, color0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0, 0);
+
+        // Create depth texture
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 800, 600, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+        // check completeness
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            printf("Not so victorious\n");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+} framebuffer;
+
+void post_process(ew::Shader* shader)
+{
+    shader->use();
+    shader->setInt("texture0", 0);
+
+    // what other uniforms should we send ?
+    switch (effect.index)
+    {
+    case EFFECT_GRAYSCALE:
+        break;
+    case EFFECT_BLUR:
+        shader->setFloat("strength", effect.blur.strength);
+        break;
+    case EFFECT_INVERSE:
+        break;
+    case EFFECT_ABERRATION:
+        shader->setVec3("offset", effect.chromatic.offset);
+        shader->setVec2("direction", effect.chromatic.direction);
+        break;
+    default:
+        break;
+    }
+
+    // fullscreen quad pipeline:
+    glDisable(GL_DEPTH_TEST);
+
+    // clear default buffer
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // draw fullscreen quad
+    glBindVertexArray(fullscreen_quad.vao);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, framebuffer.color0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
 Scene::Scene()
 {
+    suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
+    blinnphong = std::make_unique<ew::Shader>("assets/shaders/blinnphong.vs", "assets/shaders/blinnphong.fs");
+    texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/default.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/blur.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/chromaticaberration.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/crt.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/edgedetection.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/grayscale.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/inverse.fs"));
+    effects.push_back(std::make_unique<ew::Shader>("assets/shaders/postprocess/default.vs", "assets/shaders/postprocess/pixelation.fs"));
+
     ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -30,13 +199,11 @@ Scene::Scene()
 
     light = {
         .brightness = 1.0f,
-        .color = {1.0f, 1.0f, 1.0f},
+        .color = {0.5f, 0.5f, 0.5f},
     };
 
-    suzanne.Load("assets/suzanne.obj");
-
-    sphere = batteries::CreateSphere(1.0f, 4);
-    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
+    framebuffer.Initialize();
+    fullscreen_quad.Initialize();
 }
 
 Scene::~Scene()
@@ -47,129 +214,84 @@ void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
 
-    static auto ry = 0.0f;
-    ry += time.frame;
-
-    // sugar: rotate light
-    const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
-
-    sphere.transform.position = light.position;
 }
 
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    // initialize uniform data
-    const BlinnPhong::vs_params_t vs_blinnphong_params = {
-        .view_proj = view_proj,
-        .model = suzanne.transform.matrix(),
-    };
-    const BlinnPhong::fs_params_t fs_blinnphong_params = {
-        .material = material,
-        .light = light,
-        .ambient = ambient,
-        .camera_position = camera.position,
-    };
-    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-        .view_proj = view_proj,
-        .model = sphere.transform.matrix(),
-    };
-    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-        .color = light.color,
-    };
-
-    sg_begin_pass(&framebuffer.pass);
-
-    // apply blinnphong pipeline and uniforms
-    sg_apply_pipeline(blinnphong.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_blinnphong_params));
-    sg_apply_uniforms(1, SG_RANGE(fs_blinnphong_params));
-
-    // render suzanne
-    if (suzanne.loaded)
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
     {
-        sg_apply_bindings({
-            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            .index_buffer = suzanne.mesh.index_buffer,
-        });
-        sg_draw(0, suzanne.mesh.indices.size(), 1);
-    }
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // render light sources
-    sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
-    sg_apply_bindings({
-        .vertex_buffers[0] = sphere.mesh.vertex_buffer,
-        .index_buffer = sphere.mesh.index_buffer,
-    });
-    sg_draw(0, sphere.mesh.indices.size(), 1);
-    sg_end_pass();
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glEnable(GL_DEPTH_TEST);
 
-    // render framebuffer
-    sg_begin_pass(&pass);
-    // apply a post processing effect
-    switch (effect_index)
-    {
-    case 1:
-        sg_apply_pipeline(grayscaleRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
-    case 2:
-        sg_apply_pipeline(blurRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
-    case 3:
-        sg_apply_pipeline(inverseRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
-    case 4:
-        sg_apply_pipeline(chromaticAberrationRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
-    case 5:
-        sg_apply_pipeline(crtRenderer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
-    default:
-        sg_apply_pipeline(framebuffer.pipeline);
-        sg_apply_bindings(&framebuffer.bindings);
-        break;
+        // set bindings
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture->getID());
+
+        blinnphong->use();
+
+        // samplers
+        blinnphong->setInt("texture0", 0);
+
+        // scene matrices
+        blinnphong->setMat4("model", random_model_matrix);
+        blinnphong->setMat4("view_proj", view_proj);
+        blinnphong->setVec3("camera_position", camera.position);
+
+        // material properties
+        blinnphong->setVec3("material.ambient", material.ambient);
+        blinnphong->setVec3("material.diffuse", material.diffuse);
+        blinnphong->setVec3("material.specular", material.specular);
+        blinnphong->setFloat("material.shininess", material.shininess);
+
+        // ambient light
+        blinnphong->setFloat("ambient.intensity", ambient.intensity);
+        blinnphong->setVec3("ambient.color", ambient.color);
+
+        // point light
+        blinnphong->setVec3("light.color", light.color);
+        blinnphong->setVec3("light.position", light.position);
+
+        // draw suzanne
+        suzanne->draw();
     }
-    sg_draw(0, 6, 1);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    post_process(effects[effect.index].get());
 }
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    if (ImGui::CollapsingHeader("Camera"))
+    if (ImGui::CollapsingHeader("Material"))
     {
-        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
+        ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+        ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+        ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 128.0f);
     }
 
-    if (ImGui::CollapsingHeader("Ambient"))
-    {
-        ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &ambient.color[0]);
-    }
-    if (ImGui::CollapsingHeader("Light"))
-    {
-        ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &light.color[0]);
-    }
-    if (ImGui::BeginCombo("Effect", post_processing_effects[effect_index].c_str()))
+    if (ImGui::BeginCombo("Effect", post_processing_effects[effect.index].c_str()))
     {
         for (auto n = 0; n < post_processing_effects.size(); ++n)
         {
-            auto is_selected = (post_processing_effects[effect_index] == post_processing_effects[n]);
+            auto is_selected = (post_processing_effects[effect.index] == post_processing_effects[n]);
             if (ImGui::Selectable(post_processing_effects[n].c_str(), is_selected))
             {
-                effect_index = n;
+                effect.index = n;
             }
             if (is_selected)
             {
@@ -178,5 +300,6 @@ void Scene::Debug(void)
         }
         ImGui::EndCombo();
     }
+
     ImGui::End();
 }

@@ -18,6 +18,7 @@ const { Content } = await worksession.render();
 
 <Page>
 	<h1>{worksession.data.title}</h1>
+	<div class="highlight"></div>
 	<p class="lead">{worksession.data.description}</p>
 	<Demo name={worksession.slug} />
 	<Content />

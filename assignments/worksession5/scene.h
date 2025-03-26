@@ -1,35 +1,34 @@
 #pragma once
 
 // batteries
-#include "batteries/gizmo.h"
+#include "batteries/lights.h"
 #include "batteries/scene.h"
-#include "batteries/model.h"
-#include "batteries/texture.h"
-#include "batteries/shape.h"
 
-#include "worksession5.h"
-#include "blinnphong.h"
-#include "transition.h"
+// ew
+#include <vector>
+
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
 
 class Scene final : public batteries::Scene
 {
-public:
-  Scene();
-  virtual ~Scene();
+  public:
+    Scene();
+    virtual ~Scene();
 
-  void Update(float dt);
-  void Render(void);
-  void Debug(void);
+    void Update(float dt);
+    void Render(void);
+    void Debug(void);
 
-private:
-  BlinnPhong blinnphong;
-  TransitionRenderer transition;
+  private:
+    std::unique_ptr<ew::Model> suzanne;
+    std::unique_ptr<ew::Shader> blinnphong;
+    std::unique_ptr<ew::Texture> texture;
 
-  worksession5::Model suzanne;
-  batteries::Texture gradients[3];
-  batteries::Gizmo gizmo;
-  batteries::Shape sphere;
-  batteries::ambient_t ambient;
-  batteries::light_t light;
-  batteries::material_t material;
+    std::unique_ptr<ew::Shader> transition;
+    std::vector<std::unique_ptr<ew::Texture>> gradients;
+
+    batteries::ambient_t ambient;
+    batteries::light_t light;
 };

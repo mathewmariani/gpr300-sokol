@@ -1,14 +1,45 @@
 #include "scene.h"
 
-// batteries
-#include "batteries/assets.h"
-
 // imgui
 #include "imgui/imgui.h"
 
-static uint8_t cubemap_buffer[1024 * 1024 * 10];
-sg_image mipmap_img;
-sg_sampler mimap_smp;
+// ew
+#include "ew/procGen.h"
+
+// opengl
+#include <GLES3/gl3.h>
+
+#include <iostream>
+
+GLenum glCheckError_(const char* file, int line)
+{
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    {
+        std::string error;
+        switch (errorCode)
+        {
+        case GL_INVALID_ENUM:
+            error = "INVALID_ENUM";
+            break;
+        case GL_INVALID_VALUE:
+            error = "INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            error = "INVALID_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            error = "OUT_OF_MEMORY";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            error = "INVALID_FRAMEBUFFER_OPERATION";
+            break;
+        }
+        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+    }
+    return errorCode;
+}
+#define glCheckError() glCheckError_(__FILE__, __LINE__)
 
 static struct
 {
@@ -24,39 +55,18 @@ static struct
 
 Scene::Scene()
 {
-    auto init_water_texture = [this]()
-    {
-        mipmap_img = sg_alloc_image();
-        batteries::load_mipmap({
-            .img_id = mipmap_img,
-            .path = {
-                .mip0 = "assets/windwaker/water128.png",
-                .mip1 = "assets/windwaker/water64.png",
-                .mip2 = "assets/windwaker/water32.png",
-                .mip3 = "assets/windwaker/water16.png",
-                .mip4 = "assets/windwaker/water8.png",
-            },
-            .buffer_ptr = cubemap_buffer,
-            .buffer_offset = 1024 * 1024,
-        });
-        mimap_smp = sg_make_sampler({
-            .min_filter = SG_FILTER_LINEAR,
-            .mag_filter = SG_FILTER_LINEAR,
-            .mipmap_filter = SG_FILTER_LINEAR,
-            .wrap_u = SG_WRAP_REPEAT,
-            .wrap_v = SG_WRAP_REPEAT,
-        });
-    };
+    water = std::make_unique<ew::Shader>("assets/shaders/windwaker/water.vs", "assets/shaders/windwaker/water.fs");
+    texture = std::make_unique<ew::Texture>("assets/windwaker/water.png");
 
-    init_water_texture();
-    plane = batteries::CreatePlane(400.0f, 400.0f, 10);
-
-    cameracontroller.Configure({
-        .mode = (int)batteries::CameraController::Mode::Orbit,
-        .pitch = 30.0f,
-        .yaw = 0.0f,
-        .distance = 10.0f,
+    water_mipmap = std::make_unique<ew::Texture>((ew::mipmap_t){
+        "assets/windwaker/water128.png",
+        "assets/windwaker/water64.png",
+        "assets/windwaker/water32.png",
+        "assets/windwaker/water16.png",
+        "assets/windwaker/water8.png",
     });
+
+    plane.load(ew::createPlane(400.0f, 400.0f, 10));
 }
 
 Scene::~Scene()
@@ -72,58 +82,54 @@ void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    // initialize uniform data
-    const Water::vs_params_t vs_water_params = {
-        .view_proj = view_proj,
-        .model = plane.transform.matrix(),
-        .camera_pos = camera.position,
-        .scale = debug.scale,
-        .strength = debug.strength,
-        .time = (float)time.absolute,
-    };
-    const Water::fs_params_t fs_water_params = {
-        .time = (float)time.absolute,
-        .color = debug.color,
-        .direction = debug.direction,
-        .tiling = debug.tiling,
-        .top_scale = debug.top_scale,
-        .bottom_scale = debug.bottom_scale,
-        .lod_bias = debug.lod_bias,
-    };
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    sg_begin_pass(&framebuffer.pass);
-    sg_apply_pipeline(water.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_water_params));
-    sg_apply_uniforms(1, SG_RANGE(fs_water_params));
-    sg_apply_bindings({
-        .vertex_buffers[0] = plane.mesh.vertex_buffer,
-        .index_buffer = plane.mesh.index_buffer,
-        .images[0] = mipmap_img,
-        .samplers[0] = mimap_smp,
-    });
-    sg_draw(0, plane.mesh.indices.size(), 1);
-    sg_end_pass();
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
 
-    // render framebuffer
-    sg_begin_pass(&pass);
-    sg_apply_pipeline(framebuffer.pipeline);
-    sg_apply_bindings(&framebuffer.bindings);
-    sg_draw(0, 6, 1);
+    // set bindings
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, water_mipmap->getID());
+
+    water->use();
+
+    // samplers
+    water->setInt("texture0", 0);
+
+    // scene matrices
+    water->setMat4("model", glm::mat4{1.0f});
+    water->setMat4("view_proj", view_proj);
+
+    // water properties
+    water->setVec3("color", debug.color);
+    water->setVec2("direction", debug.direction);
+    water->setFloat("tiling", debug.tiling);
+    water->setFloat("time", (float)time.absolute);
+    water->setFloat("Ts", debug.top_scale);
+    water->setFloat("Bs", debug.bottom_scale);
+    water->setFloat("strength", debug.strength);
+    water->setFloat("scale", debug.scale);
+    water->setFloat("lod_bias", debug.lod_bias);
+
+    plane.draw();
+
+    glCheckError();
 }
 
 void Scene::Debug(void)
 {
+    cameracontroller.Debug();
+
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    if (ImGui::CollapsingHeader("Camera"))
-    {
-        ImGui::Text("Position: %.2f, %.2f, %.2f", camera.position[0], camera.position[1], camera.position[2]);
-    }
+    ImGui::Separator();
 
-    ImGui::SliderFloat("lod_bias", &debug.lod_bias, 0.0f, 30.0f, "%.2f");
+    ImGui::SliderFloat("LOD Bias", &debug.lod_bias, 0.0f, 100.0f);
 
     if (ImGui::CollapsingHeader("Color"))
     {
@@ -133,13 +139,14 @@ void Scene::Debug(void)
     }
     if (ImGui::CollapsingHeader("Texture"))
     {
-        ImGui::SliderFloat("Tilling", &debug.tiling, 1.0f, 10.0f);
+        ImGui::SliderFloat("Tilling", &debug.tiling, 1.0f, 100.0f);
         ImGui::SliderFloat2("Scroll Direction", &debug.direction[0], -1.0f, 1.0f);
     }
     if (ImGui::CollapsingHeader("Wave"))
     {
         ImGui::SliderFloat("Scale", &debug.scale, 1.0f, 100.0f);
-        ImGui::SliderFloat("Strength", &debug.strength, 1.0f, 100.0f);
+        ImGui::SliderFloat("Strength", &debug.strength, 0.0f, 5.0f);
     }
+
     ImGui::End();
 }

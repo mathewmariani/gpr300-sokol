@@ -3,8 +3,10 @@ layout: "../layouts/Page.astro"
 ---
 
 # Development Environment
+<div class="highlight"></div>
 
 The development environment utilizes [VSCode][], [Cmake][] and the [Emscripten SDK][] to enable an IDE-like workflow that produces a wasm runtime which can be ran in the browser.
+
 
 ### Prerequisites
 
@@ -13,6 +15,7 @@ First make sure that the following tools are in the path:
 *   git
 *   cmake
 *   ninja
+
 
 ### Extensions
 
@@ -43,13 +46,16 @@ cd emsdk
 cd ..
 ```
 
+
 ### Project Structure
 
 This project was intentionally designed to be **\*small\*** and easily comprehensible. Let's look at some important folders
 
 *   `assignments/` – Each assignment is a self-contained implementation file (.cpp).
 *   `build/` - Intermediate files used by cmake, and other build output. 
+*   `dist/` - Website build output. 
 *   `libs/` - External libraries linked to each assignment.
+*   `website/` - Files required to statically generate the webpage.
 
 
 #### External Libraries
@@ -59,7 +65,7 @@ The first thing we should look at are the external libraries, and what they offe
 *   `fast_obj` - Fast OBJ file loader.
 *   `glm` - Mathematics library for graphics.
 *   `imgui` - Bloat-free graphical user interface library.
-*   `sokol` - Simple cross-platform libraries for platform abstraction and 3D-API wrapping.
+*   `sokol` - Simple cross-platform libraries for platform abstraction.
 *   `stb` - Image loading/decoding from file/memory.
 
 All of these libraries will be used throughout the course.
@@ -67,19 +73,17 @@ All of these libraries will be used throughout the course.
 
 #### Assignments
 
-Each assignment is an individual implementation file (.cpp) that will need to be added to `CMakeLists.txt` like so
+Each assignment is an individual implementation file (.cpp) that will need to be added to `/assignmments/CMakeLists.txt` like so
 
 ```cmake
-add_assignment(assignment0 assignment0.cpp boilerplate.h)
+add_subdirectory(my_assignment)
 ```
 
 Behind the scenes a compilation target will be created, and the libraries will automatically be linked and included.
 
-`boilerplate.h` is a small single-header library of helpful rendering types, functions, and boilerplate. Note that these types are simply data-structures and are not meant to create an abstraction layer, but to make common operations simple and easy. You are encouraged to create your own library to add desired functionality.
+`/assignmments/boilerplate.cpp` is a small implementation file used by all assignments to initialize the platform abstration, and other processes required.
 
-Assets such as textures and models **MUST** be placed in `assignments/assets`. This directory will be automatically copied to the appropriate location upon being built.
-
-Shaders **MUST** be placed in `assignments/shaders`. This directory will be automatically scanned for `*.{vs,fs}` files and an appropriately named header file, containing the shader source, will be generated.
+Assets such as models, shaders, and textures **MUST** be placed in `/assets`. This directory will be symlinked to the appropriate directory upon being built.
 
 
 [VSCode]: https://code.visualstudio.com/

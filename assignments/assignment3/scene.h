@@ -1,34 +1,42 @@
 #pragma once
 
 // batteries
-#include "batteries/gizmo.h"
-#include "batteries/shape.h"
-#include "batteries/materials.h"
-#include "batteries/model.h"
 #include "batteries/lights.h"
 #include "batteries/scene.h"
 
-#include "blinnphong.h"
-#include "geometry.h"
+// ew
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
+
+// std
+#include <vector>
 
 class Scene final : public batteries::Scene
 {
-public:
-  Scene();
-  virtual ~Scene();
+  public:
+    Scene();
+    virtual ~Scene();
 
-  void Update(float dt);
-  void Render(void);
-  void Debug(void);
+    void Update(float dt);
+    void Render(void);
+    void Debug(void);
 
-private:
-  BlinnPhong blinnphong;
-  Geometry geometry;
+  private:
+    void InitializeInstanceData(void);
 
-  batteries::Gizmo gizmo;
-  batteries::Model suzanne;
-  batteries::Shape sphere;
-  batteries::ambient_t ambient;
-  batteries::light_t light;
-  batteries::material_t material;
+  private:
+    std::unique_ptr<ew::Model> suzanne;
+    std::unique_ptr<ew::Shader> geometry;
+    std::unique_ptr<ew::Shader> blinnphong;
+    std::unique_ptr<ew::Shader> noprocess;
+    std::unique_ptr<ew::Shader> lightsphere;
+    std::unique_ptr<ew::Texture> texture;
+
+    batteries::ambient_t ambient;
+    batteries::light_t light;
+    ew::Mesh sphere;
+
+    std::vector<glm::mat4> model_instances;
+    std::vector<batteries::light_t> light_instances;
 };

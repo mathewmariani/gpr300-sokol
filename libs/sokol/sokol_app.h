@@ -2632,6 +2632,7 @@ typedef struct {
     HCURSOR cursors[_SAPP_MOUSECURSOR_NUM];
     UINT orig_codepage;
     LONG mouse_locked_x, mouse_locked_y;
+    bool mouse_locked_pos_valid;
     RECT stored_window_rect;    // used to restore window pos/size when toggling fullscreen => windowed
     bool is_win10_or_greater;
     bool in_create_window;
@@ -4481,6 +4482,21 @@ static void _sapp_gl_make_current(void) {
         }
     }
 }
+
+- (BOOL)performKeyEquivalent:(NSEvent*)event {
+    // fixes Ctrl-Tab keydown not triggering a keyDown event
+    //
+    // NOTE: it seems that Ctrl-F1 cannot be intercepted the same way, but since
+    // this enabled critical accessibility features that's probably a good thing.
+    switch (_sapp_translate_key(event.keyCode)) {
+        case SAPP_KEYCODE_TAB:
+            [_sapp.macos.view keyDown:event];
+            return YES;
+        default:
+            return NO;
+    }
+}
+
 - (void)keyUp:(NSEvent*)event {
     _sapp_gl_make_current();
     _sapp_macos_key_event(SAPP_EVENTTYPE_KEY_UP,
@@ -4863,7 +4879,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 #if defined(_SAPP_EMSCRIPTEN)
 
 #if defined(EM_JS_DEPS)
-EM_JS_DEPS(sokol_app, "$withStackSave,$stringToUTF8OnStack,$findCanvasEventTarget");
+EM_JS_DEPS(sokol_app, "$withStackSave,$stringToUTF8OnStack,$findCanvasEventTarget")
 #endif
 
 #ifdef __cplusplus
@@ -4970,11 +4986,11 @@ EM_JS(void, sapp_js_add_beforeunload_listener, (void), {
         }
     };
     window.addEventListener('beforeunload', Module.sokol_beforeunload);
-});
+})
 
 EM_JS(void, sapp_js_remove_beforeunload_listener, (void), {
     window.removeEventListener('beforeunload', Module.sokol_beforeunload);
-});
+})
 
 EM_JS(void, sapp_js_add_clipboard_listener, (void), {
     Module.sokol_paste = (event) => {
@@ -4985,11 +5001,11 @@ EM_JS(void, sapp_js_add_clipboard_listener, (void), {
         });
     };
     window.addEventListener('paste', Module.sokol_paste);
-});
+})
 
 EM_JS(void, sapp_js_remove_clipboard_listener, (void), {
     window.removeEventListener('paste', Module.sokol_paste);
-});
+})
 
 EM_JS(void, sapp_js_write_clipboard, (const char* c_str), {
     const str = UTF8ToString(c_str);
@@ -5007,7 +5023,7 @@ EM_JS(void, sapp_js_write_clipboard, (const char* c_str), {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-});
+})
 
 _SOKOL_PRIVATE void _sapp_emsc_set_clipboard_string(const char* str) {
     sapp_js_write_clipboard(str);
@@ -5053,7 +5069,7 @@ EM_JS(void, sapp_js_add_dragndrop_listeners, (void), {
     canvas.addEventListener('dragleave', Module.sokol_dragleave, false);
     canvas.addEventListener('dragover',  Module.sokol_dragover, false);
     canvas.addEventListener('drop',      Module.sokol_drop, false);
-});
+})
 
 EM_JS(uint32_t, sapp_js_dropped_file_size, (int index), {
     \x2F\x2A\x2A @suppress {missingProperties} \x2A\x2F
@@ -5064,7 +5080,7 @@ EM_JS(uint32_t, sapp_js_dropped_file_size, (int index), {
     else {
         return files[index].size;
     }
-});
+})
 
 EM_JS(void, sapp_js_fetch_dropped_file, (int index, _sapp_html5_fetch_callback callback, void* buf_ptr, uint32_t buf_size, void* user_data), {
     const reader = new FileReader();
@@ -5086,7 +5102,7 @@ EM_JS(void, sapp_js_fetch_dropped_file, (int index, _sapp_html5_fetch_callback c
     \x2F\x2A\x2A @suppress {missingProperties} \x2A\x2F
     const files = Module.sokol_dropped_files;
     reader.readAsArrayBuffer(files[index]);
-});
+})
 
 EM_JS(void, sapp_js_remove_dragndrop_listeners, (void), {
     \x2F\x2A\x2A @suppress {missingProperties} \x2A\x2F
@@ -5095,7 +5111,7 @@ EM_JS(void, sapp_js_remove_dragndrop_listeners, (void), {
     canvas.removeEventListener('dragleave', Module.sokol_dragleave);
     canvas.removeEventListener('dragover',  Module.sokol_dragover);
     canvas.removeEventListener('drop',      Module.sokol_drop);
-});
+})
 
 EM_JS(void, sapp_js_init, (const char* c_str_target_selector, const char* c_str_document_title), {
     if (c_str_document_title !== 0) {
@@ -5116,7 +5132,7 @@ EM_JS(void, sapp_js_init, (const char* c_str_target_selector, const char* c_str_
     if (!Module.sapp_emsc_target.requestPointerLock) {
         console.warn("sokol_app.h: target doesn't support requestPointerLock: ", target_selector_str);
     }
-});
+})
 
 _SOKOL_PRIVATE EM_BOOL _sapp_emsc_pointerlockchange_cb(int emsc_type, const EmscriptenPointerlockChangeEvent* emsc_event, void* user_data) {
     _SOKOL_UNUSED(emsc_type);
@@ -5140,13 +5156,13 @@ EM_JS(void, sapp_js_request_pointerlock, (void), {
             Module.sapp_emsc_target.requestPointerLock();
         }
     }
-});
+})
 
 EM_JS(void, sapp_js_exit_pointerlock, (void), {
     if (document.exitPointerLock) {
         document.exitPointerLock();
     }
-});
+})
 
 _SOKOL_PRIVATE void _sapp_emsc_lock_mouse(bool lock) {
     if (lock) {
@@ -5193,7 +5209,7 @@ EM_JS(void, sapp_js_set_cursor, (int cursor_type, int shown), {
         }
         Module.sapp_emsc_target.style.cursor = cursor;
     }
-});
+})
 
 _SOKOL_PRIVATE void _sapp_emsc_update_cursor(sapp_mouse_cursor cursor, bool shown) {
     SOKOL_ASSERT((cursor >= 0) && (cursor < _SAPP_MOUSECURSOR_NUM));
@@ -5206,7 +5222,7 @@ EM_JS(void, sapp_js_clear_favicon, (void), {
     if (link) {
         document.head.removeChild(link);
     }
-});
+})
 
 EM_JS(void, sapp_js_set_favicon, (int w, int h, const uint8_t* pixels), {
     const canvas = document.createElement('canvas');
@@ -5221,7 +5237,7 @@ EM_JS(void, sapp_js_set_favicon, (int w, int h, const uint8_t* pixels), {
     new_link.rel = 'shortcut icon';
     new_link.href = canvas.toDataURL();
     document.head.appendChild(new_link);
-});
+})
 
 _SOKOL_PRIVATE void _sapp_emsc_set_icon(const sapp_icon_desc* icon_desc, int num_images) {
     SOKOL_ASSERT((num_images > 0) && (num_images <= SAPP_MAX_ICONIMAGES));
@@ -5720,10 +5736,6 @@ _SOKOL_PRIVATE void _sapp_emsc_webgl_init(void) {
     // FIXME: error message?
     emscripten_webgl_make_context_current(ctx);
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&_sapp.gl.framebuffer);
-
-    // FIXME: remove PVRTC support here and in sokol-gfx at some point
-    // some WebGL extension are not enabled automatically by emscripten
-    emscripten_webgl_enable_extension(ctx, "WEBKIT_WEBGL_compressed_texture_pvrtc");
 }
 #endif
 
@@ -7197,33 +7209,46 @@ _SOKOL_PRIVATE void _sapp_win32_release_mouse(uint8_t btn_mask) {
     }
 }
 
+_SOKOL_PRIVATE bool _sapp_win32_is_foreground_window(void) {
+    return _sapp.win32.hwnd == GetForegroundWindow();
+}
+
 _SOKOL_PRIVATE void _sapp_win32_lock_mouse(bool lock) {
     if (lock == _sapp.mouse.locked) {
         return;
     }
     _sapp.mouse.dx = 0.0f;
     _sapp.mouse.dy = 0.0f;
-    _sapp.mouse.locked = lock;
     _sapp_win32_release_mouse(0xFF);
-    if (_sapp.mouse.locked) {
+    if (lock) {
+        // don't allow locking the mouse unless we're the active window
+        if (!_sapp_win32_is_foreground_window()) {
+            return;
+        }
+
+        _sapp.mouse.locked = true;
         /* store the current mouse position, so it can be restored when unlocked */
         POINT pos;
         BOOL res = GetCursorPos(&pos);
-        SOKOL_ASSERT(res); _SOKOL_UNUSED(res);
-        _sapp.win32.mouse_locked_x = pos.x;
-        _sapp.win32.mouse_locked_y = pos.y;
+        if (res) {
+            _sapp.win32.mouse_locked_x = pos.x;
+            _sapp.win32.mouse_locked_y = pos.y;
+            _sapp.win32.mouse_locked_pos_valid = true;
 
-        /* while the mouse is locked, make the mouse cursor invisible and
-           confine the mouse movement to a small rectangle inside our window
-           (so that we don't miss any mouse up events)
-        */
-        RECT client_rect = {
-            _sapp.win32.mouse_locked_x,
-            _sapp.win32.mouse_locked_y,
-            _sapp.win32.mouse_locked_x,
-            _sapp.win32.mouse_locked_y
-        };
-        ClipCursor(&client_rect);
+            /* while the mouse is locked, make the mouse cursor invisible and
+               confine the mouse movement to a small rectangle inside our window
+               (so that we don't miss any mouse up events)
+            */
+            RECT client_rect = {
+                _sapp.win32.mouse_locked_x,
+                _sapp.win32.mouse_locked_y,
+                _sapp.win32.mouse_locked_x,
+                _sapp.win32.mouse_locked_y
+            };
+            ClipCursor(&client_rect);
+        } else {
+            _sapp.win32.mouse_locked_pos_valid = false;
+        }
 
         /* make the mouse cursor invisible, this will stack with sapp_show_mouse() */
         ShowCursor(FALSE);
@@ -7242,8 +7267,8 @@ _SOKOL_PRIVATE void _sapp_win32_lock_mouse(bool lock) {
            we need to skip the dx/dy compution for the first WM_INPUT event
         */
         _sapp.win32.raw_input_mousepos_valid = false;
-    }
-    else {
+    } else {
+        _sapp.mouse.locked = false;
         /* disable raw input for mouse */
         const RAWINPUTDEVICE rid = { 0x01, 0x02, RIDEV_REMOVE, NULL };
         if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
@@ -7255,8 +7280,10 @@ _SOKOL_PRIVATE void _sapp_win32_lock_mouse(bool lock) {
         ShowCursor(TRUE);
 
         /* restore the 'pre-locked' mouse position */
-        BOOL res = SetCursorPos(_sapp.win32.mouse_locked_x, _sapp.win32.mouse_locked_y);
-        SOKOL_ASSERT(res); _SOKOL_UNUSED(res);
+        if (_sapp.win32.mouse_locked_pos_valid) {
+            SetCursorPos(_sapp.win32.mouse_locked_x, _sapp.win32.mouse_locked_y);
+            _sapp.win32.mouse_locked_pos_valid = false;
+        }
     }
 }
 
@@ -7506,10 +7533,6 @@ _SOKOL_PRIVATE LRESULT CALLBACK _sapp_win32_wndproc(HWND hWnd, UINT uMsg, WPARAM
                 _sapp_win32_app_event(SAPP_EVENTTYPE_FOCUSED);
                 break;
             case WM_KILLFOCUS:
-                /* if focus is lost for any reason, and we're in mouse locked mode, disable mouse lock */
-                if (_sapp.mouse.locked) {
-                    _sapp_win32_lock_mouse(false);
-                }
                 _sapp_win32_app_event(SAPP_EVENTTYPE_UNFOCUSED);
                 break;
             case WM_SETCURSOR:
@@ -8109,6 +8132,12 @@ _SOKOL_PRIVATE void _sapp_win32_run(const sapp_desc* desc) {
         }
         if (_sapp.quit_requested) {
             PostMessage(_sapp.win32.hwnd, WM_CLOSE, 0, 0);
+        }
+        // unlock mouse if window doesn't have focus
+        if (_sapp.mouse.locked) {
+            if (!_sapp_win32_is_foreground_window()) {
+                _sapp_win32_lock_mouse(false);
+            }
         }
     }
     _sapp_call_cleanup();

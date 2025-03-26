@@ -2,19 +2,14 @@
 layout: "../layouts/Page.astro"
 ---
 
-# Intermediate Graphics Programming (GPR 300)
+# Intermediate Graphics Programming
+<div class="highlight"></div>
 
-<div class="alert alert-warning" role="alert">
-  ⚠️ This adaptation and website are a work in progress.
-</div>
-
-It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR 200) has already been completed.
+<p class="lead">It is required that the prerequisite "Introduction to Modern Graphics Programming" (GPR-200) has already been completed.</p>
 
 Students will gain a profound appreciation for the graphics pipeline by implementing 3D rendering tools, post-processing algorithms and industry-standard shaders. The animation side introduces mesh manipulation techniques, such as morphing and skeletal animation, using modern GPU-based algorithms. Linear algebra and 3D math concepts will be refreshed and/or introduced for applicable topics.
 
 The syllabus for this course was created by Eric Winebrenner [@ewinebrenner][].
-
-This course has been adapted to use [sokol headers][] by Andre Weissflog. The reason for this change is to give students the freedom to explore the graphics pipeline through a 3D-API wrapper for OpenGL, OpenGL ES3, WebGL2, Metal, D3D11, and WebGPU.
 
 ---
 
@@ -42,9 +37,9 @@ Before working on any project it's important to understand the [development envi
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
 *   [assignment 3][] - Deferred Lighting
+*   [assignment 4][] - Splines
 
 <!-- Future Assignments:
-*   [assignment 4][] - Splines
 *   [assignment 5][] - Skeletal Animations
 -->
 
@@ -58,6 +53,7 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 4][] - Toon Shading
 *   [worksession 5][] - Transition Sequences
 *   [worksession 6][] - Complex Geometries
+*   [worksession 7][] - Mario Kart Double Dash Water
 
 <!-- Future Work Sessions:
 *   [worksession 4][] - Mandelbrot Set
@@ -103,3 +99,4 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 4]: worksessions/worksession4
 [worksession 5]: worksessions/worksession5
 [worksession 6]: worksessions/worksession6
+[worksession 7]: worksessions/worksession7

@@ -1,5 +1,0 @@
-// clang-format off
-#pragma once
-const char ${SHADER_NAME}_vs[] = R"(${VS_GLSL})";
-const char ${SHADER_NAME}_fs[] = R"(${FS_GLSL})";
-// clang-format on

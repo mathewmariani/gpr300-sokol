@@ -1,18 +1,77 @@
 #include "scene.h"
-#include "sokol/sokol_imgui.h"
+
+// imgui
 #include "imgui/imgui.h"
 
+// batteries
+#include "batteries/materials.h"
+#include "batteries/math.h"
+
+// ew
+#include "ew/procGen.h"
+
+// opengl
+#include <GLES3/gl3.h>
+
 static glm::vec4 light_orbit_radius = {2.0f, 2.0f, -2.0f, 1.0f};
+static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
 
-static struct
+struct Material
 {
-    ImTextureID depth_buffer;
-} debug;
+    glm::vec3 ambient{1.0f};
+    glm::vec3 diffuse{0.5f};
+    glm::vec3 specular{0.5f};
+    float shininess = 0.5f;
+} material;
 
-sg_sampler dungeon_sampler;
+struct Depthbuffer
+{
+    GLuint fbo;
+    GLuint depth;
+
+    void Initialize()
+    {
+        glGenFramebuffers(1, &fbo);
+
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+        glDrawBuffers(0, nullptr);
+        glReadBuffer(GL_NONE);
+
+        // check completeness
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            printf("Not so victorious\n");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+} depthbuffer;
+
+struct
+{
+    float bias = 0.005f;
+    bool cull_front = false;
+    bool use_pcf = false;
+} debug;
 
 Scene::Scene()
 {
+    blinnphong = std::make_unique<ew::Shader>("assets/shaders/shadow.vs", "assets/shaders/shadow.fs");
+    depth = std::make_unique<ew::Shader>("assets/shaders/depth.vs", "assets/shaders/depth.fs");
+
+    suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
+    texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+
     ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
@@ -20,27 +79,13 @@ Scene::Scene()
 
     light = {
         .brightness = 1.0f,
-        .color = {1.0f, 1.0f, 1.0f},
+        .color = {0.5f, 0.5f, 0.5f},
     };
 
-    suzanne.Load("assets/suzanne.obj");
-    dungeon_texture.Load("assets/windwaker/Txe_Ecube_yoko_9.png");
+    depthbuffer.Initialize();
 
-    sphere = batteries::CreateSphere(1.0f, 4);
-    sphere.transform.scale = {0.25f, 0.25f, 0.25f};
-
-    cube = batteries::CreateCube(7.0f);
-    cube.transform.position = {0.0f, 0.0f, 0.0f};
-
-    dungeon_sampler = sg_make_sampler({
-        .min_filter = SG_FILTER_LINEAR,
-        .mag_filter = SG_FILTER_LINEAR,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-        .label = "dungeon-sampler",
-    });
-
-    debug.depth_buffer = simgui_imtextureid(depthbuffer.depth);
+    plane.load(ew::createPlane(50.0f, 50.0f, 1));
+    // plane.load(ew::createCube(15.0f));
 }
 
 Scene::~Scene()
@@ -51,150 +96,119 @@ void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
 
-    static auto ry = 0.0f;
-    ry += time.frame;
-
-    // sugar: rotate light
-    const auto rym = glm::rotate(ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
     light.position = rym * light_orbit_radius;
-
-    ambient.direction = glm::normalize(glm::vec3(0.0f, 0.0f, 0.0f) - light.position);
-    sphere.transform.position = light.position;
 }
 
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    // depth pass matrices
-    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 100.0f);
-    const auto light_view = glm::lookAt(light.position, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+    const auto light_proj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    const auto light_view = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     const auto light_view_proj = light_proj * light_view;
 
-    // initialize uniform data
-    const Depth::vs_params_t vs_depth_params = {
-        .view_proj = light_view_proj,
-        .model = suzanne.transform.matrix(),
-    };
-    const Shadow::vs_params_t vs_shadow_params = {
-        .model = suzanne.transform.matrix(),
-        .view_proj = view_proj,
-        .light_view_proj = light_view_proj,
-    };
-    const Shadow::fs_params_t fs_shadow_params = {
-        .light = light,
-        .ambient = ambient,
-        .camera_position = camera.position,
-    };
-    const Shadow::vs_params_t vs_dungeon_params = {
-        .model = cube.transform.matrix(),
-        .view_proj = view_proj,
-        .light_view_proj = light_view_proj,
-    };
-    const Dungeon::fs_params_t fs_dungeon_params = {
-        .light = light,
-        .ambient = ambient,
-        .camera_position = camera.position,
-    };
-    const batteries::Gizmo::vs_params_t vs_gizmo_params = {
-        .view_proj = view_proj,
-        .model = sphere.transform.matrix(),
-    };
-    const batteries::Gizmo::fs_params_t fs_gizmo_params = {
-        .color = light.color,
-    };
-
-    sg_begin_pass(&depthbuffer.pass);
-    // apply blinnphong pipeline and uniforms
-    sg_apply_pipeline(depth.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_depth_params));
-    // render suzanne
-    if (suzanne.loaded)
+    // draw the scene only using the depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthbuffer.fbo);
     {
-        sg_apply_bindings({
-            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            .index_buffer = suzanne.mesh.index_buffer,
-        });
-        sg_draw(0, suzanne.mesh.indices.size(), 1);
+        glEnable(GL_CULL_FACE);
+        glCullFace(debug.cull_front ? GL_FRONT : GL_BACK);
+        glEnable(GL_DEPTH_TEST);
+
+        glViewport(0, 0, 1024, 1024);
+
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        depth->use();
+
+        // scene matrices
+        depth->setMat4("model", random_model_matrix);
+        depth->setMat4("light_view_proj", light_view_proj);
+
+        // draw scene
+        suzanne->draw();
     }
-    sg_end_pass();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    sg_begin_pass(&framebuffer.pass);
-    // apply blinnphong pipeline and uniforms
-    sg_apply_pipeline(shadow.pipeline);
-    // render suzanne
-    if (suzanne.loaded)
-    {
-        sg_apply_uniforms(0, SG_RANGE(vs_shadow_params));
-        sg_apply_uniforms(1, SG_RANGE(fs_shadow_params));
-        sg_apply_bindings({
-            .vertex_buffers[0] = suzanne.mesh.vertex_buffer,
-            .index_buffer = suzanne.mesh.index_buffer,
-            .images[0] = depthbuffer.depth,
-            .samplers[0] = depthbuffer.sampler,
-        });
-        sg_draw(0, suzanne.mesh.indices.size(), 1);
-    }
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    sg_apply_pipeline(dungeon.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_dungeon_params));
-    sg_apply_uniforms(1, SG_RANGE(fs_dungeon_params));
-    sg_apply_bindings({
-        .vertex_buffers[0] = cube.mesh.vertex_buffer,
-        .index_buffer = cube.mesh.index_buffer,
-        .images = {
-            [0] = dungeon_texture.image,
-            [1] = depthbuffer.depth,
-        },
-        .samplers = {
-            [0] = dungeon_sampler,
-            [1] = depthbuffer.sampler,
-        },
-    });
-    sg_draw(0, cube.mesh.indices.size(), 1);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
 
-    // render light sources
-    sg_apply_pipeline(gizmo.pipeline);
-    sg_apply_uniforms(0, SG_RANGE(vs_gizmo_params));
-    sg_apply_uniforms(1, SG_RANGE(fs_gizmo_params));
-    sg_apply_bindings({
-        .vertex_buffers[0] = sphere.mesh.vertex_buffer,
-        .index_buffer = sphere.mesh.index_buffer,
-    });
-    sg_draw(0, sphere.mesh.indices.size(), 1);
-    sg_end_pass();
+    // reset viewport
+    glViewport(0, 0, sapp_width(), sapp_height());
 
-    // render framebuffer
-    sg_begin_pass(&pass);
-    sg_apply_pipeline(framebuffer.pipeline);
-    sg_apply_bindings(&framebuffer.bindings);
-    sg_draw(0, 6, 1);
+    // set bindings
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthbuffer.depth);
+
+    blinnphong->use();
+
+    // samplers
+    blinnphong->setInt("shadow_map", 0);
+
+    // scene matrices
+    blinnphong->setMat4("model", random_model_matrix);
+    blinnphong->setMat4("view_proj", view_proj);
+    blinnphong->setMat4("light_view_proj", light_view_proj);
+    blinnphong->setVec3("camera_position", camera.position);
+
+    // material properties
+    blinnphong->setVec3("material.ambient", material.ambient);
+    blinnphong->setVec3("material.diffuse", material.diffuse);
+    blinnphong->setVec3("material.specular", material.specular);
+    blinnphong->setFloat("material.shininess", material.shininess);
+
+    // ambient light
+    blinnphong->setFloat("ambient.intensity", ambient.intensity);
+    blinnphong->setVec3("ambient.color", ambient.color);
+
+    // point light
+    blinnphong->setVec3("light.color", light.color);
+    blinnphong->setVec3("light.position", light.position);
+
+    blinnphong->setFloat("bias", debug.bias);
+    blinnphong->setInt("use_pcf", debug.use_pcf);
+
+    // draw suzanne
+    suzanne->draw();
+
+    // draw plane
+    blinnphong->setMat4("model", glm::translate(glm::vec3(0.0f, -2.0f, 0.0f)));
+    plane.draw();
 }
 
 void Scene::Debug(void)
 {
     cameracontroller.Debug();
-    auto window_size = ImGui::GetWindowSize();
 
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    if (ImGui::CollapsingHeader("Ambient"))
-    {
-        ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &ambient.color[0]);
-    }
-    if (ImGui::CollapsingHeader("Light"))
-    {
-        ImGui::SliderFloat("Brightness", &light.brightness, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Color", &light.color[0]);
-    }
-    ImGui::End();
+    ImGui::SeparatorText("Shadow Mapping");
+    ImGui::Checkbox("cull_front", &debug.cull_front);
+    ImGui::Checkbox("use_pcf", &debug.use_pcf);
+    ImGui::SliderFloat("Bias", &debug.bias, 0.05f, 0.00f);
 
-    ImGui::Begin("Offscreen Render");
-    ImGui::BeginChild("Depth Buffer");
-    ImGui::Image(debug.depth_buffer, window_size, {0.0f, 1.0f}, {1.0f, 0.0f});
-    ImGui::EndChild();
+    ImGui::SeparatorText("Material");
+    ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
+
+    ImGui::SeparatorText("Ambient");
+    ImGui::SliderFloat("Intensity", &ambient.intensity, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Color", &ambient.color[0]);
+
+    ImVec2 uv_min(0.0f, 1.0f);
+    ImVec2 uv_max(1.0f, 0.0f);
+
+    ImGui::Text("Depth:");
+    ImGui::Image((ImTextureID)(intptr_t)depthbuffer.depth, ImVec2(200, 150), uv_min, uv_max);
+
     ImGui::End();
 }

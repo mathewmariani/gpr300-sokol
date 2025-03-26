@@ -2,23 +2,29 @@
 
 // batteries
 #include "batteries/scene.h"
-#include "batteries/shape.h"
-#include "batteries/texture.h"
 
-#include "terrain.h"
+// ew
+#include <memory>
+
+#include "ew/model.h"
+#include "ew/shader.h"
+#include "ew/texture.h"
 
 class Scene final : public batteries::Scene
 {
-public:
-  Scene();
-  virtual ~Scene();
+  public:
+    Scene();
+    virtual ~Scene();
 
-  void Update(float dt);
-  void Render(void);
-  void Debug(void);
+    void Update(float dt);
+    void Render(void);
+    void Debug(void);
 
-private:
-  Terrain terrain;
-  batteries::Texture heightmap;
-  batteries::Shape plane;
+  private:
+    std::unique_ptr<ew::Shader> island;
+    std::unique_ptr<ew::Shader> water_shader;
+    std::unique_ptr<ew::Texture> heightmap;
+
+    ew::Mesh plane;
+    ew::Mesh water_plane;
 };

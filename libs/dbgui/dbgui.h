@@ -9,7 +9,7 @@ extern "C"
   extern void __dbgui_shutdown(void);
   extern void __dbgui_begin(void);
   extern void __dbgui_end(void);
-  extern void __dbgui_event(const sapp_event *e);
+  extern bool __dbgui_event(const sapp_event *e);
 #if defined(__cplusplus)
 } // extern "C"
 #endif
