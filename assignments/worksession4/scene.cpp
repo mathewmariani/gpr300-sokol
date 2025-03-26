@@ -13,7 +13,7 @@
 #include <tuple>
 #include <vector>
 
-static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 2.0f};
 
 struct Palette
 {
@@ -79,7 +79,7 @@ void Scene::Render(void)
     toonshading->use();
 
     // scene matrices
-    toonshading->setMat4("model", glm::mat4{1.0f});
+    toonshading->setMat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(0.05f)));
     toonshading->setMat4("view_proj", view_proj);
     toonshading->setVec3("camera_position", camera.position);
 
