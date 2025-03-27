@@ -7,6 +7,22 @@ description: Shadow Mapping
 
 The goal of this assignment is to further strengthen your understanding of framebuffers by implementing shadows through the Shadow Mapping technique.
 
+1.  A scene that contains, at minimum:
+    *   A 3D Model
+1.  Your scene contains a single directional light
+I must be able to use ImGUI to easily change its direction. Exposing the direction values directly [-1 to 1] is okay. Don’t forget to normalize!
+1.  Scene must contain a ground plane and at least one object casting a shadow onto it.
+1.  Shadow mapping is implemented for a single directional light.
+1.  A debug view of your shadow map is shown in ImGUI.
+1.  Grading for this assignment will be on a tier based system, with each tier having a max grade.
+    *   0% - No shadows or shadow map visible
+    *   50% - Shadows are not visible, but a debug view of a correct shadow map is provided.
+    *   75% - Shadows are visible, but with visible shadow acne and/or peter panning.
+    *   90% - Shadows use slope-scale biasing to have no visible shadow acne and minimal peter panning.
+        *   Expose min and max bias values in ImGUI
+    *   100% - Soft shadows are implemented using Percentage Closer Filtering
+
+
 Build off of the previous assignments to complete this one.
 
 

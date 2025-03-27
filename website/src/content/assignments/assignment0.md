@@ -7,7 +7,18 @@ description: Blinn-Phong Lighting Model
 
 The goal of this assignment is setup and get comfortable with our [development environment][], and refamiliarize ourselves with the graphics pipeline and ImGUI by implementing the [blinn-phong][] reflection model with materials.
 
-<img src="images/phong-reflection-model.png" alt="Fact: This is the primary mode of transportation of the American cowboy." />
+
+#### Requirements
+
+1.  Dev environment is set up as expected.
+    *   Fork of repository is created and shared with instructor
+2.  All steps in the Instructions have been completed.
+3.  Version control best practices have been followed
+    *   Frequent commits - 1 per meaningful change, bug fix or feature
+Descriptive commit messages - actually describe what you changed!
+4.  Submit the link to your repository in Github.
+5.  Bonus (see bottom of instructions)
+    *   Implement normal mapping +10%
 
 
 #### Instructions

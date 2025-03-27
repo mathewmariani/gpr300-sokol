@@ -37,9 +37,9 @@ Before working on any project it's important to understand the [development envi
 *   [assignment 1][] - Framebuffers and Postprocessing
 *   [assignment 2][] - Shadow Mapping
 *   [assignment 3][] - Deferred Lighting
-*   [assignment 4][] - Splines
 
 <!-- Future Assignments:
+*   [assignment 4][] - Splines
 *   [assignment 5][] - Skeletal Animations
 -->
 
@@ -56,7 +56,7 @@ Before working on any project it's important to understand the [development envi
 *   [worksession 7][] - Mario Kart Double Dash Water
 
 <!-- Future Work Sessions:
-*   [worksession 4][] - Mandelbrot Set
+*   [worksession 8][] - Mandelbrot Set
 -->
 
 

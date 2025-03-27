@@ -3,21 +3,31 @@ title: Assignment 1
 description: Framebuffers & Postprocessing
 ---
 
-#### Goal
+#### Requirements
 
 The goal of this assignment is to strengthen your understanding of framebuffers by implementing the following post-processing effects.
 
-*   [Box Blur][]
-*   [Gaussian Blur][]
-*   [Sharpen][]
-*   [Edge Detection][]
-*   [HDR Tone Mapping][]
-*   [Gamma Correction][]
-*   [Chromatic Aberration][]
-*   [Vignette][]
-*   [Lens Distortion][]
-*   [Film Grain][]
-*   [Screen-Space Fog][]
+1.  A scene that contains, at minimum:
+    *   A 3D Model
+2.  Implement a method to create a custom framebuffer
+    *   Framebuffer must contain at least one color buffer and one depth buffer.
+    *   Depth buffer can either be  a texture2D or rbo. If sampling depth buffer for your effect, use a texture2D. If not, use a renderbuffer object.
+3.  Scene must be rendered to framebuffer
+4.  Render the framebuffer to the screen as a fullscreen quad or triangle, and apply a post process effect in the fragment shader.
+5.  Post process effect must include ImGUI controls for all relevant properties (enabled/disabled, intensity, etc)
+6.  Some possible effects:
+    *   [Box Blur][]
+    *   [Gaussian Blur][]
+    *   [Sharpen][]
+    *   [Edge Detection][]
+    *   [HDR Tone Mapping][]
+    *   [Gamma Correction][]
+    *   [Chromatic Aberration][]
+    *   [Vignette][]
+    *   [Lens Distortion][]
+    *   [Film grain][]
+    *   [Screen-space Fog][] (requires reading from depth buffer)
+7.  Use version control best practices - descriptive commit messages, frequent commits, no extraneous files.
 
 
 Build off of the previous assignment to complete this one.
@@ -25,8 +35,8 @@ Build off of the previous assignment to complete this one.
 
 #### Instructions
 
-1. Shader Setup:
-    * Design a shader program that defines the visual transformation or manipulation you want to apply to the scene. This shader is responsible for determining the color of each pixel in the output.
+1.  Shader Setup:
+    *   Design a shader program that defines the visual transformation or manipulation you want to apply to the scene. This shader is responsible for determining the color of each pixel in the output.
 
 2. Framebuffer Setup:
     * Set up a framebuffer object (FBO) to render the scene into a texture instead of the default frame buffer. This texture will serve as the input for the post-processing effect.
