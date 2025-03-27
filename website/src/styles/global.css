@@ -23,10 +23,26 @@ ul li {
     list-style: none;
 }
 
-ul li::before {
+ul > li::before {
     content: "➡️";
     margin-right: 8px;
 }
+
+ol li {
+    list-style: none;
+}
+
+ol > li::before { margin-right: 8px; }
+ol > li:nth-child(1)::before { content: "1️⃣"; }
+ol > li:nth-child(2)::before { content: "2️⃣"; }
+ol > li:nth-child(3)::before { content: "3️⃣"; }
+ol > li:nth-child(4)::before { content: "4️⃣"; }
+ol > li:nth-child(5)::before { content: "5️⃣"; }
+ol > li:nth-child(6)::before { content: "6️⃣"; }
+ol > li:nth-child(7)::before { content: "7️⃣"; }
+ol > li:nth-child(8)::before { content: "8️⃣"; }
+ol > li:nth-child(9)::before { content: "9️⃣"; }
+ol > li:nth-child(10)::before { content: "🔟"; }
 
 pre {
     border-radius: 8px;
