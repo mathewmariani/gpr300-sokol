@@ -49,3 +49,21 @@ pre {
     overflow: hidden;
     position: relative;
 }
+
+details summary {
+    cursor: pointer;
+    list-style: none; 
+}
+
+details summary::marker {
+    content: "";
+}
+
+details summary::before {
+    content: "ℹ️";
+    margin-right: 8px;
+}
+
+details[open] summary::before {
+    content: "⬇️";
+}
