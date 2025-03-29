@@ -5,10 +5,27 @@ description: Physically Based Rendering (PBR)
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
+
 #### Goal
+
 This worksession involves converting mathematical equations into a shader program for use in the graphics pipeline. You will be provided with equations, and your task is to express them in GLSL (OpenGL Shading Language) code. This exercise aims to develop your skills in translating equations into a fragment shader for visualization on the GPU.
 
 Through this practical application, you'll gain hands-on experience in shader programming, connecting mathematical formulations with visual outputs.
+
+#### Requirements
+
+There isn't a list of traits that define what a "Physically Based Renderer" is compared to a regular lighting model is, but we will define some common traits that we will implement.
+
+1.  Energy Conservation
+    *   The energy going in must not exceed the energy coming out.
+2.  Microfacet Model
+    *   Surfaces are made of microscopic faces that perfectly reflect light.
+3.  Fresnel Effect
+    *   The lower the viewing angle on surface is the better the reflection is.
+4.  Authored Materials
+    *   Using textures gives us per-fragment control over how each specific surface point should react to light.
+
+In your own research you may notice that not all tutorials follow these traits, yet they are still considered to be PBR. You may also find that not all resources use the same functions or models, this is normal.
 
 
 #### Lighting Equation
@@ -21,11 +38,21 @@ L_o(x, V) = L_e(x, V) + \int{f_r(x, L, V)L_i(x, V)(L \cdot N)}dL
 $$
 </span>
 
-Since we won't be fully simulating _*all possible lights within a hemisphere*_. We're going to simplify the equation to use a fixed number of lights. I'll give these functions and variables names, so we can more easily reference them later. \( x \) will represent a single fragment within the fragment shader.
+Since we won't be fully simulating _*all possible lights within a hemisphere*_. We're going to simplify the equation to use a fixed number of lights, and I'll give these variables names so we can more easily reference them later.
 
 <span>
 $$
-\underbrace{L_o(x, V)}_{\text{outgoing}} = \underbrace{L_e(x, V)}_{\text{emitted}} + \sum{\underbrace{f_r(x, L, V)}_{\text{BDRF}} \underbrace{L_i(x, L)}_{\text{incoming}} \underbrace{(L \cdot N)}_{\text{LdotN}}}
+\underbrace{L_o(x, V)}_{\text{outgoing}} = \underbrace{L_e(x, V)}_{\text{emitted}} + \sum{\underbrace{f_r(x, L_n, V)}_{\text{BDRF}} \underbrace{L_i(x, L_n)}_{\text{incoming}} \underbrace{(L_n \cdot N)}_{\text{LdotN}}}
+$$
+</span>
+
+<span>
+$$
+\begin{cases}
+x = \text{fragment position}, \\[2ex]
+V = \text{view vector}, \\[2ex]
+L_n = \text{current light vector}, \\[2ex]
+\end{cases}
 $$
 </span>
 
@@ -98,10 +125,15 @@ The first variable (or function) were going to tackle is the BRDF. This variable
 
 <span>
 $$
-BRDF = k_d\underbrace{f_{diffuse}}_{\text{lambert}} + k_s\underbrace{f_{specular}}_{\text{cook-torrence}}
+BRDF = \underbrace{k_df_{lambert}}_{\text{diffuse}} + \underbrace{k_sf_{cook-torrence}}_{\text{specular}}
+$$
+</span>
+
+<span>
+$$
 \begin{cases}
-k_d=1-k_s, \\[2ex]
-k_s=F,
+k_s=Fresnel, \\[2ex]
+k_d=1-k_s,
 \end{cases}
 $$
 </span>
@@ -135,6 +167,27 @@ vec3 BDRF()
 </details>
 
 
+##### Fresnel-Schlick Function
+
+The Fresnel-Schlick function approximates reflectance variation based on the viewing angle, increasing specular reflection at grazing angles for realistic material appearance.
+
+<span>
+$$
+F_{\text{schlick}} = F_0+(1-F_0)(1 - (V \cdot H))^5
+$$
+</span>
+
+<span>
+$$
+\begin{cases}
+F_0 = \text{base reflectivity}, \\[2ex]
+V = \text{view vector}, \\[2ex]
+H = \text{half-way vector}, \\[2ex]
+\end{cases}
+$$
+</span>
+
+
 ##### Lambertian Distribution 
 
 <span>
@@ -150,9 +203,23 @@ The Cook-Torrance function simulates light reflection by considering surface rou
 
 <span>
 $$
-f_{\text{cook-torrence}} = \frac{DGF}{4(V \cdot N)(L \cdot N)}
+f_{\text{cook-torrence}} = \frac{DGF}{4(V \cdot N)(L_n \cdot N)}
 $$
 </span>
+
+<span>
+$$
+\begin{cases}
+D = \text{Normal Distribution Function}, \\[2ex]
+G = \text{Geometry Shadowing Function}, \\[2ex]
+F = \text{Fresnel Function}, \\[2ex]
+V = \text{view vector}, \\[2ex]
+N = \text{normal vector}, \\[2ex]
+L_n = \text{current light vector}, \\[2ex]
+\end{cases}
+$$
+</span>
+
 
 <details>
     <summary>/* code spoilers */</summary>
@@ -186,6 +253,12 @@ The GGX/Trowbridge-Reitz NDF models surface microfacet distribution, controlling
 
 <span>
 $$
+\alpha = \text{roughness}^2
+$$
+</span>
+
+<span>
+$$
 D_{\text{throwbridge-reitz}} = \frac{\alpha^2}{\pi((N \cdot H)^2(\alpha^2 - 1) + 1)^2}
 $$
 </span>
@@ -200,9 +273,14 @@ In this case \( x \) will represent a dot product.
 <span>
 $$
 G_{\text{schlick-beckmann}} = \frac{(N \cdot X)}{(N \cdot X)(1-k)+k}
+$$
+</span>
+
+<span>
+$$
 \begin{cases}
 k=\frac{\alpha}{2}, \\[2ex]
-k=\frac{(\text{roughness}+1)^2}{8},
+X = V\text{ or }L
 \end{cases}
 $$
 </span>
@@ -219,17 +297,6 @@ $$
 </span>
 
 
-##### Fresnel-Schlick Function
-
-The Fresnel-Schlick function approximates reflectance variation based on the viewing angle, increasing specular reflection at grazing angles for realistic material appearance.
-
-<span>
-$$
-F_{\text{fresnel-schlick}} = F_0+(1-F_0)(1 - (V \cdot H))^5
-$$
-</span>
-
-
 ### Supplementary Reading
 
 *   [LearnOpenGL - PBR][]
@@ -237,4 +304,6 @@ $$
 
 
 [LearnOpenGL - PBR]: https://learnopengl.com/PBR/Theory
-[OGLDEV - PBR]: https://www.youtube.com/watch?v=XK_p2MxGBQs&ab_channel=OGLDEV
+[OGLDEV - PBR]: https://youtu.be/XK_p2MxGBQs?si=j7OM494e4z_DSvuc
+[Victor Gorgon - PBR]: https://youtu.be/RRE-F57fbXw?si=aa3AW_MmoKVHUu2_
+[Wolfire Games]: http://blog.wolfire.com/2015/10/Physically-based-rendering
