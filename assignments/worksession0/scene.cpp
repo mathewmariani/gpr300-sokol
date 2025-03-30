@@ -21,6 +21,11 @@ enum
     PBR_SPECULAR = 4,
 };
 
+struct {
+    float mtl = 1.0f;
+    float rgh = 1.0f;
+} prb_material;
+
 Scene::Scene()
 {
     shell = std::make_unique<ew::Model>("assets/smashbros/greenshell/greenshell.obj");
@@ -95,6 +100,9 @@ void Scene::Render(void)
     pbr->setInt("material.occlusion", PBR_OCCLUSION);
     pbr->setInt("material.specular", PBR_SPECULAR);
 
+    pbr->setFloat("pbr_mtl", prb_material.mtl);
+    pbr->setFloat("pbr_rgh", prb_material.rgh);
+
     // point light
     pbr->setVec3("light.color", light.color);
     pbr->setVec3("light.position", light.position);
@@ -111,6 +119,9 @@ void Scene::Debug(void)
 
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
+
+    ImGui::SliderFloat("Metallic", &prb_material.mtl, 0.0f, 1.0f);
+    ImGui::SliderFloat("Roughness", &prb_material.rgh, 0.0f, 1.0f);
 
     ImGui::End();
 }
