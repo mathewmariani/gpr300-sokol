@@ -19,12 +19,20 @@ enum
     PBR_ROUGHNESS = 2,
     PBR_OCCLUSION = 3,
     PBR_SPECULAR = 4,
+    PBR_COMBINED = 5,
 };
 
 struct {
+    bool use_custom = true;
+    bool is_metal = false;
+    float base_reflectivity = 0.04f;
+} pbr_pipeline;
+
+struct {
+    glm::vec3 alb = {0.6f, 0.0f, 0.6f};
     float mtl = 1.0f;
     float rgh = 1.0f;
-} prb_material;
+} pbr_material;
 
 Scene::Scene()
 {
@@ -35,6 +43,7 @@ Scene::Scene()
     textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_rgh.png"));
     textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_ao.png"));
     textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_spc.png"));
+    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_pbr.png"));
 
     ambient = {
         .intensity = 1.0f,
@@ -86,6 +95,9 @@ void Scene::Render(void)
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, textures[PBR_SPECULAR]->getID());
 
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, textures[PBR_COMBINED]->getID());
+
     pbr->use();
 
     // scene matrices
@@ -99,9 +111,17 @@ void Scene::Render(void)
     pbr->setInt("material.roughness", PBR_ROUGHNESS);
     pbr->setInt("material.occlusion", PBR_OCCLUSION);
     pbr->setInt("material.specular", PBR_SPECULAR);
+    pbr->setInt("material.combined", PBR_COMBINED);
 
-    pbr->setFloat("pbr_mtl", prb_material.mtl);
-    pbr->setFloat("pbr_rgh", prb_material.rgh);
+    // pbr pipeline
+    pbr->setInt("is_metal", pbr_pipeline.is_metal);
+    pbr->setInt("base_reflectivity", pbr_pipeline.base_reflectivity);
+    pbr->setInt("use_custom", pbr_pipeline.use_custom);
+
+    // pbr properties values
+    pbr->setVec3("custom_alb", pbr_material.alb);
+    pbr->setFloat("custom_mtl", pbr_material.mtl);
+    pbr->setFloat("custom_rgh", pbr_material.rgh);
 
     // point light
     pbr->setVec3("light.color", light.color);
@@ -120,8 +140,21 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
-    ImGui::SliderFloat("Metallic", &prb_material.mtl, 0.0f, 1.0f);
-    ImGui::SliderFloat("Roughness", &prb_material.rgh, 0.0f, 1.0f);
+    ImGui::SeparatorText("PBR Pipeline");
+    {
+        ImGui::Checkbox("Is Metal", &pbr_pipeline.is_metal);
+        ImGui::SliderFloat("Base Reflectivity", &pbr_pipeline.base_reflectivity, 0.0f, 1.0f);
+        ImGui::Checkbox("Use Custom Material", &pbr_pipeline.use_custom); 
+    }
+    if (pbr_pipeline.use_custom)
+    {
+        ImGui::SeparatorText("Custom Material");
+        {
+            ImGui::ColorEdit3("Albedo", &pbr_material.alb[0]);
+            ImGui::SliderFloat("Metallic", &pbr_material.mtl, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness", &pbr_material.rgh, 0.0f, 1.0f);
+        }
+    }
 
     ImGui::End();
 }

@@ -8,6 +8,7 @@ struct PBRMaterial {
   sampler2D roughness;
   sampler2D occlusion;
   sampler2D specular;
+  sampler2D combined;
 };
 struct Light {
   vec3 color;
@@ -26,8 +27,13 @@ uniform PBRMaterial material;
 uniform Light light;
 uniform vec3 camera_position;
 
-uniform float pbr_mtl;
-uniform float pbr_rgh;
+bool use_nintendo = true;
+uniform bool is_metal;
+uniform float base_reflectivity;
+uniform bool use_custom;
+uniform vec3 custom_alb;
+uniform float custom_mtl;
+uniform float custom_rgh;
 
 // constants
 const vec3 lightColor = vec3(1.0);
@@ -40,11 +46,12 @@ float NdotL;
 float VdotH;
 float VdotN;
 float LdotN;
-vec3 alb;
-float mtl;
-float rgh;
-float ao;
-float spec;
+vec3 mat_alb;
+vec3 mat_pbr;
+float mat_mtl;
+float mat_rgh;
+float mat_ao;
+float mat_spec;
 
 // GGX / Throwbridge-Reitz normal distribution function
 // N: normal vector
@@ -101,27 +108,49 @@ vec3 cookTorrence(vec3 fresnel, float alpha)
 
 vec3 BDRF()
 {
-    // calculate reflectance at normal incidence;
-    // if dia-electric (like plastic) use F0 of 0.04.
-    // if it's a metal, use the albedo color as F0 (metallic workflow).   
-    vec3 F0 = vec3(0.04);
-    F0 = alb;
+  vec3 _alb = vec3(0.0);
+  float _rgh = 0.0;
+  float _mtl = 0.0;
+  if (use_custom)
+  {
+    _alb = custom_alb;
+    _rgh = custom_rgh;
+    _mtl = custom_mtl;
+  }
+  else
+  {
+    _alb = mat_alb;
+    _rgh = mat_rgh;
+    _mtl = mat_mtl;
+  }
 
-    vec3 fresnel = F(F0);
-    vec3 cook = cookTorrence(fresnel, pbr_rgh);
+  // if it's a metal, use the albedo color as F0 (metallic workflow).
+  // if dia-electric (like plastic) use F0 of `base_reflectivity`.
+  vec3 F0 = vec3(base_reflectivity);
+  if (is_metal)
+  {
+    F0 = _alb;
+  }
+  else
+  {
+    F0 = mix(F0, _alb, _mtl);
+  }
 
-    // ratio between reflection and refraction
-    // Ks + Kd = 1
-    vec3 Ks = fresnel;
-    vec3 Kd = (1.0 - Ks) * (1.0 - pbr_mtl);
+  vec3 fresnel = F(F0);
+  vec3 cook = cookTorrence(fresnel, _rgh);
 
-    // lambertian distribution
-    vec3 lambert = alb / PI;
+  // ratio between reflection and refraction
+  // Ks + Kd = 1
+  vec3 Ks = fresnel;
+  vec3 Kd = (1.0 - Ks) * (1.0 - _mtl);
 
-    // diffuse + specular
-    vec3 diffuse = (Kd * lambert);
-    vec3 specular = (Ks * cook);
-    return diffuse + specular;
+  // lambertian distribution
+  vec3 lambert = _alb / PI;
+
+  // diffuse + specular
+  vec3 diffuse = (Kd * lambert);
+  vec3 specular = (Ks * cook);
+  return diffuse + specular;
 }
 
 // Rendering equation
@@ -132,12 +161,13 @@ vec3 BDRF()
 void main()
 {
   // pre-sample all textures
-  alb = pow(texture(material.albedo, vs_texcoord).rgb, vec3(2.2));
-  mtl = texture(material.metallic, vs_texcoord).r;
-  rgh = texture(material.roughness, vs_texcoord).r;
-  ao = texture(material.occlusion, vs_texcoord).r;
-  spec = texture(material.specular, vs_texcoord).r;
-
+  mat_alb = pow(texture(material.albedo, vs_texcoord).rgb, vec3(2.2));
+  mat_pbr = texture(material.combined, vs_texcoord).rgb;
+  mat_mtl = texture(material.metallic, vs_texcoord).r;
+  mat_rgh = texture(material.roughness, vs_texcoord).r;
+  mat_ao = texture(material.occlusion, vs_texcoord).r;
+  mat_spec = texture(material.specular, vs_texcoord).r;
+  
   vec3 N = normalize(vs_normal);
   vec3 V = normalize(camera_position);
   vec3 L = normalize(light.position);
@@ -151,14 +181,20 @@ void main()
   VdotN = max(dot(V, N), 0.0);
   LdotN = max(dot(L, N), 0.0);
 
+  vec3 ambient = vec3(0.03) * mat_alb * mat_ao;
+  if (use_custom)
+  {
+    ambient = vec3(0.03) * custom_alb * mat_ao;
+  }
   vec3 emitted = vec3(0.0);
   vec3 brdf = BDRF();
-  vec3 incoming = vec3(1.0) * ao;
+  vec3 incoming = vec3(1.0) * mat_ao;
   vec3 pbr = emitted + (brdf * incoming * LdotN);
+  vec3 color = pbr + ambient;
 
-  // HDR tone mapping
-  pbr = pbr / (pbr + vec3(1.0));
-
-  // Gamma correction
-  FragColor = vec4(pow(pbr, vec3(1.0/2.2)), 1.0);
+  // HDR & Gamma correction
+  color = color / (color + vec3(1.0));
+  FragColor = vec4(pow(color, vec3(1.0/2.2)), 1.0);
+  // FragColor = vec4(mat_pbr, 1.0);
+  // FragColor = texture(material.roughness, vs_texcoord);
 }
