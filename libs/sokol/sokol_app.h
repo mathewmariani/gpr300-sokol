@@ -310,6 +310,16 @@
             HWND has been cast to a void pointer in order to be tunneled
             through code which doesn't include Windows.h.
 
+        const void* sapp_x11_get_window(void)
+            On Linux, get the X11 Window, otherwise a null pointer. The
+            Window has been cast to a void pointer in order to be tunneled
+            through code which doesn't include X11/Xlib.h.
+
+        const void* sapp_x11_get_display(void)
+            On Linux, get the X11 Display, otherwise a null pointer. The
+            Display has been cast to a void pointer in order to be tunneled
+            through code which doesn't include X11/Xlib.h.
+
         const void* sapp_wgpu_get_device(void)
         const void* sapp_wgpu_get_render_view(void)
         const void* sapp_wgpu_get_resolve_view(void)
@@ -324,8 +334,9 @@
 
         int sapp_gl_get_major_version(void)
         int sapp_gl_get_minor_version(void)
-            Returns the major and minor version of the GL context
-            (only for SOKOL_GLCORE, all other backends return zero here, including SOKOL_GLES3)
+        bool sapp_gl_is_gles(void)
+            Returns the major and minor version of the GL context and
+            whether the GL context is a GLES context
 
         const void* sapp_android_get_native_activity(void);
             On Android, get the native activity ANativeActivity pointer, otherwise
@@ -432,14 +443,15 @@
 
         if (sapp_mouse_locked()) { ... }
 
-    On native platforms, the sapp_lock_mouse() and sapp_mouse_locked()
-    functions work as expected (mouse lock is activated or deactivated
-    immediately when sapp_lock_mouse() is called, and sapp_mouse_locked()
-    also immediately returns the new state after sapp_lock_mouse()
-    is called.
+    Note that mouse-lock state may not change immediately after sapp_lock_mouse(true/false)
+    is called, instead on some platforms the actual state switch may be delayed
+    to the end of the current frame or even to a later frame.
 
-    On the web platform, sapp_lock_mouse() and sapp_mouse_locked() behave
-    differently, as dictated by the limitations of the HTML5 Pointer Lock API:
+    The mouse may also be unlocked automatically without calling sapp_lock_mouse(false),
+    most notably when the application window becomes inactive.
+
+    On the web platform there are further restrictions to be aware of, caused
+    by the limitations of the HTML5 Pointer Lock API:
 
         - sapp_lock_mouse(true) can be called at any time, but it will
           only take effect in a 'short-lived input event handler of a specific
@@ -489,6 +501,13 @@
                 default:
                     break;
             }
+        }
+
+    For a 'first person shooter mouse' the following code inside the sokol-app event handler
+    is recommended somewhere in your frame callback:
+
+        if (!sapp_mouse_locked()) {
+            sapp_lock_mouse(true);
         }
 
     CLIPBOARD SUPPORT
@@ -1800,7 +1819,7 @@ typedef struct sapp_desc {
     sapp_logger logger;                 // logging callback override (default: NO LOGGING!)
 
     // backend-specific options
-    int gl_major_version;               // override GL major and minor version (the default GL version is 4.1 on macOS, 4.3 elsewhere)
+    int gl_major_version;               // override GL/GLES major and minor version (defaults: GL4.1 (macOS) or GL4.3, GLES3.1 (Android) or GLES3.0
     int gl_minor_version;
     bool win32_console_utf8;            // if true, set the output console codepage to UTF-8
     bool win32_console_create;          // if true, attach stdout/stderr to a new console window
@@ -1992,10 +2011,17 @@ SOKOL_APP_API_DECL const void* sapp_wgpu_get_depth_stencil_view(void);
 
 /* GL: get framebuffer object */
 SOKOL_APP_API_DECL uint32_t sapp_gl_get_framebuffer(void);
-/* GL: get major version (only valid for desktop GL) */
+/* GL: get major version */
 SOKOL_APP_API_DECL int sapp_gl_get_major_version(void);
-/* GL: get minor version (only valid for desktop GL) */
+/* GL: get minor version */
 SOKOL_APP_API_DECL int sapp_gl_get_minor_version(void);
+/* GL: return true if the context is GLES */
+SOKOL_APP_API_DECL bool sapp_gl_is_gles(void);
+
+/* X11: get Window */
+SOKOL_APP_API_DECL const void* sapp_x11_get_window(void);
+/* X11: get Display */
+SOKOL_APP_API_DECL const void* sapp_x11_get_display(void);
 
 /* Android: get native activity handle */
 SOKOL_APP_API_DECL const void* sapp_android_get_native_activity(void);
@@ -2631,18 +2657,24 @@ typedef struct {
     HICON small_icon;
     HCURSOR cursors[_SAPP_MOUSECURSOR_NUM];
     UINT orig_codepage;
-    LONG mouse_locked_x, mouse_locked_y;
-    bool mouse_locked_pos_valid;
     RECT stored_window_rect;    // used to restore window pos/size when toggling fullscreen => windowed
     bool is_win10_or_greater;
     bool in_create_window;
     bool iconified;
-    bool mouse_tracked;
-    uint8_t mouse_capture_mask;
     _sapp_win32_dpi_t dpi;
-    bool raw_input_mousepos_valid;
-    LONG raw_input_mousepos_x;
-    LONG raw_input_mousepos_y;
+    struct {
+        struct {
+            LONG pos_x, pos_y;
+            bool pos_valid;
+        } lock;
+        struct {
+            LONG pos_x, pos_y;
+            bool pos_valid;
+        } raw_input;
+        bool requested_lock;
+        bool tracked;
+        uint8_t capture_mask;
+    } mouse;
     uint8_t raw_input_data[256];
 } _sapp_win32_t;
 
@@ -3035,7 +3067,7 @@ static void _sapp_log(sapp_log_item log_item, uint32_t log_level, const char* ms
                 msg = _sapp_log_messages[log_item];
             }
         #endif
-        _sapp.desc.logger.func("sapp", log_level, log_item, msg, line_nr, filename, _sapp.desc.logger.user_data);
+        _sapp.desc.logger.func("sapp", log_level, (uint32_t)log_item, msg, line_nr, filename, _sapp.desc.logger.user_data);
     }
     else {
         // for log level PANIC it would be 'undefined behaviour' to continue
@@ -3187,17 +3219,21 @@ _SOKOL_PRIVATE sapp_desc _sapp_desc_defaults(const sapp_desc* desc) {
     sapp_desc res = *desc;
     res.sample_count = _sapp_def(res.sample_count, 1);
     res.swap_interval = _sapp_def(res.swap_interval, 1);
-    // NOTE: can't patch the default for gl_major_version and gl_minor_version
-    // independently, because a desired version 4.0 would be patched to 4.2
-    // (or expressed differently: zero is a valid value for gl_minor_version
-    // and can't be used to indicate 'default')
     if (0 == res.gl_major_version) {
-        #if defined(_SAPP_APPLE)
+        #if defined(SOKOL_GLCORE)
             res.gl_major_version = 4;
-            res.gl_minor_version = 1;
-        #else
-            res.gl_major_version = 4;
-            res.gl_minor_version = 3;
+            #if defined(_SAPP_APPLE)
+                res.gl_minor_version = 1;
+            #else
+                res.gl_minor_version = 3;
+            #endif
+        #elif defined(SOKOL_GLES3)
+            res.gl_major_version = 3;
+            #if defined(_SAPP_ANDROID) || defined(_SAPP_LINUX)
+                res.gl_minor_version = 1;
+            #else
+                res.gl_minor_version = 0;
+            #endif
         #endif
     }
     res.html5_canvas_selector = _sapp_def(res.html5_canvas_selector, "#canvas");
@@ -6612,7 +6648,7 @@ _SOKOL_PRIVATE void _sapp_d3d11_create_device_and_swapchain(void) {
         //
         // ...just retry with the DEBUG flag switched off
         _SAPP_ERROR(WIN32_D3D11_CREATE_DEVICE_AND_SWAPCHAIN_WITH_DEBUG_FAILED);
-        create_flags &= ~D3D11_CREATE_DEVICE_DEBUG;
+        create_flags &= ~(UINT)D3D11_CREATE_DEVICE_DEBUG;
         hr = D3D11CreateDeviceAndSwapChain(
             NULL,                           /* pAdapter (use default) */
             D3D_DRIVER_TYPE_HARDWARE,       /* DriverType */
@@ -6672,7 +6708,7 @@ _SOKOL_PRIVATE void _sapp_d3d11_create_default_render_target(void) {
     SOKOL_ASSERT(0 == _sapp.d3d11.ds);
     SOKOL_ASSERT(0 == _sapp.d3d11.dsv);
 
-    HRESULT hr;
+    HRESULT hr; _SOKOL_UNUSED(hr);
 
     /* view for the swapchain-created framebuffer */
     hr = _sapp_dxgi_GetBuffer(_sapp.d3d11.swap_chain, 0, _sapp_win32_refiid(_sapp_IID_ID3D11Texture2D), (void**)&_sapp.d3d11.rt);
@@ -7194,16 +7230,16 @@ _SOKOL_PRIVATE void _sapp_win32_update_cursor(sapp_mouse_cursor cursor, bool sho
 }
 
 _SOKOL_PRIVATE void _sapp_win32_capture_mouse(uint8_t btn_mask) {
-    if (0 == _sapp.win32.mouse_capture_mask) {
+    if (0 == _sapp.win32.mouse.capture_mask) {
         SetCapture(_sapp.win32.hwnd);
     }
-    _sapp.win32.mouse_capture_mask |= btn_mask;
+    _sapp.win32.mouse.capture_mask |= btn_mask;
 }
 
 _SOKOL_PRIVATE void _sapp_win32_release_mouse(uint8_t btn_mask) {
-    if (0 != _sapp.win32.mouse_capture_mask) {
-        _sapp.win32.mouse_capture_mask &= ~btn_mask;
-        if (0 == _sapp.win32.mouse_capture_mask) {
+    if (0 != _sapp.win32.mouse.capture_mask) {
+        _sapp.win32.mouse.capture_mask &= ~btn_mask;
+        if (0 == _sapp.win32.mouse.capture_mask) {
             ReleaseCapture();
         }
     }
@@ -7214,76 +7250,107 @@ _SOKOL_PRIVATE bool _sapp_win32_is_foreground_window(void) {
 }
 
 _SOKOL_PRIVATE void _sapp_win32_lock_mouse(bool lock) {
-    if (lock == _sapp.mouse.locked) {
-        return;
-    }
+    _sapp.win32.mouse.requested_lock = lock;
+}
+
+_SOKOL_PRIVATE void _sapp_win32_do_lock_mouse(void) {
+    _sapp.mouse.locked = true;
+
+    // hide mouse cursor (NOTE: this maintains a hidden counter, but since
+    // only mouse-lock uses ShowCursor this doesn't matter)
+    ShowCursor(FALSE);
+
+    // reset dx/dy and release any active mouse capture
     _sapp.mouse.dx = 0.0f;
     _sapp.mouse.dy = 0.0f;
     _sapp_win32_release_mouse(0xFF);
-    if (lock) {
-        // don't allow locking the mouse unless we're the active window
-        if (!_sapp_win32_is_foreground_window()) {
-            return;
-        }
 
-        _sapp.mouse.locked = true;
-        /* store the current mouse position, so it can be restored when unlocked */
-        POINT pos;
-        BOOL res = GetCursorPos(&pos);
-        if (res) {
-            _sapp.win32.mouse_locked_x = pos.x;
-            _sapp.win32.mouse_locked_y = pos.y;
-            _sapp.win32.mouse_locked_pos_valid = true;
-
-            /* while the mouse is locked, make the mouse cursor invisible and
-               confine the mouse movement to a small rectangle inside our window
-               (so that we don't miss any mouse up events)
-            */
-            RECT client_rect = {
-                _sapp.win32.mouse_locked_x,
-                _sapp.win32.mouse_locked_y,
-                _sapp.win32.mouse_locked_x,
-                _sapp.win32.mouse_locked_y
-            };
-            ClipCursor(&client_rect);
-        } else {
-            _sapp.win32.mouse_locked_pos_valid = false;
-        }
-
-        /* make the mouse cursor invisible, this will stack with sapp_show_mouse() */
-        ShowCursor(FALSE);
-
-        /* enable raw input for mouse, starts sending WM_INPUT messages to WinProc (see GLFW) */
-        const RAWINPUTDEVICE rid = {
-            0x01,   // usUsagePage: HID_USAGE_PAGE_GENERIC
-            0x02,   // usUsage: HID_USAGE_GENERIC_MOUSE
-            0,      // dwFlags
-            _sapp.win32.hwnd    // hwndTarget
-        };
-        if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
-            _SAPP_ERROR(WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_LOCK);
-        }
-        /* in case the raw mouse device only supports absolute position reporting,
-           we need to skip the dx/dy compution for the first WM_INPUT event
-        */
-        _sapp.win32.raw_input_mousepos_valid = false;
+    // store current mouse position so that it can be restored when unlocked
+    POINT pos;
+    if (GetCursorPos(&pos)) {
+        _sapp.win32.mouse.lock.pos_valid = true;
+        _sapp.win32.mouse.lock.pos_x = pos.x;
+        _sapp.win32.mouse.lock.pos_y = pos.y;
     } else {
-        _sapp.mouse.locked = false;
-        /* disable raw input for mouse */
-        const RAWINPUTDEVICE rid = { 0x01, 0x02, RIDEV_REMOVE, NULL };
-        if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
-            _SAPP_ERROR(WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_UNLOCK);
-        }
+        _sapp.win32.mouse.lock.pos_valid = false;
+    }
 
-        /* let the mouse roam freely again */
-        ClipCursor(NULL);
-        ShowCursor(TRUE);
+    // while mouse is locked, restrict cursor movement to the client
+    // rectangle so that we don't loose any mouse movement events
+    RECT client_rect;
+    GetClientRect(_sapp.win32.hwnd, &client_rect);
+    POINT mid_point;
+    mid_point.x = (client_rect.right - client_rect.left) / 2;
+    mid_point.y = (client_rect.bottom - client_rect.top) / 2;
+    ClientToScreen(_sapp.win32.hwnd, &mid_point);
+    RECT clip_rect;
+    clip_rect.left = clip_rect.right = mid_point.x;
+    clip_rect.top = clip_rect.bottom = mid_point.y;
+    ClipCursor(&clip_rect);
 
-        /* restore the 'pre-locked' mouse position */
-        if (_sapp.win32.mouse_locked_pos_valid) {
-            SetCursorPos(_sapp.win32.mouse_locked_x, _sapp.win32.mouse_locked_y);
-            _sapp.win32.mouse_locked_pos_valid = false;
+    // enable raw input for mouse, starts sending WM_INPUT messages to WinProc (see GLFW)
+    const RAWINPUTDEVICE rid = {
+        0x01,   // usUsagePage: HID_USAGE_PAGE_GENERIC
+        0x02,   // usUsage: HID_USAGE_GENERIC_MOUSE
+        0,      // dwFlags
+        _sapp.win32.hwnd    // hwndTarget
+    };
+    if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
+        _SAPP_ERROR(WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_LOCK);
+    }
+    // in case the raw mouse device only supports absolute position reporting,
+    // we need to skip the dx/dy compution for the first WM_INPUT event
+    _sapp.win32.mouse.raw_input.pos_valid = false;
+}
+
+_SOKOL_PRIVATE void _sapp_win32_do_unlock_mouse(void) {
+    _sapp.mouse.locked = false;
+
+    // make mouse cursor visible
+    ShowCursor(TRUE);
+
+    // reset dx/dy and release any active mouse capture
+    _sapp.mouse.dx = 0.0f;
+    _sapp.mouse.dy = 0.0f;
+    _sapp_win32_release_mouse(0xFF);
+
+    // disable raw input for mouse
+    const RAWINPUTDEVICE rid = { 0x01, 0x02, RIDEV_REMOVE, NULL };
+    if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
+        _SAPP_ERROR(WIN32_REGISTER_RAW_INPUT_DEVICES_FAILED_MOUSE_UNLOCK);
+    }
+
+    // unrestrict mouse movement
+    ClipCursor(NULL);
+
+    // restore the 'pre-locked' mouse position
+    if (_sapp.win32.mouse.lock.pos_valid) {
+        SetCursorPos(_sapp.win32.mouse.lock.pos_x, _sapp.win32.mouse.lock.pos_y);
+        _sapp.win32.mouse.lock.pos_valid = false;
+    }
+}
+
+_SOKOL_PRIVATE void _sapp_win32_update_mouse_lock(void) {
+    // mouse lock can only be active when we're the active window
+    if (!_sapp_win32_is_foreground_window()) {
+        // unlock mouse if currently locked
+        if (_sapp.mouse.locked) {
+            _sapp_win32_do_unlock_mouse();
         }
+        return;
+    }
+
+    // nothing to do if requested lock state matches current lock state
+    const bool lock = _sapp.win32.mouse.requested_lock;
+    if (lock == _sapp.mouse.locked) {
+        return;
+    }
+
+    // otherwise change into desired state
+    if (lock) {
+        _sapp_win32_do_lock_mouse();
+    } else {
+        _sapp_win32_do_unlock_mouse();
     }
 }
 
@@ -7582,8 +7649,8 @@ _SOKOL_PRIVATE LRESULT CALLBACK _sapp_win32_wndproc(HWND hWnd, UINT uMsg, WPARAM
             case WM_MOUSEMOVE:
                 if (!_sapp.mouse.locked) {
                     _sapp_win32_mouse_update(lParam);
-                    if (!_sapp.win32.mouse_tracked) {
-                        _sapp.win32.mouse_tracked = true;
+                    if (!_sapp.win32.mouse.tracked) {
+                        _sapp.win32.mouse.tracked = true;
                         TRACKMOUSEEVENT tme;
                         _sapp_clear(&tme, sizeof(tme));
                         tme.cbSize = sizeof(tme);
@@ -7617,13 +7684,13 @@ _SOKOL_PRIVATE LRESULT CALLBACK _sapp_win32_wndproc(HWND hWnd, UINT uMsg, WPARAM
                         */
                         LONG new_x = raw_mouse_data->data.mouse.lLastX;
                         LONG new_y = raw_mouse_data->data.mouse.lLastY;
-                        if (_sapp.win32.raw_input_mousepos_valid) {
-                            _sapp.mouse.dx = (float) (new_x - _sapp.win32.raw_input_mousepos_x);
-                            _sapp.mouse.dy = (float) (new_y - _sapp.win32.raw_input_mousepos_y);
+                        if (_sapp.win32.mouse.raw_input.pos_valid) {
+                            _sapp.mouse.dx = (float) (new_x - _sapp.win32.mouse.raw_input.pos_x);
+                            _sapp.mouse.dy = (float) (new_y - _sapp.win32.mouse.raw_input.pos_y);
                         }
-                        _sapp.win32.raw_input_mousepos_x = new_x;
-                        _sapp.win32.raw_input_mousepos_y = new_y;
-                        _sapp.win32.raw_input_mousepos_valid = true;
+                        _sapp.win32.mouse.raw_input.pos_x = new_x;
+                        _sapp.win32.mouse.raw_input.pos_y = new_y;
+                        _sapp.win32.mouse.raw_input.pos_valid = true;
                     }
                     else {
                         /* mouse reports movement delta (this seems to be the common case) */
@@ -7638,7 +7705,7 @@ _SOKOL_PRIVATE LRESULT CALLBACK _sapp_win32_wndproc(HWND hWnd, UINT uMsg, WPARAM
                 if (!_sapp.mouse.locked) {
                     _sapp.mouse.dx = 0.0f;
                     _sapp.mouse.dy = 0.0f;
-                    _sapp.win32.mouse_tracked = false;
+                    _sapp.win32.mouse.tracked = false;
                     _sapp_win32_mouse_event(SAPP_EVENTTYPE_MOUSE_LEAVE, SAPP_MOUSEBUTTON_INVALID);
                 }
                 break;
@@ -8133,12 +8200,8 @@ _SOKOL_PRIVATE void _sapp_win32_run(const sapp_desc* desc) {
         if (_sapp.quit_requested) {
             PostMessage(_sapp.win32.hwnd, WM_CLOSE, 0, 0);
         }
-        // unlock mouse if window doesn't have focus
-        if (_sapp.mouse.locked) {
-            if (!_sapp_win32_is_foreground_window()) {
-                _sapp_win32_lock_mouse(false);
-            }
-        }
+        // update mouse-lock state
+        _sapp_win32_update_mouse_lock();
     }
     _sapp_call_cleanup();
 
@@ -8276,7 +8339,8 @@ _SOKOL_PRIVATE bool _sapp_android_init_egl(void) {
     }
 
     EGLint ctx_attributes[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
+        EGL_CONTEXT_MAJOR_VERSION, _sapp.desc.gl_major_version,
+        EGL_CONTEXT_MINOR_VERSION, _sapp.desc.gl_minor_version,
         EGL_NONE,
     };
     EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctx_attributes);
@@ -11313,6 +11377,9 @@ _SOKOL_PRIVATE void _sapp_x11_on_selectionnotify(XEvent* event) {
             XSendEvent(_sapp.x11.display, _sapp.x11.xdnd.source, False, NoEventMask, &reply);
             XFlush(_sapp.x11.display);
         }
+        if (data) {
+            XFree(data);
+        }
     }
 }
 
@@ -11589,12 +11656,10 @@ _SOKOL_PRIVATE void _sapp_egl_init(void) {
     }
 
     EGLint ctx_attrs[] = {
+        EGL_CONTEXT_MAJOR_VERSION, _sapp.desc.gl_major_version,
+        EGL_CONTEXT_MINOR_VERSION, _sapp.desc.gl_minor_version,
         #if defined(SOKOL_GLCORE)
-            EGL_CONTEXT_MAJOR_VERSION, _sapp.desc.gl_major_version,
-            EGL_CONTEXT_MINOR_VERSION, _sapp.desc.gl_minor_version,
             EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-        #elif defined(SOKOL_GLES3)
-            EGL_CONTEXT_CLIENT_VERSION, 3,
         #endif
         EGL_NONE,
     };
@@ -12315,7 +12380,7 @@ SOKOL_API_IMPL uint32_t sapp_gl_get_framebuffer(void) {
 
 SOKOL_API_IMPL int sapp_gl_get_major_version(void) {
     SOKOL_ASSERT(_sapp.valid);
-    #if defined(SOKOL_GLCORE)
+    #if defined(_SAPP_ANY_GL)
         return _sapp.desc.gl_major_version;
     #else
         return 0;
@@ -12324,8 +12389,32 @@ SOKOL_API_IMPL int sapp_gl_get_major_version(void) {
 
 SOKOL_API_IMPL int sapp_gl_get_minor_version(void) {
     SOKOL_ASSERT(_sapp.valid);
-    #if defined(SOKOL_GLCORE)
+    #if defined(_SAPP_ANY_GL)
         return _sapp.desc.gl_minor_version;
+    #else
+        return 0;
+    #endif
+}
+
+SOKOL_API_IMPL bool sapp_gl_is_gles(void) {
+    #if defined(SOKOL_GLES3)
+        return true;
+    #else
+        return false;
+    #endif
+}
+
+SOKOL_API_IMPL const void* sapp_x11_get_window(void) {
+    #if defined(_SAPP_LINUX)
+        return (void*)_sapp.x11.window;
+    #else
+        return 0;
+    #endif
+}
+
+SOKOL_API_IMPL const void* sapp_x11_get_display(void) {
+    #if defined(_SAPP_LINUX)
+        return (void*)_sapp.x11.display;
     #else
         return 0;
     #endif
