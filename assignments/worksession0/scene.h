@@ -9,6 +9,9 @@
 #include "ew/shader.h"
 #include "ew/texture.h"
 
+// std
+#include <vector>
+
 class Scene final : public batteries::Scene
 {
   public:
@@ -20,11 +23,20 @@ class Scene final : public batteries::Scene
     void Debug(void);
 
   private:
-    std::unique_ptr<ew::Model> shell;
-    std::unique_ptr<ew::Shader> pbr;
+    void InitializeInstanceData(void);
 
-    std::vector<std::unique_ptr<ew::Texture>> textures;
+  private:
+    std::unique_ptr<ew::Model> suzanne;
+    std::unique_ptr<ew::Shader> geometry;
+    std::unique_ptr<ew::Shader> pbr;
+    std::unique_ptr<ew::Shader> noprocess;
+    std::unique_ptr<ew::Shader> lightsphere;
+    std::unique_ptr<ew::Texture> texture;
 
     batteries::ambient_t ambient;
     batteries::light_t light;
+    ew::Mesh sphere;
+
+    std::vector<glm::mat4> model_instances;
+    std::vector<batteries::light_t> light_instances;
 };
