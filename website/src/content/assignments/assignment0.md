@@ -82,6 +82,8 @@ vec3 blinnPhong(float NdotL, float NdotH)
 void main()
 {
     // TODO: V, H, N, and L still need to be calculated.
+    // this can be done using `vs_position`, `vs_normal`, and
+    // a `uniform vec3` representing the camera position.
 
     vec3 object_color = vec3(1.0, 0.0, 1.0);
     vec3 lighting = blinnPhong(NdotL, NdotH);

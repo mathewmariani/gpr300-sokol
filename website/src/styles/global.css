@@ -46,6 +46,7 @@ ol > li:nth-child(10)::before { content: "🔟"; }
 
 pre {
     border-radius: 8px;
+    padding: 16px;
     overflow: hidden;
     position: relative;
 }
