@@ -8,9 +8,12 @@ description: Physically Based Rendering (PBR)
 
 #### Goal
 
+This worksessiong should be built off of assignment 3. That would mean we are creating a deferred PBR rendering pipeline.
+
 This worksession involves converting mathematical equations into a shader program for use in the graphics pipeline. You will be provided with equations, and your task is to express them in GLSL (OpenGL Shading Language) code. This exercise aims to develop your skills in translating equations into a fragment shader for visualization on the GPU.
 
 Through this practical application, you'll gain hands-on experience in shader programming, connecting mathematical formulations with visual outputs.
+
 
 #### Requirements
 
@@ -60,12 +63,9 @@ $$
     <summary>/* code spoilers */</summary>
 
 ```glsl
-// cached texture lookups
-vec3 alb;   // albedo
-float mtl;  // metallic
-float rgh;  // roughness
-float ao;   // ambient occlusion
-float spec; // specular
+// material properties
+uniform float metallic;
+uniform float roughness;
 
 // cached dot products
 float NdotH;
@@ -82,13 +82,6 @@ float LdotN;
 // H: halfway vector
 void main()
 {
-    // pre-sample all textures
-    alb = texture(material.albedo, vs_texcoord).rgb;
-    mtl = texture(material.metallic, vs_texcoord).r;
-    rgh = texture(material.roughness, vs_texcoord).r;
-    ao = texture(material.occlusion, vs_texcoord).r;
-    spec = texture(material.specular, vs_texcoord).r;
-
     // normalize all vectors
     vec3 N = normalize(vs_normal);
     vec3 V = normalize(camera_position);
@@ -301,6 +294,7 @@ $$
 
 *   [LearnOpenGL - PBR][]
 *   [OGLDEV - PBR][]
+*   [Wolfire Games][]
 
 
 [LearnOpenGL - PBR]: https://learnopengl.com/PBR/Theory
