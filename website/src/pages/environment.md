@@ -10,7 +10,7 @@ The development environment utilizes [VSCode][], [Cmake][] and the [Emscripten S
 
 ### Prerequisites
 
-First make sure that the following tools are in the path:
+First make sure that the following tools are in the `$PATH`. To obtain these you can use [Brew][] on macOS, [Scoop][] on Windows, or `apt-get` on Linux.
 
 *   git
 *   cmake
@@ -19,7 +19,7 @@ First make sure that the following tools are in the path:
 
 ### Extensions
 
-You’ll need the following VSCode extensions:
+You’ll also want the following VSCode extensions:
 
 *   [ms-vscode.cpptools][]
 *   [ms-vscode.cmake-tools][]
@@ -33,16 +33,17 @@ First youre going to want to clone the repository, and update out submodules.
 
 ```sh
 git clone https://github.com/mathewmariani/gpr300-sokol
-git git submodule update --init --recursive
+git submodule update --init --recursive
 ```
 
-We're also going to want to install the Emscripten SDK. This will allow us to compile C++ source code to WebAssembly for execution the browser.
+We're also going to want to install the Emscripten SDK and add it to the `$PATH`. This will allow us to compile C++ source code to WebAssembly for execution the browser.
 
 ```sh
 git clone https://github.com/emscripten-core/emsdk
 cd emsdk
 ./emsdk install latest
 ./emsdk activate --embedded latest
+source ./emsdk_env.sh
 cd ..
 ```
 
@@ -55,7 +56,7 @@ This project was intentionally designed to be **\*small\*** and easily comprehen
 *   `build/` - Intermediate files used by cmake, and other build output. 
 *   `dist/` - Website build output. 
 *   `libs/` - External libraries linked to each assignment.
-*   `website/` - Files required to statically generate the webpage.
+*   `website/` - Files required to statically generate these webpages.
 
 
 #### External Libraries
@@ -93,3 +94,5 @@ Assets such as models, shaders, and textures **MUST** be placed in `/assets`. Th
 [ms-vscode.cmake-tools]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools
 [ms-vscode.wasm-dwarf-debugging]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.wasm-dwarf-debugging
 [ms-vscode.live-server]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server
+[Brew]: https://brew.sh
+[Scoop]: https://scoop.sh

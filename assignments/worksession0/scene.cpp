@@ -1,106 +1,389 @@
 #include "scene.h"
 
+// batteries
+#include "batteries/math.h"
+
+// ew
+#include "ew/procGen.h"
+
 // imgui
 #include "imgui/imgui.h"
-
-// batteries
-#include "batteries/materials.h"
-#include "batteries/math.h"
 
 // opengl
 #include <GLES3/gl3.h>
 
-static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
+constexpr int kFramebufferWidth = 800;
+constexpr int kFramebufferHeight = 600;
 
-enum
+constexpr float orbit_radius = 2.0f;
+
+struct FullscreenQuad
 {
-    PBR_ALBEDO = 0,
-    PBR_METALLIC = 1,
-    PBR_ROUGHNESS = 2,
-    PBR_OCCLUSION = 3,
-    PBR_SPECULAR = 4,
-};
+    GLuint vao;
+    GLuint vbo;
+
+    void Initialize()
+    {
+        // clang-format off
+        float quad_vertices[] = {
+            // pos (x, y) texcoord (u, v)
+            -1.0f,  1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+
+            -1.0f,  1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f,  1.0f, 1.0f, 1.0f,
+        };
+        // clang-format on
+
+        // initialize fullscreen quad, buffer object
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+
+        // bind vao, and vbo
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        // buffer data to vbo
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices, GL_STATIC_DRAW);
+
+        // positions and texcoords
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(sizeof(float) * 2));
+
+        glBindVertexArray(0);
+    }
+} fullscreen_quad;
+
+struct Framebuffer
+{
+    GLuint fbo;
+    GLuint position;
+    GLuint normal;
+    GLuint albedo;
+    GLuint material;
+    GLuint depth;
+
+    void Initialize()
+    {
+        // initialize framebuffer
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        // position attachment
+        glGenTextures(1, &position);
+        glBindTexture(GL_TEXTURE_2D, position);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position, 0);
+
+        // normal attachment
+        glGenTextures(1, &normal);
+        glBindTexture(GL_TEXTURE_2D, normal);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0);
+
+        // albedo attachment
+        glGenTextures(1, &albedo);
+        glBindTexture(GL_TEXTURE_2D, albedo);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
+
+        // albedo attachment
+        glGenTextures(1, &material);
+        glBindTexture(GL_TEXTURE_2D, material);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, material, 0);
+
+        GLenum array[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers(4, array);
+
+        // Create depth texture
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, kFramebufferWidth, kFramebufferHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+        // check completeness
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            printf("Not so victorious\n");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+} framebuffer;
+
+struct LighVolumebuffer
+{
+    GLuint fbo;
+    GLuint color;
+    GLuint depth;
+
+    void Initialize()
+    {
+        // initialize framebuffer
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        // position attachment
+        glGenTextures(1, &color);
+        glBindTexture(GL_TEXTURE_2D, color);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, kFramebufferWidth, kFramebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
+
+        // Create depth texture
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, kFramebufferWidth, kFramebufferHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+        // check completeness
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            printf("Not so victorious\n");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+} lightvolumebuffer;
+
+struct
+{
+    float roughness = 1.0f;
+    float metallic = 0.5f;
+    float reflectivity = 0.5f;
+} material;
+
+struct
+{
+    int width = 1;
+    float light_radius = 5.0f;
+} debug;
 
 Scene::Scene()
 {
-    shell = std::make_unique<ew::Model>("assets/smashbros/greenshell/greenshell.obj");
-    pbr = std::make_unique<ew::Shader>("assets/shaders/pbr.vs", "assets/shaders/pbr.fs");
-    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_col.png"));
-    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_mtl.png"));
-    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_rgh.png"));
-    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_ao.png"));
-    textures.push_back(std::make_unique<ew::Texture>("assets/smashbros/greenshell/greenshell_spc.png"));
+    suzanne = std::make_unique<ew::Model>("assets/suzanne.obj");
+    geometry = std::make_unique<ew::Shader>("assets/shaders/deferred/geometry.vs", "assets/shaders/deferred/geometry.fs");
+    pbr = std::make_unique<ew::Shader>("assets/shaders/deferred/pbr.vs", "assets/shaders/deferred/pbr.fs");
+    noprocess = std::make_unique<ew::Shader>("assets/shaders/deferred/default.vs", "assets/shaders/deferred/default.fs");
+    lightsphere = std::make_unique<ew::Shader>("assets/shaders/deferred/light.vs", "assets/shaders/deferred/light.fs");
+    
+    texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
+
+    sphere.load(ew::createSphere(1.0f, 4));
 
     ambient = {
         .intensity = 1.0f,
         .color = {0.5f, 0.5f, 0.5f},
     };
 
-    light = {
-        .brightness = 1.0f,
-        .color = {0.5f, 0.5f, 0.5f},
-    };
+    framebuffer.Initialize();
+    lightvolumebuffer.Initialize();
+    fullscreen_quad.Initialize();
+
+    InitializeInstanceData();
 }
 
 Scene::~Scene()
 {
 }
 
+void Scene::InitializeInstanceData(void)
+{
+    auto width = debug.width;
+    auto size = (width - (-width) + 1) * (width - (-width) + 1);
+    model_instances.resize(size);
+    light_instances.resize(size);
+
+    auto i = 0;
+    for (auto x = -debug.width; x <= debug.width; x++)
+    {
+        for (auto y = -debug.width; y <= debug.width; y++, i++)
+        {
+            const auto position = glm::vec3(x * 3.0f, 0, y * 3.0f);
+            const auto orbit = batteries::random_point_on_sphere();
+
+            // light instances
+            light_instances[i] = {
+                .color = batteries::random_color(),
+                .position = glm::vec4(position, 1.0f) + orbit  * orbit_radius,
+            };
+
+            // model instances
+            model_instances[i] = batteries::random_model_matrix(position);
+        }
+    }
+}
+
 void Scene::Update(float dt)
 {
     batteries::Scene::Update(dt);
-
-    const auto rym = glm::rotate((float)time.absolute, glm::vec3(0.0f, 1.0f, 0.0f));
-    light.position = rym * light_orbit_radius;
 }
 
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    // render gbuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
+    {
+        glDisable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
+        glViewport(0, 0, kFramebufferWidth, kFramebufferHeight);
 
-    // set bindings
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[PBR_ALBEDO]->getID());
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textures[PBR_METALLIC]->getID());
+        geometry->use();
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, textures[PBR_ROUGHNESS]->getID());
+        // scene matrices
+        geometry->setMat4("view_proj", view_proj);
 
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, textures[PBR_OCCLUSION]->getID());
+        geometry->setFloat("material.roughness", material.roughness);
+        geometry->setFloat("material.metallic", material.metallic);
+        geometry->setFloat("material.reflectivity", material.reflectivity);
 
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, textures[PBR_SPECULAR]->getID());
+        auto i = 0;
+        for (auto x = -debug.width; x <= debug.width; x++)
+        {
+            for (auto y = -debug.width; y <= debug.width; y++, i++)
+            {
+                geometry->setMat4("model", model_instances[i]);
 
-    pbr->use();
+                // Draw the object
+                suzanne->draw();
+            }
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // scene matrices
-    pbr->setMat4("model", glm::mat4{1.0f});
-    pbr->setMat4("view_proj", view_proj);
-    pbr->setVec3("camera_position", camera.position);
+    // render volume lights
+    glBindFramebuffer(GL_FRAMEBUFFER, lightvolumebuffer.fbo);
+    {
+        // additive blending
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+        glBlendEquation(GL_FUNC_ADD);
 
-    // pbr material properties
-    pbr->setInt("material.albedo", PBR_ALBEDO);
-    pbr->setInt("material.metallic", PBR_METALLIC);
-    pbr->setInt("material.roughness", PBR_ROUGHNESS);
-    pbr->setInt("material.occlusion", PBR_OCCLUSION);
-    pbr->setInt("material.specular", PBR_SPECULAR);
+        glDisable(GL_DEPTH_TEST);
+        glCullFace(GL_FRONT);
 
-    // point light
-    pbr->setVec3("light.color", light.color);
-    pbr->setVec3("light.position", light.position);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // draw suzanne
-    shell->draw();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.position);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.normal);
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.albedo);
+
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.material);
+
+        pbr->use();
+        pbr->setMat4("view_proj", view_proj);
+        pbr->setVec3("camera_position", camera.position);
+        pbr->setVec2("textureSize", glm::vec2(kFramebufferWidth, kFramebufferHeight));
+
+        pbr->setInt("g_position", 0);
+        pbr->setInt("g_normal", 1);
+        pbr->setInt("g_albedo", 2);
+        pbr->setInt("g_material", 3);
+
+        pbr->setFloat("material.roughness", material.roughness);
+        pbr->setFloat("material.metallic", material.metallic);
+        pbr->setFloat("material.reflectivity", material.reflectivity);
+
+        for (const auto &light : light_instances)
+        {
+            const auto scale = debug.light_radius;
+            pbr->setMat4("model", glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(scale)));
+            pbr->setVec3("light.position", light.position);
+            pbr->setVec3("light.color", light.color);
+            pbr->setFloat("light.radius", debug.light_radius);
+
+            sphere.draw();
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    { // render fullscreen quad
+        noprocess->use();
+        noprocess->setInt("g_albedo", 0);
+        noprocess->setInt("g_lighting", 1);
+
+        // fullscreen quad pipeline:
+        glDisable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
+        glCullFace(GL_BACK);
+
+        // clear default buffer
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glViewport(0, 0, sapp_widthf(), sapp_heightf());
+
+        // draw fullscreen quad
+        glBindVertexArray(fullscreen_quad.vao);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.albedo);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, lightvolumebuffer.color);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glBindVertexArray(0);
+    }
+
+    { // render light sources
+        glEnable(GL_DEPTH_TEST);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, kFramebufferWidth, kFramebufferHeight, 0, 0, sapp_widthf(), sapp_heightf(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        lightsphere->use();
+
+        auto i = 0;
+        for (auto x = -debug.width; x <= debug.width; x++)
+        {
+            for (auto y = -debug.width; y <= debug.width; y++, i++)
+            {
+                const auto scale = debug.light_radius;
+                lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f)));
+                lightsphere->setMat4("view_proj", view_proj);
+                lightsphere->setVec3("color", light_instances[i].color);
+
+                sphere.draw();
+            }
+        }
+    }
 }
 
 void Scene::Debug(void)
@@ -112,5 +395,39 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
+    if (ImGui::SliderInt("Width", &debug.width, 1, 100))
+    {
+        InitializeInstanceData();
+    }
+
+    if (ImGui::CollapsingHeader("Material"))
+    {
+        ImGui::SliderFloat("metallic", &material.metallic, 0.0f, 1.0f);
+        ImGui::SliderFloat("roughness", &material.roughness, 0.0f, 1.0f);
+        ImGui::SliderFloat("reflectivity", &material.reflectivity, 0.0f, 1.0f);
+    }
+
+    ImGui::SliderFloat("Light Radisu", &debug.light_radius, 1.0f, 100.0f);
+
+    if (ImGui::CollapsingHeader("Geometry Buffer"))
+    {
+        ImVec2 uv_min(0.0f, 1.0f);
+        ImVec2 uv_max(1.0f, 0.0f);
+
+        ImGui::Text("Lighting:");
+        ImGui::Image((ImTextureID)(intptr_t)lightvolumebuffer.color, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Albedo:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.albedo, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Position:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.position, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Normal:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.normal, ImVec2(200, 150), uv_min, uv_max);
+
+        ImGui::Text("Depth:");
+        ImGui::Image((ImTextureID)(intptr_t)framebuffer.depth, ImVec2(200, 150), uv_min, uv_max);
+    }
     ImGui::End();
 }
