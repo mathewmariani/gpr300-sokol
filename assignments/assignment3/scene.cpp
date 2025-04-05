@@ -176,7 +176,8 @@ struct Material
 struct
 {
     int width = 1;
-    float light_radius = 5.0f;
+    float light_radius = 2.5f;
+    bool draw_light_volume = false;
 } debug;
 
 Scene::Scene()
@@ -189,7 +190,7 @@ Scene::Scene()
     
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
-    sphere.load(ew::createSphere(1.0f, 4));
+    sphere.load(ew::createSphere(1.0f, 8));
 
     ambient = {
         .intensity = 1.0f,
@@ -374,12 +375,17 @@ void Scene::Render(void)
         {
             for (auto y = -debug.width; y <= debug.width; y++, i++)
             {
-                const auto scale = debug.light_radius;
                 lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f)));
                 lightsphere->setMat4("view_proj", view_proj);
                 lightsphere->setVec3("color", light_instances[i].color);
-
                 sphere.draw();
+
+                if (debug.draw_light_volume)
+                {
+                    const auto scale = debug.light_radius;
+                    lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(scale)));
+                    sphere.draw(ew::DrawMode::LINES);
+                } 
             }
         }
     }
@@ -399,6 +405,12 @@ void Scene::Debug(void)
         InitializeInstanceData();
     }
 
+    if (ImGui::CollapsingHeader("Lights"))
+    {
+        ImGui::Checkbox("Draw Volumes", &debug.draw_light_volume);
+        ImGui::SliderFloat("Light Radisu", &debug.light_radius, 1.0f, 100.0f);
+    }
+
     if (ImGui::CollapsingHeader("Material"))
     {
         ImGui::SliderFloat("Ambient", &material.ambient, 0.0f, 1.0f);
@@ -406,8 +418,6 @@ void Scene::Debug(void)
         ImGui::SliderFloat("Specular", &material.specular, 0.0f, 1.0f);
         ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
     }
-
-    ImGui::SliderFloat("Light Radisu", &debug.light_radius, 1.0f, 100.0f);
 
     if (ImGui::CollapsingHeader("Geometry Buffer"))
     {

@@ -166,6 +166,7 @@ struct LighVolumebuffer
 
 struct
 {
+    bool is_metal = true;
     float roughness = 1.0f;
     float metallic = 0.5f;
     float reflectivity = 0.5f;
@@ -175,6 +176,7 @@ struct
 {
     int width = 1;
     float light_radius = 5.0f;
+    bool draw_light_volume = false;
 } debug;
 
 Scene::Scene()
@@ -187,7 +189,9 @@ Scene::Scene()
     
     texture = std::make_unique<ew::Texture>("assets/brick_color.jpg");
 
-    sphere.load(ew::createSphere(1.0f, 4));
+    // minimal sphere
+    // sphere.load(ew::createSphere(1.0f, 4));
+    sphere.load(ew::createSphere(1.0f, 8));
 
     ambient = {
         .intensity = 1.0f,
@@ -286,6 +290,7 @@ void Scene::Render(void)
         glBlendEquation(GL_FUNC_ADD);
 
         glDisable(GL_DEPTH_TEST);
+        // glDepthMask(GL_FALSE);
         glCullFace(GL_FRONT);
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -313,6 +318,7 @@ void Scene::Render(void)
         pbr->setInt("g_albedo", 2);
         pbr->setInt("g_material", 3);
 
+        pbr->setInt("material.is_metal", material.is_metal);
         pbr->setFloat("material.roughness", material.roughness);
         pbr->setFloat("material.metallic", material.metallic);
         pbr->setFloat("material.reflectivity", material.reflectivity);
@@ -375,12 +381,17 @@ void Scene::Render(void)
         {
             for (auto y = -debug.width; y <= debug.width; y++, i++)
             {
-                const auto scale = debug.light_radius;
                 lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f)));
                 lightsphere->setMat4("view_proj", view_proj);
                 lightsphere->setVec3("color", light_instances[i].color);
-
                 sphere.draw();
+
+                if (debug.draw_light_volume)
+                {
+                    const auto scale = debug.light_radius;
+                    lightsphere->setMat4("model", glm::translate(glm::mat4(1.0f), light_instances[i].position) * glm::scale(glm::mat4(1.0f), glm::vec3(scale)));
+                    sphere.draw(ew::DrawMode::LINES);
+                }    
             }
         }
     }
@@ -400,14 +411,19 @@ void Scene::Debug(void)
         InitializeInstanceData();
     }
 
-    if (ImGui::CollapsingHeader("Material"))
+    if (ImGui::CollapsingHeader("Lights"))
     {
-        ImGui::SliderFloat("metallic", &material.metallic, 0.0f, 1.0f);
-        ImGui::SliderFloat("roughness", &material.roughness, 0.0f, 1.0f);
-        ImGui::SliderFloat("reflectivity", &material.reflectivity, 0.0f, 1.0f);
+        ImGui::Checkbox("Draw Volumes", &debug.draw_light_volume);
+        ImGui::SliderFloat("Light Radisu", &debug.light_radius, 1.0f, 100.0f);
     }
 
-    ImGui::SliderFloat("Light Radisu", &debug.light_radius, 1.0f, 100.0f);
+    if (ImGui::CollapsingHeader("Material"))
+    {
+        ImGui::Checkbox("Is Metal", &material.is_metal);
+        ImGui::SliderFloat("Metallic", &material.metallic, 0.0f, 1.0f);
+        ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f);
+        ImGui::SliderFloat("Reflectivity", &material.reflectivity, 0.0f, 1.0f);
+    }
 
     if (ImGui::CollapsingHeader("Geometry Buffer"))
     {

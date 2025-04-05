@@ -11,6 +11,7 @@ struct Light {
 
 struct Material
 {
+    bool is_metal;
     float roughness;
     float metallic;
     float reflectivity;
@@ -30,8 +31,6 @@ uniform Material material;
 
 // constants
 const float PI = 3.14159265359;
-
-bool is_metal = false;
 
 // cached variables
 float NdotH;
@@ -105,7 +104,7 @@ vec3 BDRF(vec3 position, vec3 normal, vec3 albedo)
     // if it's a metal, use the albedo color as F0 (metallic workflow).
     // if dia-electric (like plastic) use F0 of `material.reflectivity`.
     vec3 F0 = vec3(material.reflectivity);
-    if (is_metal)
+    if (material.is_metal)
     {
         F0 = albedo;
     }

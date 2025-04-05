@@ -60,12 +60,17 @@ namespace ew {
 	void Mesh::draw(ew::DrawMode drawMode) const
 	{
 		glBindVertexArray(m_vao);
-		if (drawMode == DrawMode::TRIANGLES) {
+		switch (drawMode)
+		{
+		case DrawMode::TRIANGLES:
 			glDrawElements(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, NULL);
-		}
-		else {
+			break;
+		case DrawMode::POINTS:
 			glDrawArrays(GL_POINTS, 0, m_numVertices);
-		}
-		
+			break;
+		case DrawMode::LINES:
+			glDrawElements(GL_LINE_STRIP, m_numIndices, GL_UNSIGNED_INT, NULL);
+			break;
+		}		
 	}
 }

@@ -20,7 +20,8 @@ namespace ew {
 
 	enum class DrawMode {
 		TRIANGLES = 0,
-		POINTS = 1
+		POINTS = 1,
+		LINES = 2,
 	};
 
 	class Mesh {
