@@ -15,3 +15,6 @@ add_subdirectory(worksession5)
 add_subdirectory(worksession6)
 add_subdirectory(worksession7)
 add_subdirectory(worksession8)
+
+# final projects
+add_subdirectory(project0)

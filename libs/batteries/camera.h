@@ -61,6 +61,8 @@ namespace batteries
     void Event(const sapp_event *e);
     void Debug(void);
 
+    void InvertPitch(void) { pitch = -pitch; }
+
   private:
     Camera *camera;
 
