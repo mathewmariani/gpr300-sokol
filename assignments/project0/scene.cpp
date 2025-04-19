@@ -40,10 +40,10 @@ struct Framebuffer
         // Create depth texture
         glGenTextures(1, &depth);
         glBindTexture(GL_TEXTURE_2D, depth);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, kFramebufferWidth, kFramebufferHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, kFramebufferWidth, kFramebufferHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
         // check completeness
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -142,6 +142,8 @@ void Scene::RenderWater(void)
 	glBindTexture(GL_TEXTURE_2D, dudv->getID());
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, normal->getID());
+    glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, waterBuffers[WATER_REFRACTION].depth);
 
 	water_shader->use();
 	water_shader->setMat4("model", glm::translate(glm::vec3(0.0f, debug.water_height, 0.0f)));
@@ -150,10 +152,12 @@ void Scene::RenderWater(void)
 	water_shader->setInt("refractTexture", 1);
     water_shader->setInt("dudv", 2);
     water_shader->setInt("normal", 3);
+    water_shader->setInt("depth", 4);
 
     water_shader->setVec3("light.position", light.position);
     water_shader->setVec3("light.color", light.color);
     water_shader->setVec3("camera_position", camera.position);
+    water_shader->setFloat("time", (float)time.absolute);
     water_shader->setFloat("distortion_strength", debug.distortion_strength);
     water_shader->setFloat("distortion_scale", debug.distortion_scale);
     water_shader->setFloat("refract_strength", debug.refract_strength);
