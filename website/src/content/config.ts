@@ -8,6 +8,14 @@ const assignments = defineCollection({
 	}),
 });
 
+const projects = defineCollection({
+	type: 'content',
+	schema: z.object({
+		title: z.string(),
+		description: z.string(),
+	}),
+});
+
 const worksessions = defineCollection({
 	type: 'content',
 	schema: z.object({
@@ -16,4 +24,4 @@ const worksessions = defineCollection({
 	}),
 });
 
-export const collections = { assignments, worksessions };
+export const collections = { assignments, projects, worksessions };

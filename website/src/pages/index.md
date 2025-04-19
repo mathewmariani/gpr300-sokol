@@ -60,10 +60,9 @@ Before working on any project it's important to understand the [development envi
 -->
 
 
-### Final Project
+### Final Projects
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+*   [project 0][] - Reflection and Refraction
 
 <!-- contacts -->
 [@ewinebrenner]: https://github.com/ewinebrenner
@@ -100,3 +99,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 [worksession 5]: worksessions/worksession5
 [worksession 6]: worksessions/worksession6
 [worksession 7]: worksessions/worksession7
+
+<!-- projects -->
+[project 0]: projects/project0
