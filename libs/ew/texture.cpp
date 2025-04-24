@@ -26,6 +26,12 @@ struct mipmap_request_instance_t
 	void *ptr;
 };
 
+struct cubemap_request_instance_t
+{
+	int index;
+	void *ptr;
+};
+
 }
 
 namespace ew {
@@ -79,6 +85,36 @@ Texture::Texture(const mipmap_t& mips)
 	}
 }
 
+Texture::Texture(const cubemap_t& faces)
+{
+	const char *paths[6]{
+		faces.right,
+		faces.left,
+		faces.top,
+		faces.bottom,
+		faces.back,
+		faces.front,
+	};
+
+	for (auto i = 0; i < 6; ++i)
+	{
+		cubemap_request_instance_t instance = {
+			.index = i,
+			.ptr = this,
+		};
+		if (paths[i] == nullptr)
+		{
+			continue;
+		}
+		sfetch_send((sfetch_request_t){
+			.path = paths[i],
+			.callback = fetchCubemapCallback,
+			.buffer = SFETCH_RANGE(file_buffer),
+			.user_data = SFETCH_RANGE(instance),
+		});
+	}
+}
+
 Texture::~Texture()
 {
 	if (textureID)
@@ -110,6 +146,30 @@ void Texture::createTexture(int level, const unsigned char *data, int width, int
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Texture::createCubemap(int index, const unsigned char *data, int width, int height)
+{
+	if (textureID == 0)
+	{
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+		// sampler
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
+
+	if (data)
+	{
+		auto face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + index;
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(face, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }
 
 void Texture::fetchCallback(const sfetch_response_t* response)
@@ -150,6 +210,28 @@ void Texture::fetchMipMapCallback(const sfetch_response_t* response)
 	if (pixels)
 	{
 		self->createTexture(instance->index, pixels, width, height);
+	}
+
+	stbi_image_free(pixels);
+}
+
+void Texture::fetchCubemapCallback(const sfetch_response_t* response)
+{
+	if (!response->fetched)
+	{
+		printf("[!!!] Failed to load cubemap (%s)\n", response->path);
+		return;
+	}
+
+	int width, height, components;
+	auto *pixels = stbi_load_from_memory((const stbi_uc *)response->data.ptr, response->data.size, &width, &height, &components, 4);
+
+	auto instance = static_cast<mipmap_request_instance_t*>(response->user_data);
+	auto* self = static_cast<Texture*>(instance->ptr);
+
+	if (pixels)
+	{
+		self->createCubemap(instance->index, pixels, width, height);
 	}
 
 	stbi_image_free(pixels);

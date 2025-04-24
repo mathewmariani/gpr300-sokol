@@ -19,10 +19,21 @@ struct mipmap_t
 	const char *mip7;
 };
 
+struct cubemap_t
+{
+	const char *right;
+	const char *left;
+	const char *top;
+	const char *bottom;
+	const char *back;
+	const char *front;
+};
+
 class Texture {
 public:
 	Texture(const std::string& url);
 	Texture(const mipmap_t& paths);
+	Texture(const cubemap_t& paths);
 	~Texture();
 
 	bool isLoaded() const { return loaded; }
@@ -33,8 +44,10 @@ private:
 	bool loaded = false;
 
 	void createTexture(int level, const unsigned char *data, int width, int height);
+	void createCubemap(int level, const unsigned char *data, int width, int height);
 	static void fetchCallback(const sfetch_response_t* response);
 	static void fetchMipMapCallback(const sfetch_response_t* response);
+	static void fetchCubemapCallback(const sfetch_response_t* response);
 };
 
 }
