@@ -24,19 +24,26 @@ class Scene final : public batteries::Scene
   private:
     void RenderTerrain(const glm::vec4 clipping_plane);
     void RenderWater(void);
+    void RenderLight(void);
+    void RenderSky(void);
+
     void RecalculateCameraTarget(void);
 
   private:
     std::unique_ptr<ew::Shader> terrain_shader;
     std::unique_ptr<ew::Shader> water_shader;
     std::unique_ptr<ew::Shader> light_shader;
+    std::unique_ptr<ew::Shader> sky_shader;
+
     std::unique_ptr<ew::Texture> dudv;
     std::unique_ptr<ew::Texture> normal;
     std::unique_ptr<ew::Texture> heightmap;
+    std::unique_ptr<ew::Texture> cubemap;
 
     ew::Mesh terrain_plane;
     ew::Mesh water_plane;
     ew::Mesh light_sphere;
+    ew::Mesh sky_box;
 
     batteries::light_t light;
 };

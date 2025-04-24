@@ -81,14 +81,24 @@ Scene::Scene()
     terrain_shader = std::make_unique<ew::Shader>("assets/project0/terrain.vs", "assets/project0/terrain.fs");
     water_shader = std::make_unique<ew::Shader>("assets/project0/water.vs", "assets/project0/water.fs");
     light_shader = std::make_unique<ew::Shader>("assets/project0/light.vs", "assets/project0/light.fs");
+    sky_shader = std::make_unique<ew::Shader>("assets/skybox/skybox.vs", "assets/skybox/skybox.fs");
 
     dudv = std::make_unique<ew::Texture>("assets/project0/dudv.png");
     normal = std::make_unique<ew::Texture>("assets/project0/normal.png");
     heightmap = std::make_unique<ew::Texture>("assets/heightmaps/heightmap.png");
+    cubemap = std::make_unique<ew::Texture>((ew::cubemap_t) {
+        "assets/skybox/right.jpg",
+        "assets/skybox/left.jpg",
+        "assets/skybox/top.jpg",
+        "assets/skybox/bottom.jpg",
+        "assets/skybox/back.jpg",
+        "assets/skybox/front.jpg",
+    });
 
     terrain_plane.load(ew::createPlane(50.0f, 50.0f, 100));
     water_plane.load(ew::createPlane(50.0f, 50.0f, 1));
     light_sphere.load(ew::createSphere(1.0f, 8));
+    sky_box.load(ew::createCube(1.0f));
 
     waterBuffers[WATER_REFLECTION].Initialize();
 	waterBuffers[WATER_REFRACTION].Initialize();
@@ -165,8 +175,36 @@ void Scene::RenderWater(void)
 	water_plane.draw();
 }
 
+void Scene::RenderLight(void)
+{
+    const auto view_proj = camera.Projection() * camera.View();
+    light_shader->use();
+    light_shader->setMat4("model", glm::translate(glm::mat4(1.0f), light.position));
+    light_shader->setMat4("view_proj", view_proj);
+    light_shader->setVec3("color", light.color);
+    light_sphere.draw();
+}
+
+void Scene::RenderSky(void)
+{
+    const auto view_proj = camera.Projection() * glm::mat4(glm::mat3(camera.View()));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getID());
+
+    sky_shader->use();
+    sky_shader->setMat4("view_proj", view_proj);
+    sky_shader->setInt("skybox", 0);
+
+    glDepthFunc(GL_LEQUAL);
+    sky_box.draw();
+    glDepthFunc(GL_LESS);
+}
+
 void Scene::Render(void)
 {
+    glEnable(GL_DEPTH_TEST);
+
     // WATER_REFLECTION:
     glBindFramebuffer(GL_FRAMEBUFFER, waterBuffers[WATER_REFLECTION].fbo);
     {
@@ -187,6 +225,8 @@ void Scene::Render(void)
         cameracontroller.InvertPitch();
         cameracontroller.Update(0.0f);
         // camera.position.y += dist;
+
+        RenderSky();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -210,13 +250,8 @@ void Scene::Render(void)
 
     RenderTerrain(glm::vec4(0.0f, -1.0f, 0.0f, 1000.0f));
     RenderWater();
-
-    const auto view_proj = camera.Projection() * camera.View();
-    light_shader->use();
-    light_shader->setMat4("model", glm::translate(glm::mat4(1.0f), light.position));
-    light_shader->setMat4("view_proj", view_proj);
-    light_shader->setVec3("color", light.color);
-    light_sphere.draw();
+    RenderLight();
+    RenderSky();
 }
 
 void Scene::Debug(void)
@@ -228,12 +263,16 @@ void Scene::Debug(void)
     ImGui::Checkbox("Paused", &time.paused);
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
+    ImGui::SeparatorText("Terrain");
     ImGui::SliderFloat("Land Height", &debug.land_scale, 0.0f, 10.0f);
 	ImGui::SliderFloat("Water Height", &debug.water_height, 0.0f, 10.0f);
+
+    ImGui::SeparatorText("Water Properties");
     ImGui::SliderFloat("Distortion Strength", &debug.distortion_strength, 0.0f, 1.0f);
     ImGui::SliderFloat("Distortion Scale", &debug.distortion_scale, 1.0f, 10.0f);
     ImGui::SliderFloat("Refract Strength", &debug.refract_strength, 0.0f, 10.0f);
 
+    ImGui::SeparatorText("Buffers");
 	ImVec2 size = { 400.0f, 300.0f };
 	ImGui::Text("Refraction (fbo.color0)");
 	ImGui::Image((ImTextureID)waterBuffers[WATER_REFRACTION].color0, size, ImVec2(0, 1), ImVec2(1, 0));
