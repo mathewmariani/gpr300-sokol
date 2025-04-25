@@ -21,8 +21,8 @@ namespace
 
   static glm::vec3 euclidean(float yaw, float pitch)
   {
-    const float y = glm::radians(yaw);
-    const float p = glm::radians(pitch);
+    const auto y = glm::radians(yaw);
+    const auto p = glm::radians(pitch);
     return {cosf(p) * cosf(y), sinf(p), cosf(p) * sinf(y)};
   }
 }
@@ -41,7 +41,7 @@ namespace batteries
 
   glm::mat4 Camera::Projection() const
   {
-    constexpr float aspect = 800.0f / 600.0f;
+    const auto aspect = sapp_widthf() / sapp_heightf();
     return orthographic
                ? glm::ortho(orthoHeight, fov, nearz, farz)
                : glm::perspective(glm::radians(fov), aspect, nearz, farz);
@@ -66,39 +66,7 @@ namespace batteries
 
   void CameraController::Update(float dt)
   {
-    switch (mode)
-    {
-    case Mode::Free:
-    {
-      auto velocity = movement_speed * dt;
-      if (move_forward)
-      {
-        camera->position += camera->front * velocity;
-      }
-      if (move_backward)
-      {
-        camera->position -= camera->front * velocity;
-      }
-      if (move_left)
-      {
-        camera->position -= camera->right * velocity;
-      }
-      if (move_right)
-      {
-        camera->position += camera->right * velocity;
-      }
-
-      camera->front = euclidean(yaw, pitch);
-      camera->right = glm::normalize(glm::cross(camera->front, {0.0f, 1.0f, 0.0f}));
-      camera->up = glm::normalize(glm::cross(camera->right, camera->front));
-      camera->center = camera->position + camera->front;
-    }
-    case Mode::Orbit:
-    {
-      camera->center = {0.0f, 0.0f, 0.0f};
-      camera->position = camera->center + euclidean(yaw, pitch) * distance;
-    }
-    }
+    camera->position = camera->center + euclidean(yaw, pitch) * distance;
   }
 
   void CameraController::Event(const sapp_event *e)
