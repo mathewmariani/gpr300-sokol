@@ -76,6 +76,68 @@ struct
     float refract_strength = 10.0f;
 } debug;
 
+struct
+{
+	GLuint skyboxVAO, skyboxVBO;
+	GLuint cubemap;
+	void Initialize()
+	{
+        float skyboxVertices[] = {
+            // positions          
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+    
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+    
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+    
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+    
+            -1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+    
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f
+        };
+
+		glGenVertexArrays(1, &skyboxVAO);
+		glGenBuffers(1, &skyboxVBO);
+		glBindVertexArray(skyboxVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+	}
+}sky;
+
 Scene::Scene()
 {
     terrain_shader = std::make_unique<ew::Shader>("assets/project0/terrain.vs", "assets/project0/terrain.fs");
@@ -91,8 +153,8 @@ Scene::Scene()
         "assets/skybox/left.jpg",
         "assets/skybox/top.jpg",
         "assets/skybox/bottom.jpg",
-        "assets/skybox/back.jpg",
         "assets/skybox/front.jpg",
+        "assets/skybox/back.jpg",
     });
 
     terrain_plane.load(ew::createPlane(50.0f, 50.0f, 100));
@@ -102,6 +164,7 @@ Scene::Scene()
 
     waterBuffers[WATER_REFLECTION].Initialize();
 	waterBuffers[WATER_REFRACTION].Initialize();
+    sky.Initialize();
 
     light.color = glm::vec3(1.0f);
 }
@@ -189,15 +252,16 @@ void Scene::RenderSky(void)
 {
     const auto view_proj = camera.Projection() * glm::mat4(glm::mat3(camera.View()));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getID());
-
     sky_shader->use();
     sky_shader->setMat4("view_proj", view_proj);
     sky_shader->setInt("skybox", 0);
 
     glDepthFunc(GL_LEQUAL);
-    sky_box.draw();
+    glBindVertexArray(sky.skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->getID());
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
     glDepthFunc(GL_LESS);
 }
 
@@ -222,11 +286,11 @@ void Scene::Render(void)
 
         RenderTerrain(glm::vec4(0.0f, 1.0f, 0.0f, -debug.water_height));
 
+        RenderSky();
+
         cameracontroller.InvertPitch();
         cameracontroller.Update(0.0f);
         // camera.position.y += dist;
-
-        RenderSky();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

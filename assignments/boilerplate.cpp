@@ -57,7 +57,7 @@ void init(void)
 
     __dbgui_setup();
 
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(false);
 
     scene = new Scene();
 }
