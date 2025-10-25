@@ -2,6 +2,8 @@
 import { defineConfig } from 'astro/config';
 import { symlinkIntegration } from './website/src/integrations/symlink';
 
+import path from 'path';
+
 // https://astro.build/config
 export default defineConfig({
     integrations: [symlinkIntegration()],
@@ -12,6 +14,9 @@ export default defineConfig({
     vite: {
         resolve: {
             preserveSymlinks: true,
+            alias: {
+                '@': path.resolve('./website/src'),
+            },
         },
     },
 });

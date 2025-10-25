@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection } from "astro:content";
-import Page from "../../layouts/Page.astro";
-import Demo from "../../components/Demo.astro";
+import Page from "@/layouts/Page.astro";
+import Demo from "@/components/Demo.astro";
 
 export async function getStaticPaths() {
 	const worksessions = await getCollection("worksessions");
