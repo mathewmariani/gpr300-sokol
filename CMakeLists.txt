@@ -17,6 +17,7 @@ add_compile_options(-Wno-nontrivial-memcall)
 
 # macros
 include("extra/cmake/macros.cmake")
+include("extra/cmake/assimp.cmake")
 include("extra/cmake/batteries.cmake")
 include("extra/cmake/dbgui.cmake")
 include("extra/cmake/ew.cmake")

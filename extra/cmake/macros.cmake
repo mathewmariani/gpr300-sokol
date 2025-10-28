@@ -16,6 +16,7 @@ macro(add_assignment target sources)
   add_executable(${target} ${sources} ../boilerplate.cpp)
 
   # link all libraries
+  target_link_libraries(${target} PRIVATE assimp)
   target_link_libraries(${target} PRIVATE batteries)
   target_link_libraries(${target} PRIVATE dbgui)
   target_link_libraries(${target} PRIVATE ew)
