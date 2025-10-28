@@ -1,7 +1,4 @@
 /*
-	Author: Eric Winebrenner
-*/
-/*
 *	Author: Eric Winebrenner
 */
 

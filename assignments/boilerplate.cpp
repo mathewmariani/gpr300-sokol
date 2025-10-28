@@ -1,6 +1,5 @@
 // sokol
 #include "sokol/sokol_app.h"
-#include "sokol/sokol_fetch.h"
 #include "sokol/sokol_log.h"
 
 // libs
@@ -45,14 +44,6 @@ static Scene* scene;
 
 void init(void)
 {
-    // setup sokol-fetch
-    sfetch_setup({
-        .max_requests = 24,
-        .num_channels = 1,
-        .num_lanes = 1,
-        .logger.func = slog_func,
-    });
-
     glViewport(0, 0, sapp_width(), sapp_height());
 
     __dbgui_setup();
@@ -68,7 +59,6 @@ void cleanup(void)
     scene = nullptr;
 
     __dbgui_shutdown();
-    sfetch_shutdown();
 }
 
 void frame(void)
@@ -76,8 +66,6 @@ void frame(void)
     const auto t = (float)sapp_frame_duration();
     const auto w = sapp_width();
     const auto h = sapp_height();
-
-    sfetch_dowork();
 
     scene->Update(t);
     scene->Render();

@@ -7,8 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-using namespace glm;
-
 namespace ew {
 	/// <summary>
 	/// Helper function for createCube. Note that this is not meant to be used standalone
@@ -16,16 +14,16 @@ namespace ew {
 	/// <param name="normal">Normal direction of the face</param>
 	/// <param name="size">Width/height of the face</param>
 	/// <param name="mesh">MeshData struct to fill</param>
-	static void createCubeFace(vec3 normal, float size, MeshData* mesh) {
+	static void createCubeFace(glm::vec3 normal, float size, MeshData* mesh) {
 		unsigned int startVertex = mesh->vertices.size();
-		vec3 a = vec3(normal.z, normal.x, normal.y); //U axis
-		vec3 b = cross(normal, a); //V axis
+		glm::vec3 a = glm::vec3(normal.z, normal.x, normal.y); //U axis
+		glm::vec3 b = glm::cross(normal, a); //V axis
 		for (int i = 0; i < 4; i++)
 		{
 			int col = i % 2;
 			int row = i / 2;
 
-			vec3 pos = normal * size * 0.5f;
+			glm::vec3 pos = normal * size * 0.5f;
 			pos -= (a + b) * size * 0.5f;
 			pos += (a * (float)col + b * (float)row) * size;
 			Vertex vertex;// = &mesh->vertices[mesh->vertices.size()];
@@ -52,12 +50,12 @@ namespace ew {
 		MeshData mesh;
 		mesh.vertices.reserve(24); //6 x 4 vertices
 		mesh.indices.reserve(36); //6 x 6 indices
-		createCubeFace(vec3{ +0.0f,+0.0f,+1.0f }, size, &mesh); //Front
-		createCubeFace(vec3{ +1.0f,+0.0f,+0.0f }, size, &mesh); //Right
-		createCubeFace(vec3{ +0.0f,+1.0f,+0.0f }, size, &mesh); //Top
-		createCubeFace(vec3{ -1.0f,+0.0f,+0.0f }, size, &mesh); //Left
-		createCubeFace(vec3{ +0.0f,-1.0f,+0.0f }, size, &mesh); //Bottom
-		createCubeFace(vec3{ +0.0f,+0.0f,-1.0f }, size, &mesh); //Back
+		createCubeFace(glm::vec3{ +0.0f,+0.0f,+1.0f }, size, &mesh); //Front
+		createCubeFace(glm::vec3{ +1.0f,+0.0f,+0.0f }, size, &mesh); //Right
+		createCubeFace(glm::vec3{ +0.0f,+1.0f,+0.0f }, size, &mesh); //Top
+		createCubeFace(glm::vec3{ -1.0f,+0.0f,+0.0f }, size, &mesh); //Left
+		createCubeFace(glm::vec3{ +0.0f,-1.0f,+0.0f }, size, &mesh); //Bottom
+		createCubeFace(glm::vec3{ +0.0f,+0.0f,-1.0f }, size, &mesh); //Back
 		return mesh;
 	}
 	MeshData createPlane(float width, float height, int subdivisions)
@@ -75,7 +73,7 @@ namespace ew {
 				v.pos.x = -width/2 + width * v.uv.x;
 				v.pos.y = 0;
 				v.pos.z = height/2 -height * v.uv.y;
-				v.normal = vec3(0, 1, 0);
+				v.normal = glm::vec3(0, 1, 0);
 				mesh.vertices.push_back(v);
 			}
 		}
@@ -155,21 +153,21 @@ namespace ew {
 		return mesh;
 	}
 	void createCylinderRing(MeshData* meshData, float radius, int subdivisions, float y, bool sideFacing) {
-		float thetaStep = two_pi<float>() / subdivisions;
+		float thetaStep = glm::two_pi<float>() / subdivisions;
 		for (size_t i = 0; i <= subdivisions; i++)
 		{
 			float theta = i * thetaStep;
 			float cosA = cosf(theta);
 			float sinA = sinf(theta);
 			Vertex v;
-			v.pos = vec3(cosA * radius, y, sinA * radius);
+			v.pos = glm::vec3(cosA * radius, y, sinA * radius);
 			if (sideFacing) {
-				v.normal = vec3(cosA, 0, sinA);
-				v.uv = vec2((float)i / subdivisions, y > 0 ? 1 : 0);
+				v.normal = glm::vec3(cosA, 0, sinA);
+				v.uv = glm::vec2((float)i / subdivisions, y > 0 ? 1 : 0);
 			}
 			else {
-				v.normal = vec3(0, sign(y), 0);
-				v.uv = vec2(cosA * 0.5f + 0.5f, sinA * 0.5f + 0.5f);
+				v.normal = glm::vec3(0, glm::sign(y), 0);
+				v.uv = glm::vec2(cosA * 0.5f + 0.5f, sinA * 0.5f + 0.5f);
 			}
 
 			meshData->vertices.push_back(v);
@@ -185,9 +183,9 @@ namespace ew {
 			const float bottomY = -topY;
 
 			Vertex topVertex;
-			topVertex.pos = vec3(0, topY, 0);
-			topVertex.normal = vec3(0, 1, 0);
-			topVertex.uv = vec2(0.5f);
+			topVertex.pos = glm::vec3(0, topY, 0);
+			topVertex.normal = glm::vec3(0, 1, 0);
+			topVertex.uv = glm::vec2(0.5f);
 			mesh.vertices.push_back(topVertex);
 
 			createCylinderRing(&mesh, radius, subdivisions, topY, false);
@@ -196,9 +194,9 @@ namespace ew {
 			createCylinderRing(&mesh, radius, subdivisions, bottomY, false);
 
 			Vertex bottomVertex;
-			bottomVertex.pos = vec3(0, bottomY, 0);
-			bottomVertex.normal = vec3(0, -1, 0);
-			bottomVertex.uv = vec2(0.5f);
+			bottomVertex.pos = glm::vec3(0, bottomY, 0);
+			bottomVertex.normal = glm::vec3(0, -1, 0);
+			bottomVertex.uv = glm::vec2(0.5f);
 			mesh.vertices.push_back(bottomVertex);
 		}
 		
