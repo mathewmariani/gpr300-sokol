@@ -1,5 +1,12 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["assets", "assignments", "build", "dist", "emsdk", "extra", "libs"]
+  "exclude": ["assets", "assignments", "build", "dist", "emsdk", "extra", "libs"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  }
 }

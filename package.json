@@ -11,9 +11,11 @@
     "preview": "astro preview",
     "astro": "astro"
   },
+  "dependencies": {
+    "bootstrap": "^5.3.8"
+  },
   "devDependencies": {
     "@types/node": "^24.9.1",
-    "astro": "^5.15.1",
-    "bootstrap": "^5.3.8"
+    "astro": "^5.15.1"
   }
 }
