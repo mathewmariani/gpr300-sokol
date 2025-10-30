@@ -1,12 +1,28 @@
 {
     "version": "0.2.0",
     "configurations": [
-        {
-            "name": "Launch",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:3000/build/demos/${command:cmake.activeBuildPresetName}/${command:cmake.launchTargetFilename}",
-            "preLaunchTask": "StartServer",
+      {
+        "name": "Launch (Web)",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000/build/${command:cmake.activeBuildPresetName}/${command:cmake.launchTargetFilename}",
+        "preLaunchTask": "StartServer",
+        "presentation": {
+          "hidden": false,
+          "group": "web"
         }
+      },
+      {
+        "name": "Launch (Desktop)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${command:cmake.launchTargetPath}",
+        "cwd": "${workspaceFolder}",
+        "presentation": {
+          "hidden": false,
+          "group": "desktop"
+        }
+      }
     ]
-}
+  }
+  
