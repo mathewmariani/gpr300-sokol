@@ -42,8 +42,8 @@ jobs:
       - name: Build with Cmake 🔧
         run: |
           source ./emsdk/emsdk_env.sh
-          cmake --preset Release
-          cmake --build --preset Release
+          cmake --preset web-release
+          cmake --build --preset web-release
 
       - name: Building Website 🔧
         run: |
