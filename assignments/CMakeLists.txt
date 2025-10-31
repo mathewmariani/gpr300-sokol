@@ -6,12 +6,12 @@ add_subdirectory(assignment3)   # deffered rendering
 add_subdirectory(assignment4)   # splines
 
 # work sessions
-add_subdirectory(worksession0)
-add_subdirectory(worksession1)
-add_subdirectory(worksession2)
-add_subdirectory(worksession3)
-add_subdirectory(worksession4)
-add_subdirectory(worksession5)
-add_subdirectory(worksession6)
-add_subdirectory(worksession7)
-add_subdirectory(worksession8)
+add_subdirectory(worksession0)  # pbr
+add_subdirectory(worksession1)  # water (zelda windwaker)
+add_subdirectory(worksession2)  # landmass
+add_subdirectory(worksession3)  # water (mario sunshine)
+add_subdirectory(worksession4)  # toon shading
+add_subdirectory(worksession5)  # transitions
+add_subdirectory(worksession6)  # complex geometries
+add_subdirectory(worksession7)  # water (double-dash)
+add_subdirectory(worksession8)  # snow
