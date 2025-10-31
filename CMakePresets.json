@@ -10,7 +10,7 @@
           "name": "desktop-debug",
           "displayName": "Desktop Debug",
           "generator": "Ninja Multi-Config",
-          "binaryDir": "build/desktop-debug",
+          "binaryDir": "build/desktop",
           "cacheVariables": {
               "CMAKE_BUILD_TYPE": "Debug"
           }
@@ -19,7 +19,7 @@
           "name": "desktop-release",
           "displayName": "Desktop Release",
           "generator": "Ninja Multi-Config",
-          "binaryDir": "build/desktop-release",
+          "binaryDir": "build/desktop",
           "cacheVariables": {
               "CMAKE_BUILD_TYPE": "Release"
           }
@@ -28,7 +28,7 @@
           "name": "web-debug",
           "displayName": "Web Debug",
           "generator": "Ninja Multi-Config",
-          "binaryDir": "build/web-debug",
+          "binaryDir": "build/web",
           "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
           "cacheVariables": {
               "CMAKE_BUILD_TYPE": "Debug"
@@ -38,7 +38,7 @@
           "name": "web-release",
           "displayName": "Web Release",
           "generator": "Ninja Multi-Config",
-          "binaryDir": "build/web-release",
+          "binaryDir": "build/web",
           "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
           "cacheVariables": {
               "CMAKE_BUILD_TYPE": "Release"

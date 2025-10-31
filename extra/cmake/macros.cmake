@@ -20,7 +20,7 @@ macro(copy_assets)
   if (IS_EMSCRIPTEN)
     # Paths
     set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
-    set(OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    set(OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/")
     set(ASSET_PACKAGE_JS "${OUTPUT_DIR}/assets.js")
     set(ASSET_PACKAGE_DATA "${OUTPUT_DIR}/assets.data")
 
