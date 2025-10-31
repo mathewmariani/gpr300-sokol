@@ -2,10 +2,17 @@
 
 // opengl
 #if defined(SOKOL_GLCORE)
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+    #if defined(__APPLE__)
+        #include <OpenGL/gl3.h>
+        #include <OpenGL/gl3ext.h>
+    #elif defined(__linux__) || defined(__unix__)
+        #define GL_GLEXT_PROTOTYPES
+        #include <GL/gl.h>
+    #else
+        #error("opengl.h: Unknown platform")
+    #endif        
 #elif defined(SOKOL_GLES3)
-#include <GLES3/gl3.h>
+    #include <GLES3/gl3.h>
 #else
-#error "You must define SOKOL_GLCORE or SOKOL_GLES3 before including opengl.h"
+    #error("opengl.h: unknown 3D API selected; must be SOKOL_GLCORE or SOKOL_GLES3")
 #endif
