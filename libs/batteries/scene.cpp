@@ -15,9 +15,9 @@ namespace batteries
     cameracontroller.SetCamera(&camera);
     cameracontroller.Configure({
         .mode = (int)batteries::CameraController::Mode::Orbit,
-        .pitch = 30.0f,
-        .yaw = 90.0f,
         .distance = 10.0f,
+        .yaw = 90.0f,
+        .pitch = 30.0f,
     });
   }
 

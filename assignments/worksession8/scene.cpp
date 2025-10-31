@@ -10,8 +10,7 @@
 // ew
 #include "ew/procGen.h"
 
-// opengl
-#include <GLES3/gl3.h>
+#include "gl3w/gl3w.h"
 
 static glm::vec4 suzanne_orbit_radius = {2.0f, 0.0f, -2.0f, 1.0f};
 
@@ -134,7 +133,7 @@ void Scene::Render(void)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

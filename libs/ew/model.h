@@ -5,6 +5,7 @@
 #pragma once
 
 #include "mesh.h"
+#include <string>
 #include <vector>
 
 namespace ew {

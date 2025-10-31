@@ -8,7 +8,7 @@
 #include "batteries/math.h"
 
 // opengl
-#include <GLES3/gl3.h>
+#include "gl3w/gl3w.h"
 
 enum
 {
