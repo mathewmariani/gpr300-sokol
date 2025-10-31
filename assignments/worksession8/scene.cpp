@@ -10,7 +10,12 @@
 // ew
 #include "ew/procGen.h"
 
+// opengl
+#if defined(SOKOL_GLCORE)
 #include "gl3w/gl3w.h"
+#else
+#include <GLES3/gl3.h>
+#endif
 
 static glm::vec4 suzanne_orbit_radius = {2.0f, 0.0f, -2.0f, 1.0f};
 

@@ -6,7 +6,12 @@
 // ew
 #include "ew/procGen.h"
 
+// opengl
+#if defined(SOKOL_GLCORE)
 #include "gl3w/gl3w.h"
+#else
+#include <GLES3/gl3.h>
+#endif
 
 static struct
 {

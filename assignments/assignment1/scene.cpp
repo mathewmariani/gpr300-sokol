@@ -8,7 +8,12 @@
 #include "batteries/math.h"
 
 // opengl
+// opengl
+#if defined(SOKOL_GLCORE)
 #include "gl3w/gl3w.h"
+#else
+#include <GLES3/gl3.h>
+#endif
 
 enum
 {
