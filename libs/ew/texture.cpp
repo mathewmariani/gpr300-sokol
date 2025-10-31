@@ -12,15 +12,15 @@ namespace ew {
 
 Texture::Texture(const std::string& path)
 {
-	int width, height, numComponents;
-	unsigned char* data = stbi_load(path.c_str(), &width, &height, &numComponents, 0);
+	int width, height, components;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &components, 0);
 	if (data == NULL) {
 		printf("Failed to load image %s", path.c_str());
 		stbi_image_free(data);
 		return;
 	}
 
-	createTexture(0, data, width, height);
+	createTexture(0, data, width, height, components);
 	stbi_image_free(data);
 }
 
@@ -39,15 +39,15 @@ Texture::Texture(const mipmap_t& mips)
 
 	for (auto i = 0; i < 8; ++i)
 	{
-		int width, height, numComponents;
-		unsigned char* data = stbi_load(paths[i], &width, &height, &numComponents, 0);
+		int width, height, components;
+		unsigned char* data = stbi_load(paths[i], &width, &height, &components, 0);
 		if (data == NULL) {
 			printf("Failed to load image %s", paths[i]);
 			stbi_image_free(data);
 			return;
 		}
 
-		createTexture(i, data, width, height);
+		createTexture(i, data, width, height, components);
 		stbi_image_free(data);
 	}
 }
@@ -60,7 +60,7 @@ Texture::~Texture()
 	}
 }
 
-void Texture::createTexture(int level, const unsigned char *data, int width, int height)
+void Texture::createTexture(int level, const unsigned char *data, int width, int height, int components)
 {
 	if (textureID == 0)
 	{
@@ -76,8 +76,9 @@ void Texture::createTexture(int level, const unsigned char *data, int width, int
 
 	if (data)
 	{
+		GLint format = (components == 3) ? GL_RGB : GL_RGBA;
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, level, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
 	}

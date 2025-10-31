@@ -29,7 +29,7 @@ private:
 	unsigned int textureID = 0;
 	bool loaded = false;
 
-	void createTexture(int level, const unsigned char *data, int width, int height);
+	void createTexture(int level, const unsigned char *data, int width, int height, int components);
 };
 
 }
