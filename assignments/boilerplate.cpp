@@ -7,7 +7,7 @@
 #include "stb/stb_image.h"
 
 // opengl
-#include <GLES3/gl3.h>
+#include "gl3w/gl3w.h"
 
 // forward declare
 void init(void);
@@ -31,6 +31,15 @@ sapp_desc sokol_main(int argc, char* argv[])
         .logger = {
             .func = slog_func,
         },
+#if defined(SOKOL_GLCORE)
+#if defined(__APPLE__)
+        .gl_major_version = 4,
+        .gl_minor_version = 1,
+#else
+        .gl_major_version = 4,
+        .gl_minor_version = 2,
+#endif
+#endif
     };
 }
 
@@ -44,6 +53,14 @@ static Scene* scene;
 
 void init(void)
 {
+
+#if defined(SOKOL_GLCORE)
+    if (gl3wInit())
+    {
+        fprintf(stderr, "failed to initialize OpenGL\n");
+    }
+#endif
+
     glViewport(0, 0, sapp_width(), sapp_height());
 
     __dbgui_setup();
