@@ -10,11 +10,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/demos")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/libs")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/libs")
 
-# suppress warnings
-add_compile_options(-Wno-c99-designator)
-add_compile_options(-Wno-reorder-init-list)
-add_compile_options(-Wno-nontrivial-memcall)
-
 # macros
 include("extra/cmake/macros.cmake")
 include("extra/cmake/assimp.cmake")
@@ -33,3 +28,6 @@ include_directories(${THIRDPARTY_DIR})
 
 # assignments
 add_subdirectory(${ASSIGNMENTS_DIR})
+
+# assets
+copy_assets()
