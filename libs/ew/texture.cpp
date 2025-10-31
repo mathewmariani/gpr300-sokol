@@ -3,8 +3,8 @@
 // stb
 #include "stb/stb_image.h"
 
-// opengl
-#include <GLES3/gl3.h>
+// batteries
+#include "batteries/opengl.h"
 
 #include <iostream>
 
@@ -77,7 +77,7 @@ void Texture::createTexture(int level, const unsigned char *data, int width, int
 	if (data)
 	{
 		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, level, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level);
 	}

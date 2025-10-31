@@ -3,7 +3,9 @@
 */
 
 #include "mesh.h"
-#include <GLES3/gl3.h>
+
+// batteries
+#include "batteries/opengl.h"
 
 namespace ew {
 	Mesh::Mesh(const MeshData& meshData)

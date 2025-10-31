@@ -1,17 +1,13 @@
 #include "scene.h"
 
+// batteries
+#include "batteries/opengl.h"
+
 // imgui
 #include "imgui/imgui.h"
 
 // ew
 #include "ew/procGen.h"
-
-// opengl
-#if defined(SOKOL_GLCORE)
-#include "gl3w/gl3w.h"
-#else
-#include <GLES3/gl3.h>
-#endif
 
 struct
 {

@@ -12,12 +12,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/libs")
 
 # macros
 include("extra/cmake/macros.cmake")
+
+# thirdparty
 include("extra/cmake/assimp.cmake")
 include("extra/cmake/batteries.cmake")
 include("extra/cmake/dbgui.cmake")
 include("extra/cmake/ew.cmake")
 include("extra/cmake/fast_obj.cmake")
-include("extra/cmake/gl3w.cmake")
 include("extra/cmake/glm.cmake")
 include("extra/cmake/imgui.cmake")
 include("extra/cmake/sokol.cmake")

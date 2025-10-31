@@ -4,8 +4,8 @@
 
 #include "shader.h"
 
-// opengl
-#include <GLES3/gl3.h>
+// batteries
+#include "batteries/opengl.h"
 
 // glm
 #include <glm/glm.hpp>

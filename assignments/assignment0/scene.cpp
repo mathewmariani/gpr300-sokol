@@ -6,13 +6,7 @@
 // batteries
 #include "batteries/materials.h"
 #include "batteries/math.h"
-
-// opengl
-#if defined(SOKOL_GLCORE)
-#include "gl3w/gl3w.h"
-#else
-#include <GLES3/gl3.h>
-#endif
+#include "batteries/opengl.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));

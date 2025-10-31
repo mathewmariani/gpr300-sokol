@@ -12,12 +12,12 @@ if(BUILD_WITH_BATTERIES)
     ${BATTERIES_DIR}/materials.h
     ${BATTERIES_DIR}/math.cpp
     ${BATTERIES_DIR}/math.h
+    ${BATTERIES_DIR}/opengl.h
     ${BATTERIES_DIR}/scene.cpp
     ${BATTERIES_DIR}/scene.h)
 
   add_library(batteries STATIC ${BATTERIES_FILES})
 
-  target_link_libraries(batteries PRIVATE fast_obj)
   target_link_libraries(batteries PRIVATE glm)
   target_link_libraries(batteries PRIVATE sokol)
 endif()

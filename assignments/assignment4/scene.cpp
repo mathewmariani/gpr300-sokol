@@ -3,19 +3,13 @@
 
 // batteries
 #include "batteries/math.h"
+#include "batteries/opengl.h"
 
 // glm
 #include "glm/glm.hpp"
 
 // imgui
 #include "imgui/imgui.h"
-
-// opengl
-#if defined(SOKOL_GLCORE)
-#include "gl3w/gl3w.h"
-#else
-#include <GLES3/gl3.h>
-#endif
 
 // sokol
 #include "sokol/sokol_app.h"

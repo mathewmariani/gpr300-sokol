@@ -6,12 +6,8 @@
 #include "dbgui/dbgui.h"
 #include "stb/stb_image.h"
 
-// opengl
-#if defined(SOKOL_GLCORE)
-#include "gl3w/gl3w.h"
-#else
-#include <GLES3/gl3.h>
-#endif
+// batteries
+#include "batteries/opengl.h"
 
 // forward declare
 void init(void);
@@ -57,14 +53,6 @@ static Scene* scene;
 
 void init(void)
 {
-
-#if defined(SOKOL_GLCORE)
-    if (gl3wInit())
-    {
-        fprintf(stderr, "failed to initialize OpenGL\n");
-    }
-#endif
-
     glViewport(0, 0, sapp_width(), sapp_height());
 
     __dbgui_setup();

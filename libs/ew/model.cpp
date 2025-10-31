@@ -3,9 +3,13 @@
 */
 
 #include "model.h"
+
+// assimp
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+
+// glm
 #include <glm/glm.hpp>
 
 namespace ew {
