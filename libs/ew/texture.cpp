@@ -12,6 +12,16 @@ namespace ew {
 
 Texture::Texture(const std::string& path)
 {
+	int width, height, numComponents;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &numComponents, 0);
+	if (data == NULL) {
+		printf("Failed to load image %s", path.c_str());
+		stbi_image_free(data);
+		return;
+	}
+
+	createTexture(0, data, width, height);
+	stbi_image_free(data);
 }
 
 Texture::Texture(const mipmap_t& mips)
@@ -26,6 +36,20 @@ Texture::Texture(const mipmap_t& mips)
 		mips.mip6,
 		mips.mip7,
 	};
+
+	for (auto i = 0; i < 8; ++i)
+	{
+		int width, height, numComponents;
+		unsigned char* data = stbi_load(paths[i], &width, &height, &numComponents, 0);
+		if (data == NULL) {
+			printf("Failed to load image %s", paths[i]);
+			stbi_image_free(data);
+			return;
+		}
+
+		createTexture(i, data, width, height);
+		stbi_image_free(data);
+	}
 }
 
 Texture::~Texture()
@@ -60,48 +84,5 @@ void Texture::createTexture(int level, const unsigned char *data, int width, int
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-// void Texture::fetchCallback(const sfetch_response_t* response)
-// {
-// 	if (!response->fetched)
-// 	{
-// 		printf("[!!!] Failed to load texture (%s)\n", response->path);
-// 		return;
-// 	}
-
-// 	int width, height, components;
-// 	auto *pixels = stbi_load_from_memory((const stbi_uc *)response->data.ptr, response->data.size, &width, &height, &components, 4);
-
-// 	auto* self = (Texture*)(static_cast<fetch_wrapper*>(response->user_data))->ptr;
-
-// 	if (pixels)
-// 	{
-// 		self->createTexture(0, pixels, width, height);
-// 	}
-
-// 	stbi_image_free(pixels);
-// }
-
-// void Texture::fetchMipMapCallback(const sfetch_response_t* response)
-// {
-// 	if (!response->fetched)
-// 	{
-// 		printf("[!!!] Failed to load texture (%s)\n", response->path);
-// 		return;
-// 	}
-
-// 	int width, height, components;
-// 	auto *pixels = stbi_load_from_memory((const stbi_uc *)response->data.ptr, response->data.size, &width, &height, &components, 4);
-
-// 	auto instance = static_cast<mipmap_request_instance_t*>(response->user_data);
-// 	auto* self = static_cast<Texture*>(instance->ptr);
-
-// 	if (pixels)
-// 	{
-// 		self->createTexture(instance->index, pixels, width, height);
-// 	}
-
-// 	stbi_image_free(pixels);
-// }
 
 }
