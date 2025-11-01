@@ -3,15 +3,13 @@
 
 // batteries
 #include "batteries/math.h"
+#include "batteries/opengl.h"
 
 // glm
 #include "glm/glm.hpp"
 
 // imgui
 #include "imgui/imgui.h"
-
-// opengl
-#include <GLES3/gl3.h>
 
 // sokol
 #include "sokol/sokol_app.h"

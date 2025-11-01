@@ -6,9 +6,7 @@
 // batteries
 #include "batteries/materials.h"
 #include "batteries/math.h"
-
-// opengl
-#include <GLES3/gl3.h>
+#include "batteries/opengl.h"
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 static const glm::mat4 random_model_matrix = batteries::random_model_matrix(glm::vec3(0.0f));
@@ -84,7 +82,7 @@ void Scene::Render(void)
     const auto view_proj = camera.Projection() * camera.View();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

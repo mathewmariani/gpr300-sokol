@@ -19,8 +19,9 @@ if(BUILD_WITH_EW)
     ${EW_DIR}/transform.h)
 
   add_library(ew STATIC ${EW_FILES})
-  # target_include_directories(ew INTERFACE ${EW_DIR})
 
+  target_link_libraries(ew PRIVATE assimp)
+  target_link_libraries(ew PRIVATE batteries)
   target_link_libraries(ew PRIVATE fast_obj)
   target_link_libraries(ew PRIVATE glm)
   target_link_libraries(ew PRIVATE stb)

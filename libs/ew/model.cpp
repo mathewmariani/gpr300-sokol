@@ -4,106 +4,64 @@
 
 #include "model.h"
 
-// fastobj
-#include "fast_obj/fast_obj.h"
+// assimp
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 // glm
-#include "glm/vec3.hpp"
+#include <glm/glm.hpp>
 
-// sokol-fetch
-#include "sokol/sokol_fetch.h"
+namespace ew {
+	ew::Mesh processAiMesh(aiMesh* aiMesh);
 
-namespace
-{
-
-struct fetch_wrapper {
-	void *ptr;
-};
-
-}
-
-namespace ew
-{
-
-Model::Model(const std::string& path) {
-	fetch_wrapper w = {
-		.ptr = this,
-	};
-
-	sfetch_send((sfetch_request_t){
-		.path = path.c_str(),
-		.callback = fetchCallback,
-		.buffer = {
-			.ptr =  malloc(1024 * 1024 * 10),
-			.size = 1024 * 1024 * 10,
-		},
-		.user_data = SFETCH_RANGE(w),
-	});
-}
-
-void Model::draw()
-{
-	for (size_t i = 0; i < m_meshes.size(); i++)
+	Model::Model(const std::string& filePath)
 	{
-		m_meshes[i].draw();
-	}
-}
-
-void Model::createModel(const std::vector<ew::MeshData>& data)
-{
-	for (const auto& meshdata : data)
-	{
-		m_meshes.push_back({meshdata});
-	}
-}
-
-void Model::fetchCallback(const sfetch_response_t* response)
-{
-	if (!response->fetched)
-	{
-		printf("[!!!] Failed to load model (%s)\n", response->path);
-		return;
-	}
-
-	auto* self = (Model*)(static_cast<fetch_wrapper*>(response->user_data))->ptr;
-	printf("Scene.model at: %p\n", (void*)self);
-
-	auto obj = fast_obj_read((const char *)response->data.ptr, response->data.size);
-
-	std::vector<MeshData> data;
-
-	for (auto i = 0; i < obj->group_count; ++i)
-	{
-		ew::MeshData mesh;
-		auto group = obj->groups[i];
-		for (auto j = 0; j < group.face_count * 3; ++j)
+		Assimp::Importer importer;
+		const aiScene* aiScene = importer.ReadFile(filePath, aiProcess_Triangulate);
+		for (size_t i = 0; i < aiScene->mNumMeshes; i++)
 		{
-			auto indices = obj->indices[j];
-			mesh.vertices.push_back((ew::Vertex) {
-				.pos{
-					*((obj->positions + indices.p * 3) + 0),
-					*((obj->positions + indices.p * 3) + 1),
-					*((obj->positions + indices.p * 3) + 2),
-				},
-				.normal = {
-					*((obj->normals + indices.n * 3) + 0),
-					*((obj->normals + indices.n * 3) + 1),
-					*((obj->normals + indices.n * 3) + 2),
-				},
-				.uv = {
-					*((obj->texcoords + indices.t * 2) + 0),
-					*((obj->texcoords + indices.t * 2) + 1),
-				},
-			});
-			mesh.indices.push_back(j);
+			aiMesh* aiMesh = aiScene->mMeshes[i];
+			m_meshes.push_back(processAiMesh(aiMesh));
 		}
-
-		data.push_back({mesh});
 	}
 
-	self->createModel(data);
+	void Model::draw()
+	{
+		for (size_t i = 0; i < m_meshes.size(); i++)
+		{
+			m_meshes[i].draw();
+		}
+	}
 
-	fast_obj_destroy(obj);
-}
+	glm::vec3 convertAIVec3(const aiVector3D& v) {
+		return glm::vec3(v.x, v.y, v.z);
+	}
+
+	//Utility functions local to this file
+	ew::Mesh processAiMesh(aiMesh* aiMesh) {
+		ew::MeshData meshData;
+		for (size_t i = 0; i < aiMesh->mNumVertices; i++)
+		{
+			ew::Vertex vertex;
+			vertex.pos = convertAIVec3(aiMesh->mVertices[i]);
+			if (aiMesh->HasNormals()) {
+				vertex.normal = convertAIVec3(aiMesh->mNormals[i]);
+			}
+			if (aiMesh->HasTextureCoords(0)) {
+				vertex.uv = glm::vec2(convertAIVec3(aiMesh->mTextureCoords[0][i]));
+			}
+			meshData.vertices.push_back(vertex);
+		}
+		//Convert faces to indices
+		for (size_t i = 0; i < aiMesh->mNumFaces; i++)
+		{
+			for (size_t j = 0; j < aiMesh->mFaces[i].mNumIndices; j++)
+			{
+				meshData.indices.push_back(aiMesh->mFaces[i].mIndices[j]);
+			}
+		}
+		return ew::Mesh(meshData);
+	}
 
 }

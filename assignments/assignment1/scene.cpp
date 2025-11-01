@@ -6,9 +6,7 @@
 // batteries
 #include "batteries/materials.h"
 #include "batteries/math.h"
-
-// opengl
-#include <GLES3/gl3.h>
+#include "batteries/opengl.h"
 
 enum
 {

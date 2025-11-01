@@ -1,14 +1,13 @@
 // sokol
 #include "sokol/sokol_app.h"
-#include "sokol/sokol_fetch.h"
 #include "sokol/sokol_log.h"
 
 // libs
 #include "dbgui/dbgui.h"
 #include "stb/stb_image.h"
 
-// opengl
-#include <GLES3/gl3.h>
+// batteries
+#include "batteries/opengl.h"
 
 // forward declare
 void init(void);
@@ -32,6 +31,15 @@ sapp_desc sokol_main(int argc, char* argv[])
         .logger = {
             .func = slog_func,
         },
+#if defined(SOKOL_GLCORE)
+#if defined(__APPLE__)
+        .gl_major_version = 4,
+        .gl_minor_version = 1,
+#else
+        .gl_major_version = 4,
+        .gl_minor_version = 2,
+#endif
+#endif
     };
 }
 
@@ -45,14 +53,6 @@ static Scene* scene;
 
 void init(void)
 {
-    // setup sokol-fetch
-    sfetch_setup({
-        .max_requests = 24,
-        .num_channels = 1,
-        .num_lanes = 1,
-        .logger.func = slog_func,
-    });
-
     glViewport(0, 0, sapp_width(), sapp_height());
 
     __dbgui_setup();
@@ -68,7 +68,6 @@ void cleanup(void)
     scene = nullptr;
 
     __dbgui_shutdown();
-    sfetch_shutdown();
 }
 
 void frame(void)
@@ -76,8 +75,6 @@ void frame(void)
     const auto t = (float)sapp_frame_duration();
     const auto w = sapp_width();
     const auto h = sapp_height();
-
-    sfetch_dowork();
 
     scene->Update(t);
     scene->Render();

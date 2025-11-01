@@ -10,11 +10,12 @@ extern "C"
   void __dbgui_setup(void)
   {
     ImGui::CreateContext();
-	  ImGui_ImplOpenGL3_Init();
+    ImGui_ImplOpenGL3_Init();
   }
 
   void __dbgui_shutdown(void)
   {
+    ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
   }
 
@@ -31,7 +32,7 @@ extern "C"
   void __dbgui_end(void)
   {
     ImGui::Render();
-	  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
   }
 
   bool __dbgui_event(const sapp_event *ev)

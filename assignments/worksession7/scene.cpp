@@ -1,13 +1,13 @@
 #include "scene.h"
 
+// batteries
+#include "batteries/opengl.h"
+
 // imgui
 #include "imgui/imgui.h"
 
 // ew
 #include "ew/procGen.h"
-
-// opengl
-#include <GLES3/gl3.h>
 
 struct
 {
@@ -45,7 +45,7 @@ void Scene::Render(void)
     const auto view_proj = camera.Projection() * camera.View();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

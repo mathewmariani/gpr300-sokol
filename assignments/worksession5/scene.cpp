@@ -3,12 +3,10 @@
 // batteries
 #include "batteries/materials.h"
 #include "batteries/math.h"
+#include "batteries/opengl.h"
 
 // imgui
 #include "imgui/imgui.h"
-
-// opengl
-#include <GLES3/gl3.h>
 
 static glm::vec4 light_orbit_radius = {2.0f, 0.0f, 2.0f, 1.0f};
 

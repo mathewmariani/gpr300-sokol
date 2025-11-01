@@ -4,9 +4,6 @@
 
 #pragma once
 
-// sokol
-#include "sokol/sokol_fetch.h"
-
 #include <string>
 #include <glm/glm.hpp>
 
@@ -14,9 +11,6 @@ namespace ew {
 	unsigned int createShaderProgram(unsigned int vertex, unsigned int fragment);
 
 	class Shader {
-	private:
-		static void fetchCallback(const sfetch_response_t* response);
-
 	public:
 		Shader() = default;
 		Shader(const std::string& vertex, const std::string& fragment);
@@ -34,6 +28,5 @@ namespace ew {
 		unsigned int m_id = 0; //Shader program handle
 		unsigned int vertex = 0; //Shader program handle
 		unsigned int fragment = 0; //Shader program handle
-
 	};
 }

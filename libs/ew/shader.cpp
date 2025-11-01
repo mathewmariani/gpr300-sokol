@@ -4,64 +4,32 @@
 
 #include "shader.h"
 
-// sokol
-#include "sokol/sokol_fetch.h"
-
-// opengl
-#include <GLES3/gl3.h>
+// batteries
+#include "batteries/opengl.h"
 
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace
-{
-
-static uint8_t file_buffer[1024 * 1024 * 10];
-
-struct fetch_shader_wrapper
-{
-	void *ptr;
-	GLuint vertex;
-	GLuint fragment;
-};
-
-struct shader_request_instance_t
-{
-	int index;
-	void *ptr;
-};
-
-}
+#include <fstream>
+#include <sstream>
 
 namespace ew
 {
-	Shader::Shader(const std::string& vertex, const std::string& fragment)
-	{
-		fetch_shader_wrapper w = {
-			.ptr = this,
-			.vertex = 0,
-			.fragment = 0,
-		};
-
-		const char* stages[2] = {
-			vertex.c_str(),
-			fragment.c_str(),
-		};
-
-		for (auto i = 0; i < 2; ++i) {
-			shader_request_instance_t instance = {
-				.index = i,
-				.ptr = this,
-			};
-
-			sfetch_send((sfetch_request_t){
-				.path = stages[i],
-				.callback = fetchCallback,
-				.buffer = SFETCH_RANGE(file_buffer),
-				.user_data = SFETCH_RANGE(instance),
-			});
+	/// <summary>
+	/// Loads shader source code from a file.
+	/// </summary>
+	/// <param name="filePath"></param>
+	/// <returns></returns>
+	std::string loadShaderSourceFromFile(const std::string& filePath) {
+		std::ifstream fstream(filePath);
+		if (!fstream.is_open()) {
+			printf("Failed to load file %s", filePath.c_str());
+			return {};
 		}
+		std::stringstream buffer;
+		buffer << fstream.rdbuf();
+		return buffer.str();
 	}
 
 	/// <summary>
@@ -94,12 +62,14 @@ namespace ew
 	/// <param name="vertexShaderSource">GLSL source code for the vertex shader</param>
 	/// <param name="fragmentShaderSource">GLSL source code for the fragment shader</param>
 	/// <returns></returns>
-	unsigned int createShaderProgram(unsigned int vertex, unsigned int fragment) {
-		unsigned int shaderProgram = glCreateProgram();
+	unsigned int createShaderProgram(const char* vertexShaderSource, const char* fragmentShaderSource) {
+		unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
+		unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
+		unsigned int shaderProgram = glCreateProgram();
 		//Attach each stage
-		glAttachShader(shaderProgram, vertex);
-		glAttachShader(shaderProgram, fragment);
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
 		//Link all the stages together
 		glLinkProgram(shaderProgram);
 		int success;
@@ -110,9 +80,16 @@ namespace ew
 			printf("Failed to link shader program: %s", infoLog);
 		}
 		//The linked program now contains our compiled code, so we can delete these intermediate objects
-		glDeleteShader(vertex);
-		glDeleteShader(fragment);
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
 		return shaderProgram;
+	}
+
+	Shader::Shader(const std::string& vertex, const std::string& fragment)
+	{
+		std::string vertexShaderSource = ew::loadShaderSourceFromFile(vertex.c_str());
+		std::string fragmentShaderSource = ew::loadShaderSourceFromFile(fragment.c_str());
+		m_id = ew::createShaderProgram(vertexShaderSource.c_str(), fragmentShaderSource.c_str());
 	}
 
 	void Shader::use()const
@@ -156,42 +133,5 @@ namespace ew
 	void Shader::setMat4(const std::string& name, const glm::mat4& m) const
 	{
 		glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(m));
-	}
-
-	void Shader::fetchCallback(const sfetch_response_t* response)
-	{
-		if (!response->fetched)
-		{
-			printf("[!!!] Failed to load shader file (%s)\n", response->path);
-			return;
-		}
-
-		char* source = (char*)malloc(response->data.size + 1);
-		if (source) {
-			memcpy(source, response->data.ptr, response->data.size);
-			source[response->data.size] = '\0';
-		}
-
-		// create shader stage
-		auto instance = static_cast<shader_request_instance_t*>(response->user_data);
-		auto* self = static_cast<Shader*>(instance->ptr);
-		GLenum stage = (instance->index == 0) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
-
-		switch (stage)
-		{
-			case GL_VERTEX_SHADER:
-				self->vertex = createShader(stage, source);
-				break;
-			case GL_FRAGMENT_SHADER:
-				self->fragment = createShader(stage, source);
-				break;
-		};
-
-		if (self->vertex != 0 && self->fragment != 0)
-		{
-			self->m_id = createShaderProgram(self->vertex, self->fragment);
-		}
-
-		free(source);
 	}
 }

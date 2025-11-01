@@ -1,10 +1,10 @@
 #include "scene.h"
 
+// batteries
+#include "batteries/opengl.h"
+
 // imgui
 #include "imgui/imgui.h"
-
-// opengl
-#include <GLES3/gl3.h>
 
 Scene::Scene()
 {

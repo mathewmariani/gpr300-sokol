@@ -3,6 +3,9 @@
 // batteries
 #include "camera.h"
 
+#include <memory>
+#include <vector>
+
 namespace batteries
 {
   class Scene

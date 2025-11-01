@@ -2,15 +2,13 @@
 
 // batteries
 #include "batteries/math.h"
+#include "batteries/opengl.h"
 
 // ew
 #include "ew/procGen.h"
 
 // imgui
 #include "imgui/imgui.h"
-
-// opengl
-#include <GLES3/gl3.h>
 
 constexpr int kFramebufferWidth = 800;
 constexpr int kFramebufferHeight = 600;

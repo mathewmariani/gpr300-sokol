@@ -1,8 +1,5 @@
 #pragma once
 
-// sokol
-#include "sokol/sokol_fetch.h"
-
 #include <string>
 
 namespace ew {
@@ -32,9 +29,7 @@ private:
 	unsigned int textureID = 0;
 	bool loaded = false;
 
-	void createTexture(int level, const unsigned char *data, int width, int height);
-	static void fetchCallback(const sfetch_response_t* response);
-	static void fetchMipMapCallback(const sfetch_response_t* response);
+	void createTexture(int level, const unsigned char *data, int width, int height, int components);
 };
 
 }

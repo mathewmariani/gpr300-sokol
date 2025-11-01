@@ -5,28 +5,15 @@
 #pragma once
 
 #include "mesh.h"
-
-// sokol
-#include "sokol/sokol_fetch.h"
-
 #include <string>
 #include <vector>
 
 namespace ew {
-
-class Model {
-public:
-	explicit Model(const std::string &path);
-	~Model() = default;
-
-	void draw();
-
-public:
-	std::vector<ew::Mesh> m_meshes;
-
-private:
-	void createModel(const std::vector<ew::MeshData>& data);
-	static void fetchCallback(const sfetch_response_t* response);
-};
-
+	class Model {
+	public:
+		Model(const std::string& filePath);
+		void draw();
+	private:
+		std::vector<ew::Mesh> m_meshes;
+	};
 }
