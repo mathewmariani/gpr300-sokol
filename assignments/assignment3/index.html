@@ -32,6 +32,13 @@
   window.onerror = function (event) {
     console.log("onerror: " + event.message);
   };
+</script> <script type="text/javascript">
+  var Module = {
+    locateFile: function(path) {
+      if (path.endsWith('.data')) return `/gpr300-sokol/demos/${path}`;
+      return path;
+    }
+  };
 </script> <script type="text/javascript" src="demos/assets.js" async></script> <script type="text/javascript" src="demos/assignment3.js" async></script>  <p>In this assignment, we will be implementing deferred shading. This is a popular screen-space shading technique that allows many lights to be rendered on the scene without a significant performance hit.</p>
 <h4 id="requirements">Requirements</h4>
 <ol>

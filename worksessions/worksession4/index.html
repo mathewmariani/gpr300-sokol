@@ -32,6 +32,13 @@
   window.onerror = function (event) {
     console.log("onerror: " + event.message);
   };
+</script> <script type="text/javascript">
+  var Module = {
+    locateFile: function(path) {
+      if (path.endsWith('.data')) return `/gpr300-sokol/demos/${path}`;
+      return path;
+    }
+  };
 </script> <script type="text/javascript" src="demos/assets.js" async></script> <script type="text/javascript" src="demos/worksession4.js" async></script>  <h4 id="goal">Goal</h4>
 <p>The goal of this work-session is to explore the power of textures. We will be using a texture as a lookup table to map values from our vertex lighting calculation onto a range authored by an artist.</p>
 <h4 id="instructions">Instructions</h4>

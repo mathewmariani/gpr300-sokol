@@ -32,6 +32,13 @@
   window.onerror = function (event) {
     console.log("onerror: " + event.message);
   };
+</script> <script type="text/javascript">
+  var Module = {
+    locateFile: function(path) {
+      if (path.endsWith('.data')) return `/gpr300-sokol/demos/${path}`;
+      return path;
+    }
+  };
 </script> <script type="text/javascript" src="demos/assets.js" async></script> <script type="text/javascript" src="demos/assignment0.js" async></script>  <h4 id="goal">Goal</h4>
 <p>The goal of this assignment is setup and get comfortable with our <a href="environment.html">development environment</a>, and refamiliarize ourselves with the graphics pipeline and ImGUI by implementing the <a href="https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model">blinn-phong</a> reflection model with materials.</p>
 <h4 id="requirements">Requirements</h4>
