@@ -74,7 +74,7 @@
       }
 
       var fetchPromise;
-      var fetched = Module['getPreloadedPackage']?.(REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE);
+      var fetched = Module['getPreloadedPackage'] && Module['getPreloadedPackage'](REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE);
 
       if (!fetched) {
         // Note that we don't use await here because we want to execute the
@@ -108,10 +108,10 @@ Module['FS_createPath']("/assets/windwaker", "island", true, true);
 Module['FS_createPath']("/assets/windwaker", "pot_water", true, true);
 Module['FS_createPath']("/assets/windwaker", "skull", true, true);
 
-      for (var file of metadata['files']) {
-        var name = file['filename']
-        Module['addRunDependency'](`fp ${name}`);
-      }
+    for (var file of metadata['files']) {
+      var name = file['filename']
+      Module['addRunDependency'](`fp ${name}`);
+    }
 
       async function processPackageData(arrayBuffer) {
         assert(arrayBuffer, 'Loading data file failed.');
@@ -123,8 +123,8 @@ Module['FS_createPath']("/assets/windwaker", "skull", true, true);
             var name = file['filename'];
             var data = byteArray.subarray(file['start'], file['end']);
             // canOwn this data in the filesystem, it is a slice into the heap that will never change
-          Module['FS_createDataFile'](name, null, data, true, true, true);
-          Module['removeRunDependency'](`fp ${name}`);
+        Module['FS_createDataFile'](name, null, data, true, true, true);
+        Module['removeRunDependency'](`fp ${name}`);
           }
           Module['removeRunDependency']('datafile_/home/runner/work/gpr300-sokol/gpr300-sokol/build/web/demos/Release//assets.data');
       }
