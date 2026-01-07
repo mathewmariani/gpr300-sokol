@@ -53,6 +53,16 @@ static Scene* scene;
 
 void init(void)
 {
+#if defined(_WIN32)
+	if (gl3wInit()) {
+		fprintf(stderr, "failed to initialize OpenGL\n");
+	}
+	if (!gl3wIsSupported(3, 2)) {
+		fprintf(stderr, "OpenGL 3.2 not supported\n");
+	}
+	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+#endif
+
     glViewport(0, 0, sapp_width(), sapp_height());
 
     __dbgui_setup();

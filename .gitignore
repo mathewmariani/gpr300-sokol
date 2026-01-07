@@ -5,6 +5,9 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# visual studios
+/.vs
+
 # build output
 build/
 dist/
