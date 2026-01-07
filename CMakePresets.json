@@ -1,0 +1,74 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 21,
+      "patch": 0
+  },
+  "configurePresets": [
+      {
+          "name": "desktop-debug",
+          "displayName": "Desktop Debug",
+          "generator": "Ninja Multi-Config",
+          "binaryDir": "build/desktop",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Debug"
+          }
+      },
+      {
+          "name": "desktop-release",
+          "displayName": "Desktop Release",
+          "generator": "Ninja Multi-Config",
+          "binaryDir": "build/desktop",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release"
+          }
+      },
+      {
+          "name": "web-debug",
+          "displayName": "Web Debug",
+          "generator": "Ninja Multi-Config",
+          "binaryDir": "build/web",
+          "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Debug"
+          }
+      },
+      {
+          "name": "web-release",
+          "displayName": "Web Release",
+          "generator": "Ninja Multi-Config",
+          "binaryDir": "build/web",
+          "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release"
+          }
+      }
+  ],
+  "buildPresets": [
+      {
+          "name": "desktop-debug-build",
+          "displayName": "Build Desktop Debug",
+          "configurePreset": "desktop-debug",
+          "configuration": "Debug"
+      },
+      {
+          "name": "desktop-release-build",
+          "displayName": "Build Desktop Release",
+          "configurePreset": "desktop-release",
+          "configuration": "Release"
+      },
+      {
+          "name": "web-debug-build",
+          "displayName": "Build Web Debug",
+          "configurePreset": "web-debug",
+          "configuration": "Debug"
+      },
+      {
+          "name": "web-release-build",
+          "displayName": "Build Web Release",
+          "configurePreset": "web-release",
+          "configuration": "Release"
+      }
+  ]
+}
