@@ -14,6 +14,8 @@ if(BUILD_WITH_SOKOL)
 
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
+  else()
+    add_definitions(-DSOKOL_GLCORE)
   endif()
 
   set(SOKOL_DIR ${THIRDPARTY_DIR}/sokol)
@@ -28,11 +30,12 @@ if(BUILD_WITH_SOKOL)
     target_link_libraries(sokol
         "-framework QuartzCore"
         "-framework Cocoa"
-        "-framework OpenGL")
-  else()
-    if (CMAKE_SYSTEM_NAME STREQUAL Linux)
-      target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m)
-      target_link_libraries(sokol PUBLIC Threads::Threads)
-    endif()
+        "-framework OpenGL"
+        "-framework AudioToolbox")
+  elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
+    target_link_libraries(sokol INTERFACE X11 Xi Xcursor GL asound dl m)
+    target_link_libraries(sokol PUBLIC Threads::Threads)
+  elseif (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    target_link_libraries(sokol PUBLIC kernel32 user32 shell32)
   endif()
 endif()

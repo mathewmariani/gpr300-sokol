@@ -2,7 +2,9 @@
 
 // opengl
 #if defined(SOKOL_GLCORE)
-    #if defined(__APPLE__)
+    #if defined(__WIN32)
+        #include "gl3w/include/GL/gl3w.h"
+    #elif defined(__APPLE__)
         #include <OpenGL/gl3.h>
         #include <OpenGL/gl3ext.h>
     #elif defined(__linux__) || defined(__unix__)

@@ -20,4 +20,7 @@ if(BUILD_WITH_BATTERIES)
 
   target_link_libraries(batteries PRIVATE glm)
   target_link_libraries(batteries PRIVATE sokol)
+  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    target_link_libraries(batteries PRIVATE gl3w)
+  endif()
 endif()

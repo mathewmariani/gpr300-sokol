@@ -72,6 +72,10 @@ macro(add_assignment target sources)
   target_link_libraries(${target} PRIVATE sokol)
   target_link_libraries(${target} PRIVATE stb)
 
+  if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+    target_link_libraries(${target} PRIVATE gl3w)
+  endif()
+
   # include directories
   target_include_directories(${target} PUBLIC .)
   target_include_directories(${target} PUBLIC ../../libs)
