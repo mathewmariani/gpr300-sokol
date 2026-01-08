@@ -2,6 +2,11 @@
 
 // imgui
 #include "imgui/imgui.h"
+#include "imguizmo/imguizmo.h"
+
+// glm
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 // batteries
 #include "batteries/opengl.h"
@@ -33,6 +38,7 @@ void Scene::Render(void)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
+    // glDisable(GL_DEPTH_TEST);
 
     blinnphong->use();
 
@@ -47,6 +53,15 @@ void Scene::Render(void)
 
 void Scene::Debug(void)
 {
+    ImGuizmo::BeginFrame();
+    ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
+    ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+    glm::mat4 m{1.0f};
+    auto *view = glm::value_ptr(camera.View());
+    auto *proj = glm::value_ptr(camera.Projection());
+    ImGuizmo::DrawGrid(view, proj, glm::value_ptr(m), 100.0f);
+
     cameracontroller.Debug();
 
     ImGui::Begin("Controlls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
