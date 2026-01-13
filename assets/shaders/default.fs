@@ -10,7 +10,7 @@ in vec3 vs_normal;
 in vec2 vs_texcoord;
 
 vec3 effect() {
-  return normalize(vs_position.rgb);
+  return normalize(vs_normal.rgb);
 }
 
 void main()

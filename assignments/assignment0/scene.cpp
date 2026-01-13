@@ -28,6 +28,8 @@ void Scene::Update(float dt)
     /* body */
 }
 
+auto matrix = glm::mat4(1.0f);
+
 void Scene::Render(void)
 {
     const auto view_proj = camera.Projection() * camera.View();
@@ -43,7 +45,7 @@ void Scene::Render(void)
     blinnphong->use();
 
     // scene matrices
-    blinnphong->setMat4("model", glm::mat4(1.0f));
+    blinnphong->setMat4("model", matrix);
     blinnphong->setMat4("view_proj", view_proj);
     blinnphong->setVec3("camera_position", camera.position);
 
@@ -60,7 +62,16 @@ void Scene::Debug(void)
     glm::mat4 m{1.0f};
     auto *view = glm::value_ptr(camera.View());
     auto *proj = glm::value_ptr(camera.Projection());
+    
     ImGuizmo::DrawGrid(view, proj, glm::value_ptr(m), 100.0f);
+
+    ImGuizmo::Manipulate(
+        view,
+        proj,
+        ImGuizmo::ROTATE,
+        ImGuizmo::WORLD,
+        glm::value_ptr(matrix)
+    );
 
     cameracontroller.Debug();
 
