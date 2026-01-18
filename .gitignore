@@ -31,3 +31,4 @@ assignments/**/*.glsl.h
 
 # macOS
 .DS_Store
+imgui.ini
