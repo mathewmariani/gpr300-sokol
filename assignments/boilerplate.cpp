@@ -9,6 +9,10 @@
 // batteries
 #include "batteries/opengl.h"
 
+// tracy
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
+
 // forward declare
 void init(void);
 void cleanup(void);
@@ -60,8 +64,11 @@ void init(void)
 	if (!gl3wIsSupported(3, 2)) {
 		fprintf(stderr, "OpenGL 3.2 not supported\n");
 	}
-	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 #endif
+
+    TracyGpuContext;
+
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     glViewport(0, 0, sapp_width(), sapp_height());
 
@@ -82,12 +89,24 @@ void cleanup(void)
 
 void frame(void)
 {
+    ZoneScoped;
+
     const auto t = (float)sapp_frame_duration();
     const auto w = sapp_width();
     const auto h = sapp_height();
 
-    scene->Update(t);
-    scene->Render();
+    {
+        ZoneScopedN("Update");
+        scene->Update(t);
+    }
+
+    {
+        ZoneScopedN("Render");
+        TracyGpuZone("Scene Render");
+        scene->Render();
+    }
+
+    TracyGpuCollect;
 
     // draw ui
     __dbgui_begin();
