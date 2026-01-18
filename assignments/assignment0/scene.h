@@ -1,6 +1,8 @@
 #pragma once
 
 // batteries
+#include "batteries/lights.h"
+#include "batteries/materials.h"
 #include "batteries/scene.h"
 
 // ew
@@ -21,4 +23,7 @@ class Scene final : public batteries::Scene
   private:
     std::unique_ptr<ew::Model> suzanne;
     std::unique_ptr<ew::Shader> blinnphong;
+
+    batteries::light_t light;
+    batteries::material_t material;
 };
