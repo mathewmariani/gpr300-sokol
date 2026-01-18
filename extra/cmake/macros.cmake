@@ -72,6 +72,7 @@ macro(add_assignment target sources)
   target_link_libraries(${target} PRIVATE sokol)
   target_link_libraries(${target} PRIVATE stb)
   target_link_libraries(${target} PRIVATE imguizmo)
+  target_link_libraries(${target} PRIVATE tracy)
 
   if (CMAKE_SYSTEM_NAME STREQUAL Windows)
     target_link_libraries(${target} PRIVATE gl3w)
