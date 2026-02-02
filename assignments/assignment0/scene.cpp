@@ -143,6 +143,10 @@ void Scene::Debug(void)
     ImGui::SliderFloat("Time Factor", &time.factor, 0.0f, 10.0f);
 
     /* build debug ui here */
+    ImGui::SliderFloat3("Ambient", &material.ambient[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Diffuse", &material.diffuse[0], 0.0f, 1.0f);
+    ImGui::SliderFloat3("Specular", &material.specular[0], 0.0f, 1.0f);
+    ImGui::SliderFloat("Shininess", &material.shininess, 0.0f, 1.0f);
 
     ImGui::End();
 }
