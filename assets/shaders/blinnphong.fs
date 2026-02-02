@@ -25,7 +25,7 @@ in vec3 vs_normal;
 in vec2 vs_texcoord;
 
 // uniforms
-// uniform sampler2D texture0;
+uniform sampler2D texture0;
 uniform Material material;
 uniform Ambient ambient;
 uniform Light light;
@@ -51,8 +51,8 @@ vec3 blinnPhong(vec3 normal, vec3 frag_pos, vec3 light_pos, vec3 light_color) {
 void main()
 {
   vec3 normal = normalize(vs_normal);
-  // vec3 object_color = texture(texture0, vs_texcoord).rgb;
-  vec3 object_color = (normal * 0.5 + 0.5);
+  vec3 object_color = texture(texture0, vs_texcoord).rgb;
+  //vec3 object_color = (normal * 0.5 + 0.5);
   vec3 light_color = blinnPhong(normal, vs_position, light.position, light.color);
   // light_color += ambient.color * material.ambient;
 

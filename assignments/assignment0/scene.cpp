@@ -15,6 +15,7 @@ Scene::Scene()
 {
     suzanne = std::make_unique<ew::Model>("assets/models/suzanne.obj");
     blinnphong = std::make_unique<ew::Shader>("assets/shaders/default.vs", "assets/shaders/blinnphong.fs");
+    texture = std::make_unique<ew::Texture>("assets/textures/brick_color.jpg");
 
     camera.position = {3.5f, 2.5f, 4.0f};
 
@@ -56,7 +57,14 @@ void Scene::Render(void)
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
+    // set bindings
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture->getID());
+
     blinnphong->use();
+
+    // samplers
+    blinnphong->setInt("texture0", 0);
 
     // scene matrices
     blinnphong->setMat4("model", matrix);
