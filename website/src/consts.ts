@@ -1,4 +1,4 @@
-export const SITE_TITLE = 'GPR-300';
+export const PROJECT_NAME = 'GPR-300';
 export const SITE_DESCRIPTION = '';
 
 export const HomeLink = (): string => '/';

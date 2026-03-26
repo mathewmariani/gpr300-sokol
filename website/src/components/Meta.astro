@@ -1,7 +1,7 @@
 ---
 import "@/styles/global.css";
 
-import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
+import { PROJECT_NAME, SITE_DESCRIPTION } from "@/consts";
 ---
 
 <base href="/gpr300-sokol/" />
@@ -20,20 +20,20 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "@/consts";
 />
 
 <!-- primary -->
-<title>{SITE_TITLE}</title>
-<meta name="title" content={SITE_TITLE} />
+<title>{PROJECT_NAME}</title>
+<meta name="title" content={PROJECT_NAME} />
 <meta name="description" content={SITE_DESCRIPTION} />
 
 <!-- open graph -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content={Astro.url} />
-<meta property="og:title" content={SITE_TITLE} />
+<meta property="og:title" content={PROJECT_NAME} />
 <meta property="og:description" content={SITE_DESCRIPTION} />
 <!-- <meta property="og:image" content={new URL(image, Astro.url)} /> -->
 
 <!-- twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
-<meta property="twitter:title" content={SITE_TITLE} />
+<meta property="twitter:title" content={PROJECT_NAME} />
 <meta property="twitter:description" content={SITE_DESCRIPTION} />
 <!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> -->
