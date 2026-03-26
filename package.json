@@ -12,6 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@mathewmariani/sugar": "github:mathewmariani/sugar",
     "bootstrap": "^5.3.8"
   },
   "devDependencies": {

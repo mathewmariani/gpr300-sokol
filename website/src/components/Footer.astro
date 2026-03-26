@@ -1,8 +1,20 @@
 ---
+const path = Astro.url.pathname;
+
+const links = [
+    // { href: '/projects', label: 'Other Projects' },
+];
 ---
-<footer>
-    <hr>
-    <p class="text-center text-mutes">Made with <span id="with-love">❤️</span> in Montréal.</p>
+
+<footer class="footer py-3">
+    <div class="container vstack gap-2">
+        {
+            links
+                .filter((link) => link.href !== path)
+                .map((link) => <a class="list-item list-item-navigation" href={link.href}>{link.label}</a>)
+        }
+
+        <a class="list-item list-item-info" href="/resume">Contact Me</a>
+        <!-- <p class="list-item list-item-info">Made with in Montreal</p> -->
+    </div>
 </footer>
-<style>
-</style>

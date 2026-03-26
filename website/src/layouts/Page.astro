@@ -1,22 +1,29 @@
 ---
 import Meta from "@/components/Meta.astro";
 import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@mathewmariani/sugar/css/sugar.css';
 ---
 
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 	<head>
 		<Meta />
 	</head>
 
-	<body class="container" id="top">
+	<body>
+		<Header />
 		<main>
-			<article>
+			<div class="container">
 				<slot />
-			</article>
+			</div>
 		</main>
 		<Footer />
 
-		<script src="/gpr300-sokol/sugar.js" is:inline></script>
+		<script>
+			import '@mathewmariani/sugar/js/sugar.js';
+		</script>
 	</body>
 </html>
 <style></style>
